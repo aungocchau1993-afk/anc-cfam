@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-bg font-sans; color: #e6edf3; }
+  * { @apply box-border; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded; }
+}
+
+@layer components {
+  .card       { @apply bg-surface border border-border rounded-xl p-5; }
+  .card-green { @apply bg-gradient-to-br from-[#0d4429] to-[#1a6b3d] border-[#2d5a3d] rounded-xl p-5; }
+  .card-blue  { @apply bg-gradient-to-br from-[#0c2d54] to-[#1a4a7a] border-[#1a4a7a] rounded-xl p-5; }
+  .card-purple{ @apply bg-gradient-to-br from-[#2d1b69] to-[#4a2d99] border-[#4a2d99] rounded-xl p-5; }
+  .card-red   { @apply bg-gradient-to-br from-[#4a1c1c] to-[#7a2c2c] border-[#7a2c2c] rounded-xl p-5; }
+  .card-gold  { @apply bg-gradient-to-br from-[#3d2800] to-[#6b4400] border-[#6b4400] rounded-xl p-5; }
+
+  .btn-primary { @apply bg-accent hover:opacity-85 text-white font-semibold px-4 py-2 rounded-lg transition-opacity cursor-pointer border-0; }
+  .btn-ghost   { @apply bg-surface2 hover:bg-border text-muted hover:text-[#e6edf3] px-3 py-1.5 rounded-lg text-sm transition-colors cursor-pointer border border-border; }
+
+  .input-base  { @apply bg-surface2 border border-border text-[#e6edf3] px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-cblue transition-colors w-full; }
+  .input-money { @apply bg-[rgba(31,111,235,0.08)] border border-[rgba(88,166,255,0.3)] text-cblue px-3 py-2 rounded-lg text-sm text-right font-mono focus:outline-none focus:border-cblue focus:bg-[rgba(31,111,235,0.18)] transition-colors w-full; }
+
+  .nav-item    { @apply flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-muted text-sm font-medium transition-all hover:bg-surface2 hover:text-[#e6edf3]; }
+  .nav-active  { @apply bg-[rgba(31,111,235,0.2)] text-cblue; }
+
+  .tag-green  { @apply bg-[rgba(63,185,80,0.15)] text-cgreen text-xs font-bold px-2 py-0.5 rounded; }
+  .tag-red    { @apply bg-[rgba(248,81,73,0.15)] text-cred text-xs font-bold px-2 py-0.5 rounded; }
+  .tag-blue   { @apply bg-[rgba(88,166,255,0.1)] text-cblue text-xs font-bold px-2 py-0.5 rounded; }
+}

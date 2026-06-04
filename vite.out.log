@@ -1,0 +1,48 @@
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m536[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+[2m09:16:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Sidebar.jsx, /src/index.css[22m
+[2m09:23:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/portfolio/PortfolioModal.jsx, /src/index.css[22m
+[2m09:27:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m09:28:00[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m09:28:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Sidebar.jsx, /src/index.css[22m
+[2m09:28:39[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Topbar.jsx, /src/index.css[22m
+[2m09:29:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/MonthlyInput.jsx, /src/index.css[22m
+[2m09:30:11[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/MonthlyInput.jsx, /src/index.css[22m
+[2m09:32:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/QuarterlyCashFlow.jsx, /src/index.css[22m
+[2m09:33:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AnnualSummary.jsx, /src/index.css[22m
+[2m09:33:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/QuarterlyCashFlow.jsx, /src/index.css[22m
+[2m09:43:01[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx[22m
+[2m09:43:01[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m09:43:01[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx[22m
+[2m09:43:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m09:43:07[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m09:43:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx[22m
+[2m09:43:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m09:43:13[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m09:43:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx[22m
+[2m09:43:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m09:43:18[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m09:43:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx[22m
+[2m09:43:22[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m09:43:22[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m09:43:22[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx[22m
+[2m09:43:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m09:43:26[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m09:43:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx[22m
+[2m09:43:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m09:43:32[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m09:43:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx[22m
+[2m09:45:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CreditCardManager.jsx, /src/index.css[22m
+[2m10:23:40[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/MonthlyInput.jsx, /src/index.css[22m
+[2m11:12:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx[22m
+[2m11:12:05[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m11:12:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m11:12:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m11:12:10[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m11:12:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m11:12:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m11:12:23[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m11:12:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m11:13:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/MonthlyInput.jsx, /src/index.css[22m
