@@ -1,12 +1,18 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
 import ModalOverlay from '../../components/ui/ModalOverlay'
 import DateFilterBar, { getDateRange, toInputDate, startOf } from '../../components/ui/DateFilterBar'
 import {
-  loadCustomers, insertCustomer, updateCustomer, deleteCustomer,
-  loadCustomerOrders, upsertCustomers, loadCustomerDebts, calcVipTier,
-} from '../../lib/supabase'
+  getCustomers as loadCustomers,
+  addCustomer as insertCustomer,
+  editCustomer as updateCustomer,
+  removeCustomer as deleteCustomer,
+  getCustomerOrders as loadCustomerOrders,
+  bulkUpsertCustomers as upsertCustomers,
+  subscribeCustomers,
+} from '../../lib/dataService'
+import { loadCustomerDebts, calcVipTier } from '../../lib/supabase'
 import { fmtVNDFull, formatMoneyLive, parseVNDInput, removeVietnameseTones } from '../../lib/formatters'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -319,13 +325,25 @@ export default function Customers() {
 
   const isAllTime = preset === 'all'
 
-  useEffect(() => {
+  const fetchCustomers = useCallback(async () => {
     setLoading(true)
-    loadCustomers('')
-      .then(setCustomers)
-      .catch(e => toast.error(e.message))
-      .finally(() => setLoading(false))
+    try {
+      const data = await loadCustomers('')
+      setCustomers(data)
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => { fetchCustomers() }, [fetchCustomers])
+
+  // Realtime: máy B thêm/sửa khách hàng → máy A tự cập nhật
+  useEffect(() => {
+    const unsub = subscribeCustomers(() => fetchCustomers())
+    return unsub
+  }, [fetchCustomers])
 
   // Fetch debt riêng khi preset / custom thay đổi
   useEffect(() => {
@@ -651,7 +669,7 @@ export default function Customers() {
         </div>
 
         {loading ? (
-          <div className="text-center py-16 text-muted text-sm">Đang tải…</div>
+          <div className="text-center py-16 text-muted text-sm">Đang tải dữ liệu từ Cloud…</div>
         ) : displayedCustomers.length === 0 ? (
           <div className="text-center py-16 text-muted">
             <div className="text-4xl mb-3">👥</div>

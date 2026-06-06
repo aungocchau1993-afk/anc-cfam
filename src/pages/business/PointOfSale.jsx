@@ -1,6 +1,15 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
-import { loadProducts, loadCustomers, loadOrders, createOrder, cancelOrder, finalizeCustomerAfterOrder, redeemPoints, calcPointsEarned } from '../../lib/supabase'
+import {
+  getProducts as loadProducts,
+  getCustomers as loadCustomers,
+  addOrder as createOrder,
+  finalizeAfterSale as finalizeCustomerAfterOrder,
+  spendPoints as redeemPoints,
+  subscribeProducts,
+  subscribeCustomers,
+} from '../../lib/dataService'
+import { loadOrders, cancelOrder, calcPointsEarned } from '../../lib/supabase'
 import { formatMoneyLive, parseVNDInput, fmtVNDFull, removeVietnameseTones } from '../../lib/formatters'
 import { buildReceiptHtml, printViaIframe } from '../../lib/printReceipt'
 import ModalOverlay from '../../components/ui/ModalOverlay'
@@ -615,11 +624,26 @@ export default function PointOfSale() {
   const [showRedeem,     setShowRedeem]     = useState(false)
   const [showPayConfirm, setShowPayConfirm] = useState(false)
 
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [p, c] = await Promise.all([loadProducts(), loadCustomers()])
+      setProducts(p)
+      setCustomers(c)
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  // Realtime: khi máy khác thêm/sửa sản phẩm hoặc khách hàng → POS tự cập nhật
   useEffect(() => {
-    Promise.all([loadProducts(), loadCustomers()])
-      .then(([p, c]) => { setProducts(p); setCustomers(c) })
-      .catch(e => toast.error(e.message))
-      .finally(() => setLoading(false))
+    const unsubP = subscribeProducts(() => loadProducts().then(setProducts).catch(() => {}))
+    const unsubC = subscribeCustomers(() => loadCustomers().then(setCustomers).catch(() => {}))
+    return () => { unsubP(); unsubC() }
   }, [])
 
   // Đóng dropdown khi click ra ngoài
@@ -937,7 +961,7 @@ export default function PointOfSale() {
               <svg className="w-8 h-8 animate-spin" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/>
               </svg>
-              <span className="text-sm">Đang tải sản phẩm…</span>
+              <span className="text-sm">Đang tải dữ liệu từ Cloud…</span>
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-600">

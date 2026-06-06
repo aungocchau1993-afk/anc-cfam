@@ -1,12 +1,19 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
 import {
-  loadSuppliers, insertSupplier, updateSupplier, deleteSupplier, upsertSuppliers,
-  loadSupplierImportOrders, cancelOrderFull, partialReturnItem, loadOrderDetail,
-  loadSupplierDebtsByPeriod,
-  supabase, isSupabaseConfigured,
-} from '../../lib/supabase'
+  getSuppliers as loadSuppliers,
+  addSupplier as insertSupplier,
+  editSupplier as updateSupplier,
+  removeSupplier as deleteSupplier,
+  bulkUpsertSuppliers as upsertSuppliers,
+  getSupplierOrders as loadSupplierImportOrders,
+  cancelOrder as cancelOrderFull,
+  returnOrderItem as partialReturnItem,
+  getOrderDetail as loadOrderDetail,
+  subscribeSuppliers,
+} from '../../lib/dataService'
+import { loadSupplierDebtsByPeriod, supabase, isSupabaseConfigured } from '../../lib/supabase'
 import DateFilterBar, { getDateRange, toInputDate, startOf } from '../../components/ui/DateFilterBar'
 import { fmtVNDFull, formatMoneyLive, parseVNDInput, removeVietnameseTones } from '../../lib/formatters'
 import ModalOverlay from '../../components/ui/ModalOverlay'
@@ -584,13 +591,25 @@ export default function Suppliers() {
 
   const isAllTime = preset === 'all'
 
-  useEffect(() => {
+  const fetchSuppliers = useCallback(async () => {
     setLoading(true)
-    loadSuppliers('')
-      .then(setSuppliers)
-      .catch(e => toast.error(e.message))
-      .finally(() => setLoading(false))
+    try {
+      const data = await loadSuppliers('')
+      setSuppliers(data)
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => { fetchSuppliers() }, [fetchSuppliers])
+
+  // Realtime: máy B thêm/sửa NCC → máy A tự cập nhật
+  useEffect(() => {
+    const unsub = subscribeSuppliers(() => fetchSuppliers())
+    return unsub
+  }, [fetchSuppliers])
 
   // Fetch công nợ theo kỳ khi preset / custom thay đổi
   useEffect(() => {
@@ -941,7 +960,7 @@ export default function Suppliers() {
         </div>
 
         {loading ? (
-          <div className="text-center py-16 text-muted text-sm">Đang tải…</div>
+          <div className="text-center py-16 text-muted text-sm">Đang tải dữ liệu từ Cloud…</div>
         ) : displayedSuppliers.length === 0 ? (
           <div className="text-center py-16 text-muted">
             <div className="text-4xl mb-3">🏢</div>
