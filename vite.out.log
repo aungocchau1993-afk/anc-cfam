@@ -46,3 +46,297 @@
 [2m11:12:23[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
 [2m11:12:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
 [2m11:13:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/MonthlyInput.jsx, /src/index.css[22m
+[2m12:10:40[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx[22m
+[2m12:10:40[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:10:40[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:10:58[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx[22m
+[2m12:10:59[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:10:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:11:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m12:11:04[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:11:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:11:08[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m12:11:08[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:11:08[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:11:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m12:11:14[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:11:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:11:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m12:11:26[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:11:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:11:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m12:11:31[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:11:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:11:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m12:11:52[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:11:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:12:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m12:12:03[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:12:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:12:08[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m12:12:08[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:12:08[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx[22m
+[2m12:14:01[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/MonthlyInput.jsx, /src/index.css[22m
+[2m12:16:00[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Sidebar.jsx, /src/index.css[22m
+[2m12:16:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m12:16:08[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m12:16:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx[22m
+[2m12:16:56[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:16:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m12:18:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:19:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx[22m
+[2m12:19:56[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:19:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m12:21:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m12:24:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx[22m
+[2m12:24:31[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:24:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m12:26:19[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m12:27:47[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:27:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:27:57[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m12:28:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CreditCardManager.jsx, /src/index.css[22m
+[2m12:28:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m12:28:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/income/IncomeCategoryModal.jsx, /src/index.css[22m
+[2m12:28:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/portfolio/PortfolioModal.jsx, /src/index.css[22m
+[2m12:34:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx[22m
+[2m12:34:07[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:34:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m12:35:27[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/BusinessModule.jsx, /src/index.css[22m
+[2m12:39:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m12:39:05[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:39:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m12:39:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m12:39:10[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:39:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m12:39:16[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:39:27[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:39:45[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:39:58[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:40:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:40:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:40:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m12:40:16[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m12:40:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m12:40:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m12:40:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m12:40:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m12:40:51[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m12:40:58[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m12:41:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m12:41:11[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m12:41:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m12:41:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m12:47:43[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m12:56:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m12:58:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m12:59:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m13:00:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m13:00:56[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m13:00:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m13:01:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:02:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:02:08[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:02:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:02:30[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:09:58[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m13:10:28[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m13:10:36[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m13:12:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:17:11[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m13:17:11[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m13:17:11[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m13:17:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m13:17:25[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m13:17:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m13:17:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m13:17:32[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m13:17:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m13:17:43[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/AppContext.jsx, /src/index.css[22m
+[2m13:17:43[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m13:17:43[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m13:19:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:22:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m13:22:56[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/AppContext.jsx[22m Could not Fast Refresh ("useApp" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m13:22:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/Assumptions.jsx, /src/pages/AnnualSummary.jsx, /src/pages/Config.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/pages/CreditCardManager.jsx, /src/components/income/IncomeCategoryModal.jsx[22m
+[2m13:23:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:23:06[22m [36m[1m[vite][22m[39m [32m✨ new dependencies optimized: [33mxlsx[32m[39m
+[2m13:23:06[22m [36m[1m[vite][22m[39m [32m✨ optimized dependencies changed. reloading[39m
+[2m13:23:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:23:40[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m13:23:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:30:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m17:30:08[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:30:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:30:45[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:30:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:36:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:38:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:42:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:42:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:42:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:42:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:47:11[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:48:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m17:48:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:48:16[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:48:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:48:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:53:21[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m17:53:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/BusinessModule.jsx, /src/index.css[22m
+[2m17:57:29[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:57:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:57:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:00:24[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m18:02:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:09:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/AnnualSummary.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/components/ui/MoneyInput.jsx, /src/pages/CreditCardManager.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m18:09:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:10:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:13:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:14:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:14:11[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:15:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:17:58[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m18:18:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:18:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:18:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:25:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:28:19[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:33:57[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m18:34:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:34:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:34:27[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:34:43[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:34:54[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:35:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:35:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:36:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:39:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m15:49:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m15:49:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m15:50:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m15:50:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m15:50:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m16:01:29[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m16:01:39[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m16:01:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m16:02:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m16:43:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m16:45:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/BusinessModule.jsx, /src/index.css[22m
+[2m16:47:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m16:50:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m17:03:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:03:22[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:03:36[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:06:39[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:07:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:08:00[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:25:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:25:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:25:47[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:25:57[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:26:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:27:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:27:16[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:27:24[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:27:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:28:00[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:28:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:28:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:28:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:28:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:28:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:28:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:29:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:29:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:31:36[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:35:01[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/AnnualSummary.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/components/ui/MoneyInput.jsx, /src/pages/CreditCardManager.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m17:35:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:35:28[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:35:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:35:39[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:35:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:36:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:36:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:36:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:36:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:42:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:42:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:42:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:42:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:42:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:42:54[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:43:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:49:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/Portfolio.jsx, /src/pages/QuarterlyCashFlow.jsx, /src/pages/Dashboard.jsx, /src/pages/AnnualSummary.jsx, /src/pages/MonthlyInput.jsx, /src/components/portfolio/PortfolioModal.jsx, /src/components/ui/MoneyInput.jsx, /src/pages/CreditCardManager.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m17:52:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:52:39[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:52:40[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m17:52:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:52:54[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:52:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m17:53:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:53:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m17:53:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:03:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:03:22[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:03:28[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:03:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:03:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:03:47[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:07:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:07:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:07:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:07:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:08:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:08:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:24:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:24:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:24:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:24:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m18:24:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:25:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:25:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:25:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:25:36[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:25:40[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:25:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:25:51[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m18:26:45[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/BusinessModule.jsx, /src/index.css[22m
+[2m18:26:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/BusinessModule.jsx, /src/index.css[22m
+[2m18:27:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m18:27:21[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m18:30:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m18:55:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m18:55:39[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m18:55:51[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:56:00[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:56:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:56:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:56:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Products.jsx, /src/index.css[22m
+[2m18:57:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/BusinessModule.jsx, /src/index.css[22m
+[2m18:58:00[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/BusinessModule.jsx, /src/index.css[22m
+[2m19:02:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m19:02:21[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m19:02:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:02:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:02:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:03:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:03:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:03:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:03:51[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m19:04:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m19:05:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/BusinessModule.jsx, /src/index.css[22m
+[2m19:05:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/BusinessModule.jsx, /src/index.css[22m
+[2m19:07:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/context/AppContext.jsx, /src/components/layout/Topbar.jsx, /src/components/auth/Login.jsx, /src/components/layout/Sidebar.jsx, /src/pages/business/Products.jsx, /src/pages/business/Customers.jsx, /src/pages/business/PointOfSale.jsx, /src/pages/business/ProfitReport.jsx[22m
+[2m19:07:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m19:08:29[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m19:08:43[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m19:09:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m19:09:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m19:09:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m19:09:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/PointOfSale.jsx, /src/index.css[22m
+[2m19:09:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:10:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:10:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:10:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m
+[2m19:10:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/business/Customers.jsx, /src/index.css[22m

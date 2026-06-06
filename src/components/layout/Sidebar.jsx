@@ -1,57 +1,185 @@
+import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
-const NAV = [
-  { id:'dashboard', icon:'📊', label:'Dashboard',       group:'Tổng quan' },
-  { id:'assumptions',icon:'⚙️', label:'Giả Định',       group:'Tổng quan' },
-  { id:'quarterly',  icon:'📅', label:'Dòng Tiền Quý',  group:'Phân tích' },
-  { id:'annual',     icon:'📆', label:'Tổng Hợp Năm',   group:'Phân tích' },
-  { id:'monthly',    icon:'📝', label:'Nhập Tháng',     group:'Phân tích' },
-  { id:'portfolio',  icon:'🏦', label:'Danh Mục & Rủi Ro', group:'Danh mục' },
-  { id:'creditcards',icon:'💳', label:'Thẻ Visa / Tín Dụng', group:'Danh mục' },
-  { id:'config',     icon:'🎛️', label:'Cấu Hình',       group:'Danh mục' },
+// ═══════════════════════════════════════════════════════════
+//  CẤU HÌNH 2 NHÓM CHÍNH — Thêm tab mới chỉ cần thêm vào đây
+// ═══════════════════════════════════════════════════════════
+
+const GROUPS = [
+  {
+    id:          'business',
+    icon:        '🏪',
+    label:       'Kinh Doanh',
+    desc:        'POS · Kho · CRM · Báo Cáo',
+    accent:      '#3fb950',        // cgreen
+    colorCls:    'text-emerald-400',
+    activeBgCls: 'bg-emerald-500/12 border-emerald-500/25',
+    headerCls:   'hover:bg-emerald-500/8 border-emerald-500/20',
+    dotCls:      'bg-emerald-400',
+    // Các tab con — tab = id tab trong BusinessModule
+    items: [
+      { tab: 'analytics', icon: '📊', label: 'Dashboard KPI' },
+      { tab: 'pos',       icon: '🛒', label: 'Bán Hàng' },
+      { tab: 'products',  icon: '📦', label: 'Hàng Hóa' },
+      { tab: 'customers', icon: '👥', label: 'Khách Hàng' },
+      { tab: 'orders',    icon: '🧾', label: 'Đơn Hàng' },
+      { tab: 'suppliers', icon: '🏢', label: 'Nhà Cung Cấp' },
+      { tab: 'cashbook',  icon: '💵', label: 'Sổ Quỹ' },
+      { tab: 'stocktake', icon: '🗂️', label: 'Kiểm Kho' },
+      { tab: 'report',    icon: '📈', label: 'Báo Cáo P&L' },
+      { tab: 'admin',     icon: '🗑️', label: 'Xóa Dữ Liệu' },
+    ],
+  },
+  {
+    id:          'cashflow',
+    icon:        '💼',
+    label:       'Quản Trị Dòng Tiền',
+    desc:        'KPI · Dự báo · Đầu tư',
+    accent:      '#58a6ff',        // cblue
+    colorCls:    'text-blue-400',
+    activeBgCls: 'bg-blue-500/12 border-blue-500/25',
+    headerCls:   'hover:bg-blue-500/8 border-blue-500/20',
+    dotCls:      'bg-blue-400',
+    // page = id trang trong App.jsx (PAGES object)
+    items: [
+      { page: 'dashboard',   icon: '📊', label: 'Dashboard' },
+      { page: 'assumptions', icon: '⚙️', label: 'Giả Định' },
+      { page: 'quarterly',   icon: '📅', label: 'Dòng Tiền Quý' },
+      { page: 'annual',      icon: '📆', label: 'Tổng Hợp Năm' },
+      { page: 'monthly',     icon: '📝', label: 'Nhập Tháng' },
+      { page: 'portfolio',   icon: '🏦', label: 'Danh Mục & Rủi Ro' },
+      { page: 'creditcards', icon: '💳', label: 'Thẻ Visa / Tín Dụng' },
+      { page: 'config',      icon: '🎛️', label: 'Cấu Hình' },
+    ],
+  },
 ]
 
-const groups = [...new Set(NAV.map(n => n.group))]
+// ── Sidebar Component ────────────────────────────────────────────────────
 
-export default function Sidebar({ current, onChange }) {
+export default function Sidebar({ current, currentBizTab, onChange, onBizTabChange }) {
+  // Mở cả 2 nhóm mặc định, có thể thu gọn độc lập
+  const [open, setOpen] = useState({ business: true, cashflow: true })
+
+  const toggleGroup = id => setOpen(prev => ({ ...prev, [id]: !prev[id] }))
+
   async function handleLogout() {
-    await supabase.auth.signOut()
+    if (supabase) await supabase.auth.signOut()
+  }
+
+  // Kiểm tra group nào đang active để highlight header
+  function isGroupActive(group) {
+    if (group.id === 'business') return current === 'business'
+    return group.items.some(item => item.page === current)
   }
 
   return (
     <nav className="w-[220px] bg-surface border-r border-border flex flex-col fixed top-0 left-0 h-screen z-30 overflow-y-auto shrink-0">
-      {/* Logo */}
-      <div className="px-4 pt-5 pb-3 border-b border-border">
-        <h1 className="text-base font-bold text-[#e6edf3] leading-tight">ANC - CFAM</h1>
-        <span className="text-[11px] text-muted">Cash Flow & Asset Management</span>
+
+      {/* ── Logo ───────────────────────────────────────────── */}
+      <div className="px-4 pt-5 pb-4 border-b border-border shrink-0">
+        <h1 className="text-base font-black text-[#e6edf3] leading-tight tracking-tight">ANC - CFAM</h1>
+        <span className="text-[10px] text-muted">Cash Flow & Asset Management</span>
       </div>
 
-      {/* Nav */}
-      {groups.map(g => (
-        <div key={g} className="px-2 pt-3 pb-1">
-          <div className="text-[10px] font-semibold text-muted uppercase tracking-widest px-2 pb-1.5">{g}</div>
-          {NAV.filter(n => n.group === g).map(n => (
-            <button
-              key={n.id}
-              onClick={() => onChange(n.id)}
-              className={`nav-item w-full text-left mb-0.5 ${current === n.id ? 'nav-active' : ''}`}
-            >
-              <span className="w-5 text-center text-[15px]">{n.icon}</span>
-              {n.label}
-            </button>
-          ))}
-        </div>
-      ))}
+      {/* ── Groups ─────────────────────────────────────────── */}
+      <div className="flex-1 py-2 overflow-y-auto">
+        {GROUPS.map(group => {
+          const isActive = isGroupActive(group)
+          const isOpen   = open[group.id]
 
-      <div className="mt-auto px-2 py-3 border-t border-border">
+          return (
+            <div key={group.id} className="px-2 mb-1">
+
+              {/* ── Group Header (accordion toggle) ── */}
+              <button
+                onClick={() => toggleGroup(group.id)}
+                className={`
+                  w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border
+                  text-left transition-all duration-150 mb-1
+                  ${isActive
+                    ? `${group.activeBgCls} ${group.colorCls}`
+                    : `border-transparent text-muted ${group.headerCls}`
+                  }
+                `}
+              >
+                {/* Icon lớn */}
+                <span className="text-[18px] leading-none shrink-0">{group.icon}</span>
+
+                {/* Label + desc */}
+                <div className="flex-1 min-w-0">
+                  <div className={`text-xs font-black truncate ${isActive ? group.colorCls : 'text-slate-300'}`}>
+                    {group.label}
+                  </div>
+                  <div className="text-[9px] text-slate-600 truncate font-medium mt-0.5">
+                    {group.desc}
+                  </div>
+                </div>
+
+                {/* Chevron */}
+                <svg
+                  className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${isActive ? group.colorCls : 'text-slate-600'}`}
+                  viewBox="0 0 24 24" fill="none"
+                >
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+
+              {/* ── Sub-items ── */}
+              {isOpen && (
+                <div className="flex flex-col gap-0.5 pl-2 mb-1">
+                  {group.items.map(item => {
+                    // Kiểm tra active tùy theo loại nhóm
+                    const isItemActive = group.id === 'business'
+                      ? current === 'business' && currentBizTab === item.tab
+                      : current === item.page
+
+                    return (
+                      <button
+                        key={item.tab || item.page}
+                        onClick={() => {
+                          if (group.id === 'business') {
+                            onChange('business')
+                            onBizTabChange?.(item.tab)
+                          } else {
+                            onChange(item.page)
+                          }
+                        }}
+                        className={`
+                          w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg
+                          text-left text-xs font-medium transition-all duration-100
+                          ${isItemActive
+                            ? `${group.activeBgCls} ${group.colorCls} font-semibold`
+                            : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800/60'
+                          }
+                        `}
+                      >
+                        {/* Active dot */}
+                        {isItemActive
+                          ? <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${group.dotCls}`} />
+                          : <span className="w-1.5 h-1.5 shrink-0" />
+                        }
+                        <span className="text-[13px] leading-none shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── Logout ─────────────────────────────────────────── */}
+      <div className="shrink-0 px-2 py-3 border-t border-border">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm font-semibold text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
         >
-          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M15 17l5-5-5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M20 12H9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M12 21H5a1 1 0 01-1-1V4a1 1 0 011-1h7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
+            <path d="M15 17l5-5-5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 12H9"       stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 21H5a1 1 0 01-1-1V4a1 1 0 011-1h7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Đăng xuất
         </button>

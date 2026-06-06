@@ -131,7 +131,6 @@ function CardModal({ initial, onSave, onClose }) {
   return (
     <div
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={e => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-surface border border-border rounded-2xl w-full max-w-lg shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">

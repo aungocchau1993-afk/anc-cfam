@@ -3,20 +3,15 @@ import { toast } from 'sonner'
 import { useApp } from '../context/AppContext'
 import { fmtVNDFull, formatMoneyLive, parseVNDInput } from '../lib/formatters'
 import { MONTH_NAMES } from '../lib/constants'
+import IncomeCategoryModal from '../components/income/IncomeCategoryModal'
 
-const FIELD_LABELS = {
-  incomeKd:   'KD',
-  incomeTmdt: 'TMDT',
-  incomeAff:  'Affiliate',
-  income:     'Thu nhập',
-  living:     'Chi sinh hoạt',
-  housing:    'Chi nhà ở',
-  debtRepay:  'Trả nợ NH',
+const EXPENSE_LABELS = {
+  living:    'Chi sinh hoạt',
+  housing:   'Chi nhà ở',
+  debtRepay: 'Trả nợ NH',
 }
 
-const SUB_INCOME = ['incomeKd', 'incomeTmdt', 'incomeAff']
-
-// ── MonthCell ──────────────────────────────────────────────────────────────
+// ── MonthCell — ô input chung ──────────────────────────────────────────────
 
 function MonthCell({ year, mi, fieldKey, initialValue, onSave, readOnly = false, compact = false }) {
   const [display, setDisplay]   = useState(initialValue ? initialValue.toLocaleString('vi-VN') : '')
@@ -32,7 +27,7 @@ function MonthCell({ year, mi, fieldKey, initialValue, onSave, readOnly = false,
     try {
       await onSave(year, mi, fieldKey, value)
       setFlashOk(true)
-      toast.success(`✅ ${FIELD_LABELS[fieldKey]} – ${MONTH_NAMES[mi]}`, { duration: 1800 })
+      toast.success(`✅ Đã lưu – ${MONTH_NAMES[mi]}`, { duration: 1600 })
       setTimeout(() => setFlashOk(false), 600)
     } catch (err) {
       setFlashErr(true)
@@ -49,35 +44,30 @@ function MonthCell({ year, mi, fieldKey, initialValue, onSave, readOnly = false,
     if (e.key === 'Enter') {
       e.preventDefault()
       e.target.blur()
-      const allInputs = Array.from(document.querySelectorAll(`[data-field="${fieldKey}"]`))
-      const idx = allInputs.indexOf(e.target)
-      if (idx >= 0 && idx < allInputs.length - 1) setTimeout(() => allInputs[idx + 1].focus(), 50)
+      const all = Array.from(document.querySelectorAll(`[data-field="${fieldKey}"]`))
+      const idx = all.indexOf(e.target)
+      if (idx >= 0 && idx < all.length - 1) setTimeout(() => all[idx + 1].focus(), 50)
     }
     if (e.key === 'Escape') e.target.blur()
   }
 
-  const borderClass = readOnly
-    ? 'border-transparent bg-transparent text-muted cursor-default'
-    : flashOk  ? 'border-cgreen bg-cgreen/15 scale-[1.02]'
-    : flashErr ? 'border-cred  bg-cred/15'
-    : saving   ? 'border-cyellow/60 bg-surface2'
-    : 'border-cblue/25 bg-surface2 hover:border-cblue/50 focus:border-cblue focus:bg-[#1a2744]'
-
-  const widthClass = compact ? 'min-w-[120px]' : 'min-w-[160px]'
-
-  // Nếu readOnly (cột Tổng) hiển thị như text
   if (readOnly) {
     return (
-      <td className={`px-2 py-1.5 ${widthClass} whitespace-nowrap`}>
-        <div className="w-full px-2.5 py-1.5 text-xs text-right font-mono font-bold text-cblue tabular-nums">
+      <td className={`px-2 py-1.5 ${compact ? 'min-w-[110px]' : 'min-w-[150px]'} whitespace-nowrap`}>
+        <div className="w-full px-2.5 py-1.5 text-xs text-right font-mono font-bold text-cyellow tabular-nums">
           {initialValue ? initialValue.toLocaleString('vi-VN') : '0'}
         </div>
       </td>
     )
   }
 
+  const borderClass = flashOk  ? 'border-cgreen bg-cgreen/15 scale-[1.02]'
+                    : flashErr ? 'border-cred bg-cred/15'
+                    : saving   ? 'border-cyellow/60 bg-surface2'
+                    : 'border-cblue/25 bg-surface2 hover:border-cblue/50 focus:border-cblue focus:bg-[#1a2744]'
+
   return (
-    <td className={`px-2 py-1.5 ${widthClass} whitespace-nowrap`}>
+    <td className={`px-2 py-1.5 ${compact ? 'min-w-[110px]' : 'min-w-[150px]'} whitespace-nowrap`}>
       <input
         ref={inputRef}
         type="text"
@@ -106,7 +96,7 @@ function MonthCell({ year, mi, fieldKey, initialValue, onSave, readOnly = false,
 
 // ── MonthRow ───────────────────────────────────────────────────────────────
 
-function MonthRow({ year, mi, data, computed, onSave, showDetail }) {
+function MonthRow({ year, mi, data, computed, onSave, onSaveDetail, showDetail, categories }) {
   return (
     <tr className="border-b border-border/40 hover:bg-white/[0.02] group">
       <td className="px-3 py-2 text-xs text-muted whitespace-nowrap font-medium min-w-[90px] sticky left-0 bg-surface">
@@ -115,36 +105,36 @@ function MonthRow({ year, mi, data, computed, onSave, showDetail }) {
 
       {showDetail ? (
         <>
-          {/* 3 sub-income cols */}
-          {SUB_INCOME.map(key => (
+          {/* Các cột danh mục động */}
+          {categories.map(cat => (
             <MonthCell
-              key={key}
-              year={year} mi={mi} fieldKey={key}
-              initialValue={data[key] || 0}
-              onSave={onSave}
+              key={cat.id}
+              year={year} mi={mi}
+              fieldKey={cat.id}
+              initialValue={(data.incomeDetails || {})[cat.id] || 0}
+              onSave={onSaveDetail}
               compact
             />
           ))}
-          {/* Tổng income (readonly) */}
+          {/* Tổng thu (readonly) */}
           <MonthCell
             key="income-total"
-            year={year} mi={mi} fieldKey="income"
+            year={year} mi={mi} fieldKey="income-total"
             initialValue={data.income || 0}
-            onSave={onSave}
+            onSave={null}
             readOnly
             compact
           />
         </>
       ) : (
         <MonthCell
-          key="income"
           year={year} mi={mi} fieldKey="income"
           initialValue={data.income || 0}
           onSave={onSave}
         />
       )}
 
-      {/* Chi phí */}
+      {/* Chi phí cố định */}
       {['living', 'housing', 'debtRepay'].map(key => (
         <MonthCell
           key={key}
@@ -154,7 +144,7 @@ function MonthRow({ year, mi, data, computed, onSave, showDetail }) {
         />
       ))}
 
-      {/* Thặng dư */}
+      {/* Kết quả tính toán */}
       <td className={`px-3 py-2 text-xs font-bold font-mono text-right tabular-nums whitespace-nowrap min-w-[110px] ${computed.surplus >= 0 ? 'text-cgreen' : 'text-cred'}`}>
         {fmtVNDFull(computed.surplus)}
       </td>
@@ -170,17 +160,19 @@ function MonthRow({ year, mi, data, computed, onSave, showDetail }) {
 
 // ── YearBlock ──────────────────────────────────────────────────────────────
 
-function YearBlock({ year, isFirst, data, computed, onSave, showDetail }) {
+function YearBlock({ year, isFirst, data, computed, onSave, onSaveDetail, showDetail, categories }) {
   const [open, setOpen] = useState(isFirst)
   const safeData     = Array.isArray(data)     ? data     : []
   const safeComputed = Array.isArray(computed) ? computed : []
+
   const totIncome  = safeData.reduce((s, m) => s + (m?.income || 0), 0)
   const totSurplus = safeComputed.reduce((s, c) => s + (c?.surplus || 0), 0)
 
-  // Sub-income totals (chỉ dùng khi showDetail)
-  const totKd   = safeData.reduce((s, m) => s + (m?.incomeKd   || 0), 0)
-  const totTmdt = safeData.reduce((s, m) => s + (m?.incomeTmdt || 0), 0)
-  const totAff  = safeData.reduce((s, m) => s + (m?.incomeAff  || 0), 0)
+  // Tổng từng danh mục
+  const catTotals = categories.reduce((acc, cat) => {
+    acc[cat.id] = safeData.reduce((s, m) => s + ((m?.incomeDetails || {})[cat.id] || 0), 0)
+    return acc
+  }, {})
 
   return (
     <div className="border border-border rounded-xl overflow-hidden bg-surface">
@@ -201,21 +193,31 @@ function YearBlock({ year, isFirst, data, computed, onSave, showDetail }) {
           <table className="w-full min-w-max">
             <thead>
               <tr className="bg-surface2">
-                <th className="px-3 py-2 text-left text-[11px] text-muted whitespace-nowrap min-w-[90px] sticky left-0 bg-surface2">Tháng</th>
+                <th className="px-3 py-2 text-left text-[11px] text-muted whitespace-nowrap min-w-[90px] sticky left-0 bg-surface2 z-10">
+                  Tháng
+                </th>
 
                 {showDetail ? (
                   <>
-                    <th className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[120px]">KD ✏️</th>
-                    <th className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[120px]">TMĐT ✏️</th>
-                    <th className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[120px]">Affiliate ✏️</th>
-                    <th className="px-2 py-2 text-[11px] text-cyellow text-right whitespace-nowrap min-w-[120px]">Tổng Thu</th>
+                    {categories.map(cat => (
+                      <th key={cat.id} className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[110px]">
+                        {cat.name} ✏️
+                      </th>
+                    ))}
+                    <th className="px-2 py-2 text-[11px] text-cyellow text-right whitespace-nowrap min-w-[110px]">
+                      Tổng Thu
+                    </th>
                   </>
                 ) : (
-                  <th className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[160px]">Thu Nhập ✏️</th>
+                  <th className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[150px]">
+                    Thu Nhập ✏️
+                  </th>
                 )}
 
-                {['Chi Sinh Hoạt ✏️', 'Chi Nhà Ở ✏️', 'Trả Nợ NH ✏️'].map(h => (
-                  <th key={h} className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[160px]">{h}</th>
+                {Object.values(EXPENSE_LABELS).map(h => (
+                  <th key={h} className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[150px]">
+                    {h} ✏️
+                  </th>
                 ))}
                 <th className="px-3 py-2 text-right text-[11px] text-muted whitespace-nowrap min-w-[110px]">Thặng Dư</th>
                 <th className="px-3 py-2 text-right text-[11px] text-muted whitespace-nowrap min-w-[110px]">Đầu Tư</th>
@@ -230,7 +232,9 @@ function YearBlock({ year, isFirst, data, computed, onSave, showDetail }) {
                   data={m || {}}
                   computed={safeComputed[mi] || { surplus: 0, invest: 0, cumCash: 0 }}
                   onSave={onSave}
+                  onSaveDetail={onSaveDetail}
                   showDetail={showDetail}
+                  categories={categories}
                 />
               ))}
 
@@ -240,13 +244,19 @@ function YearBlock({ year, isFirst, data, computed, onSave, showDetail }) {
 
                 {showDetail ? (
                   <>
-                    <td className="px-3 py-2 text-right text-xs font-bold font-mono text-cgreen whitespace-nowrap">{fmtVNDFull(totKd)}</td>
-                    <td className="px-3 py-2 text-right text-xs font-bold font-mono text-cgreen whitespace-nowrap">{fmtVNDFull(totTmdt)}</td>
-                    <td className="px-3 py-2 text-right text-xs font-bold font-mono text-cgreen whitespace-nowrap">{fmtVNDFull(totAff)}</td>
-                    <td className="px-3 py-2 text-right text-xs font-bold font-mono text-cyellow whitespace-nowrap">{fmtVNDFull(totIncome)}</td>
+                    {categories.map(cat => (
+                      <td key={cat.id} className="px-2 py-2 text-right text-xs font-bold font-mono text-cgreen whitespace-nowrap">
+                        {fmtVNDFull(catTotals[cat.id] || 0)}
+                      </td>
+                    ))}
+                    <td className="px-2 py-2 text-right text-xs font-bold font-mono text-cyellow whitespace-nowrap">
+                      {fmtVNDFull(totIncome)}
+                    </td>
                   </>
                 ) : (
-                  <td className="px-3 py-2 text-right text-xs font-bold font-mono text-cgreen whitespace-nowrap">{fmtVNDFull(totIncome)}</td>
+                  <td className="px-2 py-2 text-right text-xs font-bold font-mono text-cgreen whitespace-nowrap">
+                    {fmtVNDFull(totIncome)}
+                  </td>
                 )}
 
                 <td colSpan={3} />
@@ -267,14 +277,16 @@ function YearBlock({ year, isFirst, data, computed, onSave, showDetail }) {
 
 export default function MonthlyInput() {
   const { state, actions, getAlloc } = useApp()
-  const { monthData, assumptions } = state
-  const [showDetail, setShowDetail] = useState(false)
+  const { monthData, assumptions, incomeCategories } = state
+
+  const [showDetail,   setShowDetail]   = useState(false)
+  const [showCatModal, setShowCatModal] = useState(false)
 
   const addedYears = Object.keys(monthData).map(Number).sort((a, b) => a - b)
   const maxYear    = addedYears.length ? Math.max(...addedYears) : assumptions.startYear - 1
   const nextYear   = maxYear + 1
 
-  // Tính toán dòng tiền cho tất cả các năm đã thêm
+  // Tính toán dòng tiền
   const allComputed = {}
   let cash = assumptions.initialCash
   const alloc = getAlloc()
@@ -293,13 +305,27 @@ export default function MonthlyInput() {
 
   return (
     <div className="p-6 max-w-full">
-      {/* Info bar */}
+      {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex-1 bg-cblue/10 border border-cblue/20 rounded-lg px-4 py-3 text-sm text-cblue">
           ✏️ Nhập thu nhập & chi phí thực tế. Bấm tiêu đề năm để mở/đóng.
         </div>
 
-        {/* Toggle detail income */}
+        {/* Nút quản lý danh mục */}
+        <button
+          onClick={() => setShowCatModal(true)}
+          title="Quản lý danh mục thu nhập"
+          className="flex items-center gap-2 px-4 py-3 rounded-lg border border-border bg-surface text-muted text-sm font-semibold hover:border-cyellow hover:text-cyellow hover:bg-cyellow/5 transition-all"
+        >
+          ⚙️ Danh mục
+          {incomeCategories.length > 0 && (
+            <span className="bg-cblue/20 text-cblue text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+              {incomeCategories.length}
+            </span>
+          )}
+        </button>
+
+        {/* Toggle tổng / chi tiết */}
         <button
           onClick={() => setShowDetail(v => !v)}
           className={`flex items-center gap-2 px-4 py-3 rounded-lg border text-sm font-semibold transition-all ${
@@ -308,27 +334,35 @@ export default function MonthlyInput() {
               : 'bg-surface border-border text-muted hover:border-cblue hover:text-cblue'
           }`}
         >
-          <span className="text-base">{showDetail ? '🔵' : '⚪'}</span>
-          {showDetail ? 'Thu nhập: Chi tiết' : 'Thu nhập: Tổng gộp'}
+          {showDetail ? '🔵 Chi tiết' : '⚪ Tổng gộp'}
         </button>
       </div>
 
-      {/* Legend khi đang detail */}
-      {showDetail && (
-        <div className="flex flex-wrap gap-3 mb-4 px-1">
-          {[
-            { key: 'incomeKd',   label: 'KD',        desc: 'Kinh doanh',        color: '#58a6ff' },
-            { key: 'incomeTmdt', label: 'TMĐT',      desc: 'Bán sàn thương mại', color: '#3fb950' },
-            { key: 'incomeAff',  label: 'Affiliate',  desc: 'Tiếp thị liên kết', color: '#bc8cff' },
-          ].map(item => (
-            <div key={item.key} className="flex items-center gap-2 text-xs text-muted">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: item.color }} />
-              <strong style={{ color: item.color }}>{item.label}</strong>
-              <span>= {item.desc}</span>
-            </div>
-          ))}
-          <span className="text-xs text-muted ml-2">·</span>
-          <span className="text-xs text-cyellow font-semibold">Tổng Thu = KD + TMĐT + Affiliate (tự tính)</span>
+      {/* Legend khi chi tiết */}
+      {showDetail && incomeCategories.length > 0 && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4 px-1">
+          {incomeCategories.map((cat, i) => {
+            const colors = ['#58a6ff', '#3fb950', '#bc8cff', '#d29922', '#39c5cf']
+            const color  = colors[i % colors.length]
+            return (
+              <div key={cat.id} className="flex items-center gap-1.5 text-xs text-muted">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                <span style={{ color }}>{cat.name}</span>
+              </div>
+            )
+          })}
+          <span className="text-xs text-muted ml-1">·</span>
+          <span className="text-xs text-cyellow font-semibold">Tổng Thu = tổng tất cả danh mục (tự tính)</span>
+        </div>
+      )}
+
+      {/* Cảnh báo nếu chưa có danh mục */}
+      {showDetail && incomeCategories.length === 0 && (
+        <div className="mb-4 bg-cyellow/10 border border-cyellow/30 rounded-lg px-4 py-3 text-sm text-cyellow flex items-center gap-3">
+          ⚠️ Chưa có danh mục nào.
+          <button onClick={() => setShowCatModal(true)} className="underline font-semibold hover:opacity-80">
+            Tạo danh mục ngay →
+          </button>
         </div>
       )}
 
@@ -341,7 +375,9 @@ export default function MonthlyInput() {
             data={monthData[yr] || []}
             computed={allComputed[yr] || []}
             onSave={actions.setMonth}
+            onSaveDetail={actions.setIncomeDetail}
             showDetail={showDetail}
+            categories={incomeCategories}
           />
         ))}
 
@@ -368,6 +404,9 @@ export default function MonthlyInput() {
           </div>
         </div>
       </div>
+
+      {/* Modal quản lý danh mục */}
+      {showCatModal && <IncomeCategoryModal onClose={() => setShowCatModal(false)} />}
     </div>
   )
 }

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Toaster } from 'sonner'
 import { AppProvider } from './context/AppContext'
-import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { useAuth } from './context/SupabaseContext'
 import Login from './components/auth/Login'
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
@@ -13,11 +13,17 @@ import MonthlyInput from './pages/MonthlyInput'
 import Portfolio from './pages/Portfolio'
 import Config from './pages/Config'
 import CreditCardManager from './pages/CreditCardManager'
+import BusinessModule from './pages/business/BusinessModule'
 
 function MainLayout() {
-  const [page, setPage] = useState('dashboard')
+  const [page,       setPage]       = useState('dashboard')
+  const [bizTab,     setBizTab]     = useState('analytics')  // tab đang active trong BusinessModule
 
-  const PAGES = {
+  // Khi chuyển trang, nếu sang business thì giữ bizTab hiện tại
+  function handlePageChange(newPage) { setPage(newPage) }
+  function handleBizTabChange(tab)   { setBizTab(tab); setPage('business') }
+
+  const CASHFLOW_PAGES = {
     dashboard:   <Dashboard />,
     assumptions: <Assumptions />,
     quarterly:   <QuarterlyCashFlow />,
@@ -32,34 +38,43 @@ function MainLayout() {
     <div className="flex min-h-screen bg-bg">
       {/* Desktop sidebar */}
       <div className="hidden md:block">
-        <Sidebar current={page} onChange={setPage} />
+        <Sidebar
+          current={page}
+          currentBizTab={bizTab}
+          onChange={handlePageChange}
+          onBizTabChange={handleBizTabChange}
+        />
       </div>
 
       {/* Main content */}
-      <div className="flex-1 md:ml-[220px] min-h-screen pb-16 md:pb-0">
+      <div className="flex-1 md:ml-[220px] min-h-screen pb-20 md:pb-0">
         <Topbar page={page} />
         <div className="overflow-x-hidden">
-          {PAGES[page]}
+          {page === 'business'
+            ? <BusinessModule activeTab={bizTab} onTabChange={setBizTab} />
+            : (CASHFLOW_PAGES[page] ?? <Dashboard />)
+          }
         </div>
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-40 flex">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-40 flex overflow-x-auto scrollbar-none">
         {[
           { id:'dashboard',  icon:'📊', label:'Home' },
           { id:'assumptions',icon:'⚙️', label:'Giả Định' },
           { id:'quarterly',  icon:'📅', label:'Quý' },
           { id:'monthly',    icon:'📝', label:'Tháng' },
           { id:'portfolio',  icon:'🏦', label:'Danh Mục' },
+          { id:'business',   icon:'🏪', label:'Kinh Doanh' },
           { id:'creditcards',icon:'💳', label:'Thẻ' },
         ].map(n => (
           <button
             key={n.id}
             onClick={() => setPage(n.id)}
-            className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] font-medium transition-colors ${page===n.id?'text-cblue':'text-muted'}`}
+            className={`shrink-0 w-[14.28%] min-w-[60px] flex flex-col items-center justify-center py-2 gap-0.5 text-[9px] font-medium transition-colors ${page===n.id?'text-cblue':'text-muted'}`}
           >
-            <span className="text-lg">{n.icon}</span>
-            {n.label}
+            <span className="text-lg leading-none">{n.icon}</span>
+            <span className="truncate w-full text-center px-0.5">{n.label}</span>
           </button>
         ))}
       </nav>
@@ -68,38 +83,7 @@ function MainLayout() {
 }
 
 function AppContent() {
-  const [session, setSession] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) {
-      setSession(null)
-      setLoading(false)
-      return
-    }
-
-    let mounted = true
-
-    async function loadSession() {
-      const { data, error } = await supabase.auth.getSession()
-      if (!mounted) return
-      if (error) console.error('Failed to get auth session', error)
-      setSession(data?.session || null)
-      setLoading(false)
-    }
-
-    loadSession()
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession)
-      setLoading(false)
-    })
-
-    return () => {
-      mounted = false
-      authListener.subscription.unsubscribe()
-    }
-  }, [])
+  const { session, loading } = useAuth()
 
   if (loading) {
     return (
