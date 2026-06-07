@@ -606,12 +606,17 @@ export default function Orders() {
             </div>
           ) : (
             <div className="w-full overflow-x-auto whitespace-nowrap">
-              <table className="w-full min-w-[860px] text-xs md:text-sm">
+              <table className="w-full min-w-0 text-xs md:text-sm">
                 <thead>
                   <tr className="bg-[#0a0e14] border-b border-border">
-                    {['Mã đơn','Thời gian','Loại','Đối tác','Tổng tiền','Lợi nhuận','Trạng thái','Thao tác'].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
-                    ))}
+                    <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Mã đơn</th>
+                    <th className="col-hide-mobile px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thời gian</th>
+                    <th className="col-hide-tablet px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Loại</th>
+                    <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Đối tác</th>
+                    <th className="px-3 sm:px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Tổng tiền</th>
+                    <th className="col-hide-mobile px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Lợi nhuận</th>
+                    <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Trạng thái</th>
+                    <th className="px-3 sm:px-4 py-3 text-center text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -626,32 +631,34 @@ export default function Orders() {
                         className={`border-b border-border/40 last:border-0 transition-colors group ${isCancelled ? 'opacity-45' : 'hover:bg-slate-800/30 cursor-pointer'}`}
                         onClick={() => !isCancelled && setDetailTarget(ord)}>
 
-                        <td className="px-4 py-3.5">
-                          <span className="font-mono text-xs bg-surface2 border border-border px-2 py-0.5 rounded text-muted">#{code}</span>
+                        <td className="px-3 sm:px-4 py-3 sm:py-3.5">
+                          <div className="font-mono text-xs bg-surface2 border border-border px-2 py-0.5 rounded text-muted inline-block">#{code}</div>
+                          {/* Thời gian hiện ngay dưới mã đơn trên mobile */}
+                          <div className="sm:hidden text-[10px] text-muted mt-0.5">{fmtDatetime(ord.created_at)}</div>
                         </td>
-                        <td className="px-4 py-3.5 text-xs text-muted whitespace-nowrap">{fmtDatetime(ord.created_at)}</td>
-                        <td className="px-4 py-3.5">
+                        <td className="col-hide-mobile px-4 py-3.5 text-xs text-muted whitespace-nowrap">{fmtDatetime(ord.created_at)}</td>
+                        <td className="col-hide-tablet px-4 py-3.5">
                           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${isImport ? 'bg-cyellow/15 text-cyellow border-cyellow/30' : 'bg-cblue/15 text-cblue border-cblue/30'}`}>
                             {isImport ? '⬇️ Nhập' : '⬆️ Xuất'}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-sm">
+                        <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-sm max-w-[120px] sm:max-w-none">
                           {partner
-                            ? <span className={isImport ? 'text-cyellow font-semibold' : 'text-cpurple font-semibold'}>{partner}</span>
+                            ? <span className={`truncate block ${isImport ? 'text-cyellow font-semibold' : 'text-cpurple font-semibold'}`}>{partner}</span>
                             : <span className="text-muted italic">Khách lẻ</span>}
                         </td>
-                        <td className="px-4 py-3.5 text-right font-mono text-sm font-semibold text-[#e6edf3] tabular-nums whitespace-nowrap">
+                        <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-right font-mono text-xs sm:text-sm font-semibold text-[#e6edf3] tabular-nums whitespace-nowrap">
                           {fmtVNDFull(ord.total_amount)}
                         </td>
-                        <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                        <td className="col-hide-mobile px-4 py-3.5 text-right whitespace-nowrap">
                           {isImport ? <span className="text-muted text-xs">—</span>
                             : <span className={`font-mono text-sm font-bold tabular-nums ${(ord.profit||0) >= 0 ? 'text-cgreen' : 'text-cred'}`}>{fmtVNDFull(ord.profit)}</span>}
                         </td>
-                        <td className="px-4 py-3.5"><StatusBadge status={ord.status} /></td>
-                        <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
-                          <div className="flex items-center gap-1.5">
+                        <td className="px-3 sm:px-4 py-3 sm:py-3.5"><StatusBadge status={ord.status} /></td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-3.5" onClick={e => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1.5">
                             <button onClick={() => setDetailTarget(ord)} title="Xem chi tiết"
-                              className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center">
+                              className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
                               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.8"/></svg>
                             </button>
                             {ord.status !== 'cancelled' && (

@@ -18,11 +18,25 @@
   .card-red   { @apply bg-gradient-to-br from-[#4a1c1c] to-[#7a2c2c] border-[#7a2c2c] rounded-xl p-5; }
   .card-gold  { @apply bg-gradient-to-br from-[#3d2800] to-[#6b4400] border-[#6b4400] rounded-xl p-5; }
 
-  .btn-primary { @apply bg-accent hover:opacity-85 text-white font-semibold px-4 py-2 rounded-lg transition-opacity cursor-pointer border-0; }
-  .btn-ghost   { @apply bg-surface2 hover:bg-border text-muted hover:text-[#e6edf3] px-3 py-1.5 rounded-lg text-sm transition-colors cursor-pointer border border-border; }
+  /* ── Buttons — touch feedback + minimum touch target 44px ── */
+  .btn-primary {
+    @apply bg-accent hover:opacity-85 text-white font-semibold px-4 py-2.5 rounded-lg
+           transition-all duration-100 cursor-pointer border-0
+           active:scale-95 touch-manipulation min-h-[44px];
+  }
+  .btn-ghost {
+    @apply bg-surface2 hover:bg-border text-muted hover:text-[#e6edf3] px-3 py-2 rounded-lg text-sm
+           transition-all duration-100 cursor-pointer border border-border
+           active:scale-95 touch-manipulation min-h-[44px];
+  }
+  /* Nút lớn trên mobile — ngón cái bấm chính xác (56px) */
+  .btn-action {
+    @apply w-full h-14 flex items-center justify-center gap-2 rounded-xl font-black text-base
+           transition-all duration-100 active:scale-[0.97] touch-manipulation;
+  }
 
-  .input-base  { @apply bg-surface2 border border-border text-[#e6edf3] px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-cblue transition-colors w-full; }
-  .input-money { @apply bg-[rgba(31,111,235,0.08)] border border-[rgba(88,166,255,0.3)] text-cblue px-3 py-2 rounded-lg text-sm text-right font-mono focus:outline-none focus:border-cblue focus:bg-[rgba(31,111,235,0.18)] transition-colors w-full; }
+  .input-base  { @apply bg-surface2 border border-border text-[#e6edf3] px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:border-cblue transition-colors w-full touch-manipulation; }
+  .input-money { @apply bg-[rgba(31,111,235,0.08)] border border-[rgba(88,166,255,0.3)] text-cblue px-3 py-2.5 rounded-lg text-sm text-right font-mono focus:outline-none focus:border-cblue focus:bg-[rgba(31,111,235,0.18)] transition-colors w-full touch-manipulation; }
 
   .nav-item    { @apply flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-muted text-sm font-medium transition-all hover:bg-surface2 hover:text-[#e6edf3]; }
   .nav-active  { @apply bg-[rgba(31,111,235,0.2)] text-cblue; }
@@ -30,4 +44,9 @@
   .tag-green  { @apply bg-[rgba(63,185,80,0.15)] text-cgreen text-xs font-bold px-2 py-0.5 rounded; }
   .tag-red    { @apply bg-[rgba(248,81,73,0.15)] text-cred text-xs font-bold px-2 py-0.5 rounded; }
   .tag-blue   { @apply bg-[rgba(88,166,255,0.1)] text-cblue text-xs font-bold px-2 py-0.5 rounded; }
+
+  /* ── Responsive table helpers ── */
+  /* Dùng trên <td>/<th> để ẩn cột phụ trên mobile */
+  .col-hide-mobile  { @apply hidden sm:table-cell; }
+  .col-hide-tablet  { @apply hidden md:table-cell; }
 }

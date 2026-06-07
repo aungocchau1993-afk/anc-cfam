@@ -1192,70 +1192,52 @@ export default function Products() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="relative flex-1 min-w-[200px]">
+      {/* Toolbar — responsive: search full-width trên mobile, nút phụ ẩn text */}
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
+        <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
           {isSearching
             ? <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cblue animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
             : <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.8"/><path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
           }
           <input
             className="input-base pl-9 text-sm"
-            placeholder="Tìm theo tên hoặc mã SKU… (debounce 400ms)"
+            placeholder="Tìm tên hoặc SKU…"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        {/* Xuất Excel */}
-        <button
-          onClick={handleExportExcel}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white transition-colors whitespace-nowrap"
-        >
-          📤 Xuất Excel
+
+        {/* Nút phụ — icon-only trên mobile, có text trên tablet+ */}
+        <button onClick={handleExportExcel} title="Xuất Excel"
+          className="h-10 sm:h-auto flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white active:scale-95 touch-manipulation transition-all whitespace-nowrap">
+          <span>📤</span><span className="hidden sm:inline">Xuất Excel</span>
         </button>
 
-        {/* Nhập Excel */}
-        <button
-          onClick={() => importRef.current?.click()}
-          disabled={importing}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-        >
+        <button onClick={() => importRef.current?.click()} disabled={importing} title="Nhập Excel"
+          className="h-10 sm:h-auto flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white active:scale-95 touch-manipulation transition-all disabled:opacity-50 whitespace-nowrap">
           {importing
-            ? <><svg className="w-3.5 h-3.5 animate-spin shrink-0" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
-                <span className="truncate max-w-[180px]">{importProgress || 'Đang nhập…'}</span>
-              </>
-            : '📥 Nhập Excel'
+            ? <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
+            : <span>📥</span>
           }
+          <span className="hidden sm:inline">{importing ? (importProgress || 'Đang nhập…') : 'Nhập Excel'}</span>
         </button>
-        <input
-          ref={importRef}
-          type="file"
-          accept=".xlsx,.xls"
-          className="hidden"
-          onChange={handleImportExcel}
-        />
+        <input ref={importRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportExcel} />
 
-        {/* Nhập kho */}
-        <button
-          onClick={() => setIsImportOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cgreen/15 border border-cgreen/40 text-cgreen text-sm font-semibold hover:bg-cgreen/25 transition-colors whitespace-nowrap"
-        >
-          📦 Nhập kho
+        <button onClick={() => setIsImportOpen(true)} title="Nhập kho"
+          className="h-10 sm:h-auto flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-cgreen/15 border border-cgreen/40 text-cgreen text-sm font-semibold hover:bg-cgreen/25 active:scale-95 touch-manipulation transition-all whitespace-nowrap">
+          <span>📦</span><span className="hidden sm:inline">Nhập kho</span>
         </button>
 
-        {/* Quét HĐ nhập */}
-        <button
-          onClick={() => setShowOcrPurchase(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cteal/10 border border-cteal/40 text-cteal text-sm font-medium hover:bg-cteal/20 transition-colors whitespace-nowrap"
-        >
-          🤖 Quét HĐ nhập
+        <button onClick={() => setShowOcrPurchase(true)} title="Quét HĐ nhập"
+          className="h-10 sm:h-auto flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-cteal/10 border border-cteal/40 text-cteal text-sm font-medium hover:bg-cteal/20 active:scale-95 touch-manipulation transition-all whitespace-nowrap">
+          <span>🤖</span><span className="hidden sm:inline">Quét HĐ nhập</span>
         </button>
 
-        {/* Thêm hàng mới */}
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"
-        >
-          <span className="text-base leading-none">＋</span> Thêm hàng mới
+        <button onClick={() => setIsAddOpen(true)}
+          className="btn-primary flex items-center gap-2 px-4 py-2 text-sm ml-auto sm:ml-0">
+          <span className="text-base leading-none">＋</span>
+          <span className="hidden xs:inline">Thêm hàng mới</span>
+          <span className="xs:hidden">Thêm</span>
         </button>
       </div>
 
@@ -1284,28 +1266,28 @@ export default function Products() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px]">
+            <table className="w-full min-w-0">
               <thead>
                 <tr className="bg-slate-800 border-b border-slate-700">
-                  <th className="sticky top-0 z-10 bg-slate-800 px-4 py-3 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap w-[280px]">
+                  <th className="sticky top-0 z-10 bg-slate-800 px-3 sm:px-4 py-3 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     Sản phẩm
                   </th>
-                  <th className="sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                  <th className="col-hide-mobile sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     Giá vốn
                   </th>
-                  <th className="sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                  <th className="col-hide-tablet sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     Giá bán
                   </th>
-                  <th className="sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                  <th className="col-hide-mobile sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     Lợi nhuận
                   </th>
-                  <th className="sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                  <th className="sticky top-0 z-10 bg-slate-800 px-3 sm:px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     Tồn kho
                   </th>
-                  <th className="sticky top-0 z-10 bg-slate-800 px-4 py-3 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                  <th className="col-hide-tablet sticky top-0 z-10 bg-slate-800 px-4 py-3 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     Trạng thái
                   </th>
-                  <th className="sticky top-0 z-10 bg-slate-800 px-4 py-3 text-center text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap w-[110px]">
+                  <th className="sticky top-0 z-10 bg-slate-800 px-3 sm:px-4 py-3 text-center text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     Thao tác
                   </th>
                 </tr>
@@ -1340,26 +1322,26 @@ export default function Products() {
                         </div>
                       </td>
 
-                      {/* Giá vốn */}
-                      <td className="px-4 py-2.5 text-right tabular-nums whitespace-nowrap text-slate-400 font-mono">
+                      {/* Giá vốn — ẩn trên mobile */}
+                      <td className="col-hide-mobile px-4 py-2.5 text-right tabular-nums whitespace-nowrap text-slate-400 font-mono">
                         {fmtVNDFull(p.importPrice)}
                       </td>
 
-                      {/* Giá bán */}
-                      <td className="px-4 py-2.5 text-right tabular-nums whitespace-nowrap font-semibold text-slate-100 font-mono">
+                      {/* Giá bán — ẩn trên mobile nhỏ */}
+                      <td className="col-hide-tablet px-4 py-2.5 text-right tabular-nums whitespace-nowrap font-semibold text-slate-100 font-mono">
                         {fmtVNDFull(p.sellPrice)}
                       </td>
 
-                      {/* Lợi nhuận */}
-                      <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                      {/* Lợi nhuận — ẩn trên mobile */}
+                      <td className="col-hide-mobile px-4 py-2.5 text-right whitespace-nowrap">
                         <div className={`tabular-nums font-semibold font-mono ${profit >= 0 ? 'text-cgreen' : 'text-cred'}`}>
                           {fmtVNDFull(profit)}
                         </div>
                         <div className="text-[10px] text-slate-500">{margin}%</div>
                       </td>
 
-                      {/* Tồn kho */}
-                      <td className="px-4 py-2.5 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                      {/* Tồn kho — luôn hiện */}
+                      <td className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => setStockTarget(p)}
                           title="Điều chỉnh tồn kho"
@@ -1372,8 +1354,8 @@ export default function Products() {
                         </button>
                       </td>
 
-                      {/* Trạng thái */}
-                      <td className="px-4 py-2.5">
+                      {/* Trạng thái — ẩn trên mobile nhỏ */}
+                      <td className="col-hide-tablet px-4 py-2.5">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${
                           p.stockQuantity <= 0
                             ? 'bg-cred/10 text-cred border-cred/30'
@@ -1386,18 +1368,18 @@ export default function Products() {
                       </td>
 
                       {/* Thao tác */}
-                      <td className="px-4 py-2.5" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <td className="px-3 sm:px-4 py-2.5" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-1.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                           <button onClick={() => setStockTarget(p)} title="Điều chỉnh kho"
-                            className="w-7 h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cyellow hover:text-cyellow hover:bg-cyellow/10 transition-colors flex items-center justify-center">
+                            className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cyellow hover:text-cyellow hover:bg-cyellow/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" stroke="currentColor" strokeWidth="1.8"/><path d="M12 11v2m0 0v2m0-2h2m-2 0H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
                           </button>
                           <button onClick={() => setEditTarget(p)} title="Sửa"
-                            className="w-7 h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center">
+                            className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cblue hover:text-cblue hover:bg-cblue/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                           </button>
                           <button onClick={() => setDeleteTarget(p)} title="Xoá"
-                            className="w-7 h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors flex items-center justify-center">
+                            className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cred hover:text-cred hover:bg-cred/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                           </button>
                         </div>

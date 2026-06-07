@@ -1264,10 +1264,10 @@ export default function PointOfSale() {
             onClick={() => setShowPayConfirm(true)}
             disabled={cart.length === 0 || paying || creditBlocked}
             className={`
-              w-full py-4 rounded-xl font-black text-base tracking-wide transition-all duration-150
+              w-full h-14 rounded-xl font-black text-base tracking-wide transition-all duration-100 touch-manipulation
               ${cart.length === 0 || paying || creditBlocked
                 ? 'bg-slate-800 border border-slate-700 text-slate-600 cursor-not-allowed'
-                : 'bg-cgreen hover:brightness-110 text-white shadow-xl shadow-cgreen/20 active:scale-[0.98]'
+                : 'bg-cgreen hover:brightness-110 text-white shadow-xl shadow-cgreen/20 active:scale-[0.97]'
               }
             `}
           >
