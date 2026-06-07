@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../context/SupabaseContext'
 
 // ═══════════════════════════════════════════════════════════
 //  CẤU HÌNH 2 NHÓM CHÍNH — Thêm tab mới chỉ cần thêm vào đây
@@ -57,14 +58,24 @@ const GROUPS = [
 // ── Sidebar Component ────────────────────────────────────────────────────
 
 export default function Sidebar({ current, currentBizTab, onChange, onBizTabChange }) {
-  // Mở cả 2 nhóm mặc định, có thể thu gọn độc lập
   const [open, setOpen] = useState({ business: true, cashflow: true })
+  const { user } = useAuth()
 
   const toggleGroup = id => setOpen(prev => ({ ...prev, [id]: !prev[id] }))
 
   async function handleLogout() {
     if (supabase) await supabase.auth.signOut()
   }
+
+  // Lấy thông tin user
+  const email    = user?.email ?? ''
+  const meta     = user?.user_metadata ?? {}
+  const role     = meta.role ?? 'Admin'
+  const fullName = meta.full_name ?? meta.name ?? ''
+  // Avatar initials từ tên hoặc email
+  const initials = fullName
+    ? fullName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+    : email.slice(0, 2).toUpperCase()
 
   // Kiểm tra group nào đang active để highlight header
   function isGroupActive(group) {
@@ -170,19 +181,50 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
         })}
       </div>
 
-      {/* ── Logout ─────────────────────────────────────────── */}
-      <div className="shrink-0 px-2 py-3 border-t border-border">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
-        >
-          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-            <path d="M15 17l5-5-5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M20 12H9"       stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12 21H5a1 1 0 01-1-1V4a1 1 0 011-1h7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Đăng xuất
-        </button>
+      {/* ── User Info + Logout ─────────────────────────────── */}
+      <div className="shrink-0 border-t border-border">
+
+        {/* User card */}
+        {user && (
+          <div className="px-3 py-3 flex items-center gap-2.5">
+            {/* Avatar */}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cblue/70 to-cpurple/70 border border-slate-600 flex items-center justify-center shrink-0">
+              <span className="text-[11px] font-black text-white">{initials}</span>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              {fullName && (
+                <div className="text-[11px] font-bold text-[#e6edf3] truncate leading-tight">{fullName}</div>
+              )}
+              <div className="text-[10px] text-slate-500 truncate leading-tight">{email}</div>
+              <div className="mt-0.5">
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full border ${
+                  role.toLowerCase() === 'admin'
+                    ? 'bg-cyellow/15 text-cyellow border-cyellow/30'
+                    : 'bg-cblue/15 text-cblue border-cblue/30'
+                }`}>
+                  {role.toUpperCase()}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Logout */}
+        <div className="px-2 pb-3">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+          >
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
+              <path d="M15 17l5-5-5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M20 12H9"       stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 21H5a1 1 0 01-1-1V4a1 1 0 011-1h7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Đăng xuất
+          </button>
+        </div>
       </div>
     </nav>
   )
