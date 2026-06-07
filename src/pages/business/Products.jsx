@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx'
 import { loadProducts, insertProduct, updateProduct, deleteProduct, uploadProductImage, deleteProductImage, upsertProducts, uploadProductImageBlob, loadSuppliers, createImportOrder } from '../../lib/supabase'
 import { buildReceiptHtml, printViaIframe } from '../../lib/printReceipt'
 import ModalOverlay from '../../components/ui/ModalOverlay'
+import OcrInvoiceModal from '../../components/business/OcrInvoiceModal'
 import useDebounce from '../../hooks/useDebounce'
 import { formatMoneyLive, parseVNDInput, fmtVNDFull, removeVietnameseTones } from '../../lib/formatters'
 
@@ -821,10 +822,12 @@ export default function Products() {
   const [search, setSearch]       = useState('')
   const [isAddOpen,      setIsAddOpen]      = useState(false)
   const [isImportOpen,   setIsImportOpen]   = useState(false)
+  const [showOcrPurchase,setShowOcrPurchase]= useState(false)
   const [showLowStock,   setShowLowStock]   = useState(false)
   const [editTarget,   setEditTarget]   = useState(null)
   const [stockTarget, setStockTarget]   = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [suppliers,      setSuppliers]      = useState([])
   const [deleting,   setDeleting]   = useState(false)
   const [importing,     setImporting]     = useState(false)
   const [importProgress, setImportProgress] = useState('')
@@ -833,8 +836,8 @@ export default function Products() {
   // Load toàn bộ 1 lần, filter client-side để hỗ trợ tìm không dấu
   useEffect(() => {
     setLoading(true)
-    loadProducts('')
-      .then(setProducts)
+    Promise.all([loadProducts(''), loadSuppliers('')])
+      .then(([prods, sups]) => { setProducts(prods); setSuppliers(sups || []) })
       .catch(e => toast.error(e.message))
       .finally(() => setLoading(false))
   }, [])
@@ -1239,6 +1242,14 @@ export default function Products() {
           📦 Nhập kho
         </button>
 
+        {/* Quét HĐ nhập */}
+        <button
+          onClick={() => setShowOcrPurchase(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cteal/10 border border-cteal/40 text-cteal text-sm font-medium hover:bg-cteal/20 transition-colors whitespace-nowrap"
+        >
+          🤖 Quét HĐ nhập
+        </button>
+
         {/* Thêm hàng mới */}
         <button
           onClick={() => setIsAddOpen(true)}
@@ -1403,6 +1414,23 @@ export default function Products() {
       {/* Modals */}
       {isAddOpen    && <AddProductModal onSave={handleAdd} onClose={() => setIsAddOpen(false)} />}
       {isImportOpen && <ImportStockModal products={products} onImported={handleImported} onClose={() => setIsImportOpen(false)} />}
+      {showOcrPurchase && (
+        <OcrInvoiceModal
+          type="PURCHASE"
+          products={products}
+          suppliers={suppliers}
+          onCreateImportOrder={async (data) => {
+            try {
+              await createImportOrder(data)
+              toast.success('✅ Đã tạo đơn nhập hàng thành công!')
+              loadProducts('').then(setProducts).catch(() => {})
+            } catch (err) {
+              toast.error(err.message || 'Lỗi khi tạo đơn nhập')
+            }
+          }}
+          onClose={() => setShowOcrPurchase(false)}
+        />
+      )}
       {editTarget   && <AddProductModal initial={editTarget} onSave={handleEdit} onClose={() => setEditTarget(null)} />}
       {stockTarget  && <AdjustStockModal product={stockTarget} onSave={handleStock} onClose={() => setStockTarget(null)} />}
 

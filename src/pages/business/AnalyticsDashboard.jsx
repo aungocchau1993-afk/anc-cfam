@@ -7,16 +7,18 @@ import {
   loadTopDebtors,
   loadLowStockProducts,
   loadMonthlyPnl,
+  loadInventoryIntelligence,
+  loadCashflowForecast,
 } from '../../lib/supabase'
 import { fmtVNDFull } from '../../lib/formatters'
 import {
   Chart as ChartJS, CategoryScale, LinearScale,
-  PointElement, LineElement, BarElement,
+  PointElement, LineElement, BarElement, ArcElement,
   Tooltip, Legend, Filler,
 } from 'chart.js'
-import { Line, Bar } from 'react-chartjs-2'
+import { Line, Bar, Pie } from 'react-chartjs-2'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend, Filler)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler)
 
 // ── useCountUp hook ────────────────────────────────────────────────────────
 
@@ -96,24 +98,30 @@ export default function AnalyticsDashboard() {
   const [debtors,     setDebtors]     = useState([])
   const [lowStock,    setLowStock]    = useState([])
   const [monthlyPnl,  setMonthlyPnl]  = useState([])
+  const [inventory,   setInventory]   = useState([])
+  const [cashflow,    setCashflow]    = useState(null)
   const [loading,     setLoading]     = useState(true)
 
   useEffect(() => {
     setLoading(true)
     Promise.all([
       loadCurrentMonthStats(),
-      loadDailyRevenue(7),
-      loadTopSellingProducts(5),
+      loadDailyRevenue(30),       // 30 ngày cho đủ dữ liệu lợi nhuận
+      loadTopSellingProducts(8),
       loadTopDebtors(5),
       loadLowStockProducts(8),
       loadMonthlyPnl(6),
-    ]).then(([s, d, tp, deb, ls, mp]) => {
+      loadInventoryIntelligence(12),
+      loadCashflowForecast(),
+    ]).then(([s, d, tp, deb, ls, mp, inv, cf]) => {
       setStats(s)
       setDaily(d)
       setTopProducts(tp)
       setDebtors(deb)
       setLowStock(ls)
       setMonthlyPnl([...mp].reverse())
+      setInventory(inv)
+      setCashflow(cf)
     }).catch(e => toast.error(e.message))
       .finally(() => setLoading(false))
   }, [])
@@ -121,7 +129,7 @@ export default function AnalyticsDashboard() {
   const now = new Date()
   const monthLabel = `Tháng ${now.getMonth() + 1}/${now.getFullYear()}`
 
-  // ── Chart data: 7-ngày doanh thu vs lợi nhuận ────────────────────────────
+  // ── Chart data: 30-ngày lợi nhuận (line) ────────────────────────────────
   const lineData = useMemo(() => ({
     labels: daily.map(d => d.date),
     datasets: [
@@ -129,16 +137,35 @@ export default function AnalyticsDashboard() {
         label: 'Doanh thu',
         data:  daily.map(d => d.revenue),
         borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)',
-        fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#3b82f6',
+        fill: true, tension: 0.4, pointRadius: 2, pointBackgroundColor: '#3b82f6',
       },
       {
         label: 'Lợi nhuận',
         data:  daily.map(d => d.profit),
         borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)',
-        fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#10b981',
+        fill: true, tension: 0.4, pointRadius: 2, pointBackgroundColor: '#10b981',
       },
     ],
   }), [daily])
+
+  // ── Chart data: Pie — tỷ trọng doanh thu top sản phẩm ───────────────────
+  const PIE_COLORS = [
+    'rgba(59,130,246,0.8)', 'rgba(16,185,129,0.8)', 'rgba(245,158,11,0.8)',
+    'rgba(168,85,247,0.8)', 'rgba(239,68,68,0.8)',  'rgba(20,184,166,0.8)',
+    'rgba(249,115,22,0.8)', 'rgba(99,102,241,0.8)',
+  ]
+  const pieData = useMemo(() => {
+    const top = topProducts.slice(0, 8)
+    return {
+      labels: top.map(p => p.name.length > 18 ? p.name.slice(0, 18) + '…' : p.name),
+      datasets: [{
+        data:            top.map(p => p.totalRevenue),
+        backgroundColor: PIE_COLORS.slice(0, top.length),
+        borderColor:     'rgba(13,17,23,0.8)',
+        borderWidth:     2,
+      }],
+    }
+  }, [topProducts])
 
   // ── Chart data: 6-tháng P&L bar ──────────────────────────────────────────
   const barData = useMemo(() => ({
@@ -242,26 +269,168 @@ export default function AnalyticsDashboard() {
         />
       </div>
 
-      {/* ── Charts ─────────────────────────────────────────── */}
+      {/* ── Charts row 1: line + pie ──────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* 7-day trend */}
+        {/* 30-day profit trend */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <div className="text-sm font-bold text-[#e6edf3] mb-1">📉 Xu Hướng 7 Ngày Gần Nhất</div>
-          <div className="text-[11px] text-slate-500 mb-4">Doanh thu & lợi nhuận theo ngày</div>
+          <div className="text-sm font-bold text-[#e6edf3] mb-1">📉 Lợi Nhuận Theo Ngày — 30 Ngày</div>
+          <div className="text-[11px] text-slate-500 mb-4">Doanh thu & lợi nhuận hàng ngày</div>
           <div className="h-52">
             <Line data={lineData} options={chartOpts} />
           </div>
         </div>
 
-        {/* 6-month P&L */}
+        {/* Pie: revenue by product */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <div className="text-sm font-bold text-[#e6edf3] mb-1">📊 P&L 6 Tháng Gần Nhất</div>
-          <div className="text-[11px] text-slate-500 mb-4">Doanh thu · Chi phí · Lãi ròng</div>
-          <div className="h-52">
-            <Bar data={barData} options={chartOpts} />
+          <div className="text-sm font-bold text-[#e6edf3] mb-1">🥧 Tỷ Trọng Doanh Thu Theo Sản Phẩm</div>
+          <div className="text-[11px] text-slate-500 mb-4">Top sản phẩm đóng góp doanh thu</div>
+          <div className="h-52 flex items-center justify-center">
+            {topProducts.length > 0 ? (
+              <Pie data={pieData} options={{
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'right', labels: { color: '#9ca3af', font: { size: 10 }, boxWidth: 10, padding: 8 } },
+                  tooltip: { callbacks: { label: ctx => ` ${fmtVNDFull(ctx.raw)}` } },
+                },
+              }} />
+            ) : (
+              <div className="text-slate-600 text-xs">Chưa có dữ liệu</div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* ── Charts row 2: bar P&L ─────────────────────────── */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="text-sm font-bold text-[#e6edf3] mb-1">📊 P&L 6 Tháng Gần Nhất</div>
+        <div className="text-[11px] text-slate-500 mb-4">Doanh thu · Chi phí · Lãi ròng</div>
+        <div className="h-52">
+          <Bar data={barData} options={chartOpts} />
+        </div>
+      </div>
+
+      {/* ── Cashflow Forecast ──────────────────────────────── */}
+      {cashflow && (
+        <div className={`rounded-2xl border p-5 ${cashflow.warning ? 'border-red-700/50 bg-red-950/20' : 'border-slate-800 bg-slate-900/60'}`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">{cashflow.warning ? '🚨' : '💰'}</span>
+            <div>
+              <div className="text-sm font-bold text-[#e6edf3]">Dự Báo Dòng Tiền — Nợ Nhà Cung Cấp</div>
+              <div className="text-[11px] text-slate-500">Phân tích khả năng thanh toán dựa trên doanh thu 7 ngày</div>
+            </div>
+          </div>
+
+          {/* Warning banner */}
+          {cashflow.warning && (
+            <div className="mb-4 px-4 py-3 rounded-xl bg-red-900/30 border border-red-700/40 text-xs text-red-300 leading-relaxed">
+              ⚠️ <strong>Cảnh báo tài chính:</strong> Tổng nợ nhà cung cấp&nbsp;
+              <span className="font-black text-red-200">{fmtVNDFull(cashflow.totalPayable)}</span>&nbsp;
+              vượt quá doanh thu 7 ngày gần nhất&nbsp;
+              <span className="font-black">{fmtVNDFull(cashflow.recentRevenue7d)}</span>.
+              Cần lên kế hoạch thu tiền hoặc đàm phán giãn nợ với nhà cung cấp.
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Tổng phải trả */}
+            <div className="rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-3">
+              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Tổng Nợ NCC</div>
+              <div className={`text-xl font-black tabular-nums ${cashflow.totalPayable > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                {fmtVNDFull(cashflow.totalPayable)}
+              </div>
+              <div className="text-[10px] text-slate-600 mt-0.5">{cashflow.supplierDebts.length} nhà cung cấp</div>
+            </div>
+
+            {/* Doanh thu 7 ngày */}
+            <div className="rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-3">
+              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Doanh Thu 7 Ngày</div>
+              <div className="text-xl font-black tabular-nums text-cblue">{fmtVNDFull(cashflow.recentRevenue7d)}</div>
+              <div className="text-[10px] text-slate-600 mt-0.5">Ước tính khả năng chi trả</div>
+            </div>
+
+            {/* Hệ số an toàn */}
+            <div className="rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-3">
+              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Hệ Số An Toàn</div>
+              {cashflow.totalPayable > 0 ? (
+                <>
+                  <div className={`text-xl font-black tabular-nums ${cashflow.recentRevenue7d >= cashflow.totalPayable ? 'text-cgreen' : 'text-cred'}`}>
+                    {(cashflow.recentRevenue7d / cashflow.totalPayable).toFixed(2)}x
+                  </div>
+                  <div className="text-[10px] text-slate-600 mt-0.5">Doanh thu / Nợ (≥1 là an toàn)</div>
+                </>
+              ) : (
+                <div className="text-xl font-black text-cgreen">∞ <span className="text-xs font-normal">Không nợ</span></div>
+              )}
+            </div>
+          </div>
+
+          {/* Danh sách NCC nợ nhiều */}
+          {cashflow.supplierDebts.length > 0 && (
+            <div className="mt-4 divide-y divide-slate-800/60">
+              {cashflow.supplierDebts.map(s => (
+                <div key={s.id} className="flex items-center justify-between py-2">
+                  <span className="text-xs text-slate-300 truncate">{s.name}</span>
+                  <span className="text-xs font-black text-red-400 tabular-nums shrink-0 ml-3">{fmtVNDFull(s.debt)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Inventory Intelligence ─────────────────────────── */}
+      {inventory.length > 0 && (
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
+          <div className="px-5 py-3 border-b border-slate-800 flex items-center gap-2">
+            <span className="text-base">🧠</span>
+            <div className="flex-1">
+              <div className="text-sm font-bold text-[#e6edf3]">Phân Tích Tồn Kho Thông Minh</div>
+              <div className="text-[10px] text-slate-500">Dựa trên tốc độ bán ra 30 ngày qua</div>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] text-slate-600 font-semibold uppercase tracking-wide border-b border-slate-800">
+                  <th className="px-4 py-2 text-left">Sản phẩm</th>
+                  <th className="px-3 py-2 text-center">Tồn kho</th>
+                  <th className="px-3 py-2 text-center">Bán 30 ngày</th>
+                  <th className="px-3 py-2 text-center">TB/ngày</th>
+                  <th className="px-3 py-2 text-center">Còn đủ</th>
+                  <th className="px-4 py-2 text-center">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {inventory.map(p => (
+                  <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-4 py-2.5">
+                      <div className="font-semibold text-[#e6edf3] truncate max-w-[160px]">{p.name}</div>
+                      <div className="text-[10px] text-slate-600 font-mono">{p.sku}</div>
+                    </td>
+                    <td className="px-3 py-2.5 text-center font-bold tabular-nums text-[#e6edf3]">{p.stock.toLocaleString('vi-VN')}</td>
+                    <td className="px-3 py-2.5 text-center tabular-nums text-cblue font-semibold">{p.qty30.toLocaleString('vi-VN')}</td>
+                    <td className="px-3 py-2.5 text-center tabular-nums text-slate-400">{p.avgDaily}</td>
+                    <td className="px-3 py-2.5 text-center">
+                      {p.daysLeft !== null ? (
+                        <span className={`font-bold tabular-nums ${p.daysLeft <= 7 ? 'text-cred' : p.daysLeft <= 14 ? 'text-cyellow' : 'text-slate-400'}`}>
+                          {p.daysLeft} ngày
+                        </span>
+                      ) : (
+                        <span className="text-slate-600">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className={`inline-block text-[10px] font-bold border rounded-full px-2 py-0.5 whitespace-nowrap ${p.labelCls}`}>
+                        {p.label}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* ── Bottom 3 panels ────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

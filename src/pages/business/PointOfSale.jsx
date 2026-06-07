@@ -13,6 +13,7 @@ import { loadOrders, cancelOrder, calcPointsEarned } from '../../lib/supabase'
 import { formatMoneyLive, parseVNDInput, fmtVNDFull, removeVietnameseTones } from '../../lib/formatters'
 import { buildReceiptHtml, printViaIframe } from '../../lib/printReceipt'
 import ModalOverlay from '../../components/ui/ModalOverlay'
+import OcrInvoiceModal from '../../components/business/OcrInvoiceModal'
 import useDebounce from '../../hooks/useDebounce'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -623,6 +624,7 @@ export default function PointOfSale() {
   const [showHistory,    setShowHistory]    = useState(false)
   const [showRedeem,     setShowRedeem]     = useState(false)
   const [showPayConfirm, setShowPayConfirm] = useState(false)
+  const [showOcr,        setShowOcr]        = useState(false)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -729,6 +731,30 @@ export default function PointOfSale() {
   const clearCart = useCallback(() => {
     setCart([]); setCustomer(null); setNote('')
     setDiscountValue(''); setDiscountType('amount'); setPaidInput('')
+  }, [])
+
+  // OCR: thêm các items từ modal vào giỏ
+  const handleOcrAddItems = useCallback((rows) => {
+    rows.forEach(({ product, qty, price }) => {
+      if (!product) return
+      setCart(prev => {
+        const exists = prev.find(i => i.productId === product.id)
+        if (exists) {
+          return prev.map(i => i.productId === product.id
+            ? { ...i, quantity: i.quantity + qty, price }
+            : i)
+        }
+        return [...prev, {
+          productId: product.id,
+          name:      product.name,
+          sku:       product.sku,
+          price,
+          cost:      product.importPrice,
+          imageUrl:  product.imageUrl ?? null,
+          quantity:  qty,
+        }]
+      })
+    })
   }, [])
 
   // ── Summary ─────────────────────────────────────────────────────────────
@@ -925,6 +951,15 @@ export default function PointOfSale() {
                 </div>
               )}
             </div>
+
+            {/* Nút quét hóa đơn AI */}
+            <button
+              onClick={() => setShowOcr(true)}
+              className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-cpurple/40 bg-cpurple/10 text-cpurple text-sm hover:border-cpurple/70 hover:bg-cpurple/15 transition-colors whitespace-nowrap font-semibold"
+              title="OCR Hóa Đơn AI"
+            >
+              🤖 <span className="hidden sm:inline">Quét HĐ</span>
+            </button>
 
             {/* Nút lịch sử */}
             <button
@@ -1229,6 +1264,16 @@ export default function PointOfSale() {
       </div>
 
       {/* ── Modals ─────────────────────────────────────────────────── */}
+
+      {/* OCR Hóa đơn AI */}
+      {showOcr && (
+        <OcrInvoiceModal
+          type="SALE"
+          products={products}
+          onAddItems={handleOcrAddItems}
+          onClose={() => setShowOcr(false)}
+        />
+      )}
 
       {/* Xác nhận thanh toán */}
       {showPayConfirm && (

@@ -12,7 +12,10 @@ import {
   returnOrderItem as partialReturnItem,
   getOrderDetail as loadOrderDetail,
   subscribeSuppliers,
+  addImportOrder,
+  getProducts as loadProducts,
 } from '../../lib/dataService'
+import OcrInvoiceModal from '../../components/business/OcrInvoiceModal'
 import { loadSupplierDebtsByPeriod, supabase, isSupabaseConfigured } from '../../lib/supabase'
 import DateFilterBar, { getDateRange, toInputDate, startOf } from '../../components/ui/DateFilterBar'
 import { fmtVNDFull, formatMoneyLive, parseVNDInput, removeVietnameseTones } from '../../lib/formatters'
@@ -570,7 +573,9 @@ function SupplierOrderDrawer({ supplier, onClose, onSupplierUpdated }) {
 // ── Main Page ──────────────────────────────────────────────────────────────
 
 export default function Suppliers() {
-  const [suppliers, setSuppliers]       = useState([])
+  const [suppliers,       setSuppliers]       = useState([])
+  const [products,        setProducts]        = useState([])
+  const [showOcrPurchase, setShowOcrPurchase] = useState(false)
   const [loading, setLoading]           = useState(true)
   const [search, setSearch]             = useState('')
   const [showAdd, setShowAdd]           = useState(false)
@@ -594,8 +599,9 @@ export default function Suppliers() {
   const fetchSuppliers = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await loadSuppliers('')
+      const [data, prods] = await Promise.all([loadSuppliers(''), loadProducts('')])
       setSuppliers(data)
+      setProducts(prods || [])
     } catch (e) {
       toast.error(e.message)
     } finally {
@@ -945,6 +951,13 @@ export default function Suppliers() {
         />
 
         <button
+          onClick={() => setShowOcrPurchase(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cteal/10 border border-cteal/40 text-cteal text-sm font-medium hover:bg-cteal/20 transition-colors whitespace-nowrap"
+        >
+          🤖 Quét HĐ nhập
+        </button>
+
+        <button
           onClick={() => setShowAdd(true)}
           className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"
         >
@@ -1090,6 +1103,24 @@ export default function Suppliers() {
         />
       )}
       {deleteTarget && <ConfirmDelete supplier={deleteTarget} onConfirm={handleDelete} onClose={() => setDeleteTarget(null)} />}
+
+      {showOcrPurchase && (
+        <OcrInvoiceModal
+          type="PURCHASE"
+          products={products}
+          suppliers={suppliers}
+          onCreateImportOrder={async (data) => {
+            try {
+              await addImportOrder(data)
+              toast.success('✅ Đã tạo đơn nhập hàng thành công!')
+              loadSuppliers('').then(setSuppliers).catch(() => {})
+            } catch (err) {
+              toast.error(err.message || 'Lỗi khi tạo đơn nhập')
+            }
+          }}
+          onClose={() => setShowOcrPurchase(false)}
+        />
+      )}
     </div>
   )
 }

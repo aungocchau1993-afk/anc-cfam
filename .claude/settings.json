@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "$raw = [Console]::In.ReadToEnd(); $j = $raw | ConvertFrom-Json; $f = $j.tool_input.file_path; if ($f -and $f -like '*anc-cfam*') { Set-Location 'E:\\03. Coder\\04. Viet tiep\\anc-cfam'; git add \"$f\"; $msg = 'auto: update ' + (Split-Path $f -Leaf); git commit -m $msg; git push origin main } 2>$null",
+            "statusMessage": "Đang push lên GitHub...",
+            "timeout": 30,
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

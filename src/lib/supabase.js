@@ -1437,3 +1437,97 @@ export async function loadCurrentMonthStats() {
 
   return { totalRevenue, totalCOGS, grossProfit, totalOpex, netProfit, totalDebt }
 }
+
+// ── Inventory Intelligence: velocity 30 ngày ──────────────────────────────
+
+export async function loadInventoryIntelligence(limit = 12) {
+  if (!supabase) return []
+
+  const from30 = new Date()
+  from30.setDate(from30.getDate() - 30)
+
+  // Lấy song song: danh sách sản phẩm + doanh số 30 ngày qua
+  const [productsRes, salesRes] = await Promise.all([
+    supabase.from('products').select('id, sku, name, stock_quantity'),
+    supabase
+      .from('order_items')
+      .select('product_id, quantity, orders!inner(type, status, created_at)')
+      .eq('orders.type', 'export')
+      .eq('orders.status', 'completed')
+      .gte('orders.created_at', from30.toISOString()),
+  ])
+
+  if (productsRes.error) throw productsRes.error
+
+  // Tổng số lượng bán ra 30 ngày theo product_id
+  const salesMap = {}
+  for (const item of salesRes.data || []) {
+    const id = item.product_id
+    if (id) salesMap[id] = (salesMap[id] || 0) + (Number(item.quantity) || 0)
+  }
+
+  // Ngưỡng "best-seller": bán nhiều hơn trung bình toàn danh mục
+  const allSales = Object.values(salesMap)
+  const avgSales = allSales.length ? allSales.reduce((s, v) => s + v, 0) / allSales.length : 0
+
+  return (productsRes.data || [])
+    .map(p => {
+      const qty30   = salesMap[p.id] || 0
+      const avgDaily = qty30 / 30
+      const daysLeft = avgDaily > 0 ? Math.round(p.stock_quantity / avgDaily) : null
+
+      // Phân loại tồn kho
+      let label, labelCls
+      if (qty30 > avgSales * 1.5 && qty30 > 0) {
+        label = '🔥 Best-seller'; labelCls = 'bg-cgreen/15 text-cgreen border-cgreen/30'
+      } else if (p.stock_quantity > qty30 * 3 && p.stock_quantity > 5) {
+        label = '📦 Tồn đọng';   labelCls = 'bg-cyellow/15 text-cyellow border-cyellow/30'
+      } else if (daysLeft !== null && daysLeft <= 7) {
+        label = '⚡ Sắp hết';    labelCls = 'bg-cred/15 text-cred border-cred/30'
+      } else {
+        label = '✅ Bình thường'; labelCls = 'bg-slate-700/40 text-slate-400 border-slate-600/40'
+      }
+
+      return { id: p.id, sku: p.sku, name: p.name, stock: p.stock_quantity, qty30, avgDaily: +avgDaily.toFixed(1), daysLeft, label, labelCls }
+    })
+    .sort((a, b) => b.qty30 - a.qty30)
+    .slice(0, limit)
+}
+
+// ── Cashflow Forecast: nợ phải trả + cảnh báo tài chính ─────────────────
+
+export async function loadCashflowForecast() {
+  if (!supabase) return { totalPayable: 0, recentRevenue7d: 0, supplierDebts: [], warning: false }
+
+  const from7 = new Date()
+  from7.setDate(from7.getDate() - 7)
+
+  const [supRes, revenueRes] = await Promise.all([
+    supabase
+      .from('suppliers')
+      .select('id, name, current_debt')
+      .gt('current_debt', 0)
+      .order('current_debt', { ascending: false }),
+    supabase
+      .from('orders')
+      .select('paid_amount, total_amount')
+      .eq('type', 'export')
+      .eq('status', 'completed')
+      .gte('created_at', from7.toISOString()),
+  ])
+
+  const suppliers       = supRes.data || []
+  const totalPayable    = suppliers.reduce((s, r) => s + (Number(r.current_debt) || 0), 0)
+  const recentRevenue7d = (revenueRes.data || [])
+    .reduce((s, o) => s + (Number(o.paid_amount ?? o.total_amount) || 0), 0)
+
+  // Cảnh báo nếu nợ nhà cung cấp > doanh thu 7 ngày gần nhất
+  const warning = totalPayable > 0 && totalPayable > recentRevenue7d
+
+  return {
+    totalPayable,
+    recentRevenue7d,
+    warning,
+    supplierDebts: suppliers.slice(0, 6).map(s => ({ id: s.id, name: s.name, debt: s.current_debt })),
+  }
+}
