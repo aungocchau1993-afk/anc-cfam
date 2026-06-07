@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/SupabaseContext'
 
@@ -58,7 +58,10 @@ const GROUPS = [
 // ── Sidebar Component ────────────────────────────────────────────────────
 
 export default function Sidebar({ current, currentBizTab, onChange, onBizTabChange }) {
-  const [open, setOpen] = useState({ business: true, cashflow: true })
+  const [open,         setOpen]         = useState({ business: true, cashflow: true })
+  const [uploading,    setUploading]    = useState(false)
+  const [avatarUrl,    setAvatarUrl]    = useState(null)  // override sau khi upload
+  const fileInputRef = useRef(null)
   const { user } = useAuth()
 
   const toggleGroup = id => setOpen(prev => ({ ...prev, [id]: !prev[id] }))
@@ -72,10 +75,36 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
   const meta     = user?.user_metadata ?? {}
   const role     = meta.role ?? 'Admin'
   const fullName = meta.full_name ?? meta.name ?? ''
-  // Avatar initials từ tên hoặc email
   const initials = fullName
     ? fullName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     : email.slice(0, 2).toUpperCase()
+  // Dùng state override nếu vừa upload, fallback về user_metadata
+  const currentAvatar = avatarUrl ?? meta.avatar_url ?? null
+
+  async function handleAvatarUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file || !supabase) return
+    setUploading(true)
+    try {
+      const ext  = file.name.split('.').pop()
+      const path = `avatars/${user.id}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('product-images')
+        .upload(path, file, { upsert: true, contentType: file.type })
+      if (upErr) throw upErr
+      const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+      const url = data.publicUrl
+      // Lưu vào user_metadata
+      const { error: updErr } = await supabase.auth.updateUser({ data: { avatar_url: url } })
+      if (updErr) throw updErr
+      setAvatarUrl(url)
+    } catch (err) {
+      console.error('Upload avatar lỗi:', err)
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
 
   // Kiểm tra group nào đang active để highlight header
   function isGroupActive(group) {
@@ -187,10 +216,39 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
         {/* User card */}
         {user && (
           <div className="px-3 py-3 flex items-center gap-2.5">
-            {/* Avatar */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cblue/70 to-cpurple/70 border border-slate-600 flex items-center justify-center shrink-0">
-              <span className="text-[11px] font-black text-white">{initials}</span>
+            {/* Avatar — click để đổi ảnh */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              title="Click để đổi ảnh đại diện"
+              className="relative w-8 h-8 rounded-full shrink-0 cursor-pointer group"
+            >
+              {currentAvatar ? (
+                <img
+                  src={currentAvatar}
+                  alt="avatar"
+                  className="w-8 h-8 rounded-full object-cover border border-slate-600"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cblue/70 to-cpurple/70 border border-slate-600 flex items-center justify-center">
+                  <span className="text-[11px] font-black text-white">{initials}</span>
+                </div>
+              )}
+              {/* Overlay khi hover hoặc uploading */}
+              <div className={`absolute inset-0 rounded-full bg-black/60 flex items-center justify-center transition-opacity ${uploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                {uploading
+                  ? <svg className="w-3.5 h-3.5 text-white animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/></svg>
+                  : <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                }
+              </div>
             </div>
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
 
             {/* Info */}
             <div className="flex-1 min-w-0">
