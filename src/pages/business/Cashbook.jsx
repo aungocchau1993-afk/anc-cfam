@@ -7,8 +7,20 @@ import DateFilterBar, { getDateRange, toInputDate, startOf } from '../../compone
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
-const THU_CATS = ['Khách trả nợ', 'Bán hàng (tiền mặt)', 'Thu ngoài', 'Khác']
-const CHI_CATS = ['Trả lương', 'Tiền điện / nước', 'Phí vận chuyển', 'Nhập hàng', 'Ăn uống', 'Chi phí khác']
+const THU_CATS_DEFAULT = ['Khách trả nợ', 'Bán hàng (tiền mặt)', 'Thu ngoài', 'Khác']
+const CHI_CATS_DEFAULT = ['Trả lương', 'Tiền điện / nước', 'Phí vận chuyển', 'Nhập hàng', 'Ăn uống', 'Chi phí khác', 'Khác']
+
+const LS_KEY_THU = 'cashbook_custom_thu'
+const LS_KEY_CHI = 'cashbook_custom_chi'
+
+function loadCustomCats(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '[]') } catch { return [] }
+}
+function saveCustomCat(key, value) {
+  const existing = loadCustomCats(key)
+  if (!value || existing.includes(value)) return
+  localStorage.setItem(key, JSON.stringify([...existing, value]))
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -26,14 +38,35 @@ function TxModal({ onSave, onClose }) {
   const [category, setCategory] = useState('')
   const [notes,    setNotes]    = useState('')
   const [saving,   setSaving]   = useState(false)
+  const [customThu, setCustomThu] = useState(() => loadCustomCats(LS_KEY_THU))
+  const [customChi, setCustomChi] = useState(() => loadCustomCats(LS_KEY_CHI))
 
-  const cats = type === 'THU' ? THU_CATS : CHI_CATS
+  const isKhac = category === 'Khác'
+  const lsKey  = type === 'THU' ? LS_KEY_THU : LS_KEY_CHI
+
+  const baseCats   = type === 'THU' ? THU_CATS_DEFAULT : CHI_CATS_DEFAULT
+  const customCats = type === 'THU' ? customThu : customChi
+  // Hiển thị: custom cats trước "Khác", bỏ "Khác" khỏi vị trí cuối rồi thêm lại
+  const cats = [
+    ...baseCats.filter(c => c !== 'Khác'),
+    ...customCats,
+    'Khác',
+  ]
 
   async function handleSubmit(e) {
     e.preventDefault()
     const amt = parseVNDInput(amount)
     if (!amt || amt <= 0) { toast.error('Vui lòng nhập số tiền hợp lệ'); return }
     if (!category)        { toast.error('Vui lòng chọn danh mục'); return }
+
+    // Nếu chọn "Khác" và có ghi chú → lưu ghi chú thành danh mục tùy chỉnh
+    const customLabel = isKhac && notes.trim() ? notes.trim() : null
+    if (customLabel) {
+      saveCustomCat(lsKey, customLabel)
+      if (type === 'THU') setCustomThu(loadCustomCats(LS_KEY_THU))
+      else                setCustomChi(loadCustomCats(LS_KEY_CHI))
+    }
+
     setSaving(true)
     try {
       await onSave({ type, amount: amt, category, notes })

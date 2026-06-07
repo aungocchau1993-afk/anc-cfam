@@ -1,21 +1,37 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
-import { getShopConfig, saveShopConfig } from '../../lib/printReceipt'
+import { getShopConfig, saveShopConfig } from '../../lib/dataService'
 
 // ── Shop Info Form ─────────────────────────────────────────────────────────
 
 function ShopInfoForm() {
-  const init = getShopConfig()
-  const [name,    setName]    = useState(init.name)
-  const [address, setAddress] = useState(init.address)
-  const [phone,   setPhone]   = useState(init.phone)
+  const [name,    setName]    = useState('')
+  const [address, setAddress] = useState('')
+  const [phone,   setPhone]   = useState('')
+  const [saving,  setSaving]  = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  function handleSave(e) {
+  useEffect(() => {
+    getShopConfig().then(cfg => {
+      setName(cfg.name || '')
+      setAddress(cfg.address || '')
+      setPhone(cfg.phone || '')
+    }).finally(() => setLoading(false))
+  }, [])
+
+  async function handleSave(e) {
     e.preventDefault()
     if (!name.trim()) { toast.error('Vui lòng nhập tên cửa hàng'); return }
-    saveShopConfig({ name: name.trim(), address: address.trim(), phone: phone.trim() })
-    toast.success('✅ Đã lưu thông tin cửa hàng — áp dụng cho lần in tiếp theo')
+    setSaving(true)
+    try {
+      await saveShopConfig({ name: name.trim(), address: address.trim(), phone: phone.trim() })
+      toast.success('✅ Đã lưu thông tin cửa hàng lên Supabase')
+    } catch (err) {
+      toast.error(err.message || 'Lỗi khi lưu')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2.5 text-sm text-[#e6edf3] placeholder:text-slate-500 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/20 transition-all'
@@ -33,25 +49,25 @@ function ShopInfoForm() {
       <div className="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Tên cửa hàng *</label>
-          <input className={iCls} placeholder="Cửa Hàng ABC" value={name} onChange={e => setName(e.target.value)} />
+          <input className={iCls} placeholder="Cửa Hàng ABC" value={name} onChange={e => setName(e.target.value)} disabled={loading} />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Địa chỉ</label>
-          <input className={iCls} placeholder="123 Nguyễn Văn A, Q.1, TP.HCM" value={address} onChange={e => setAddress(e.target.value)} />
+          <input className={iCls} placeholder="123 Nguyễn Văn A, Q.1, TP.HCM" value={address} onChange={e => setAddress(e.target.value)} disabled={loading} />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Số điện thoại</label>
-          <input className={iCls} placeholder="0901 234 567" value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" />
+          <input className={iCls} placeholder="0901 234 567" value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" disabled={loading} />
         </div>
       </div>
 
       <div className="px-5 pb-4 flex items-center justify-between gap-4">
         <div className="text-[11px] text-slate-500">
-          💾 Lưu vào bộ nhớ thiết bị (localStorage) — không cần đăng nhập lại
+          ☁️ Lưu trên Supabase — đồng bộ theo tài khoản, mọi thiết bị
         </div>
-        <button type="submit"
-          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-cblue hover:brightness-110 text-white text-sm font-bold transition-all shadow-lg shadow-cblue/20 whitespace-nowrap">
-          💾 Lưu thông tin
+        <button type="submit" disabled={saving || loading}
+          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-cblue hover:brightness-110 text-white text-sm font-bold transition-all shadow-lg shadow-cblue/20 whitespace-nowrap disabled:opacity-60">
+          {saving ? '⏳ Đang lưu…' : '💾 Lưu thông tin'}
         </button>
       </div>
     </form>
@@ -415,14 +431,16 @@ export default function DataManagement() {
                   )}
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{m.desc}</p>
-                {/* Tables */}
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {m.tables.map(t => (
-                    <span key={t} className={`text-[10px] font-mono font-semibold border rounded px-1.5 py-0.5 ${colors.tag}`}>
-                      {t}
-                    </span>
-                  ))}
-                </div>
+                {/* Tables — chỉ hiện khi đã tick */}
+                {isChecked && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {m.tables.map(t => (
+                      <span key={t} className={`text-[10px] font-mono font-semibold border rounded px-1.5 py-0.5 ${colors.tag}`}>
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Danger indicator khi checked */}
