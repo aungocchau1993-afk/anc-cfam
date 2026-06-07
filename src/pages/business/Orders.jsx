@@ -804,8 +804,14 @@ export default function Orders() {
                 {/* Footer tổng */}
                 <tfoot>
                   <tr className="border-t-2 border-border bg-surface2">
-                    <td colSpan={typeFilter === 'export' ? 4 : 3} className="px-4 py-3 text-xs font-bold text-muted">
+                    <td colSpan={3} className="px-4 py-3 text-xs font-bold text-muted">
                       Tổng cộng ({productStats.length} loại hàng)
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">
+                      <span className={`text-base font-black tabular-nums ${typeFilter === 'import' ? 'text-cyellow' : 'text-cblue'}`}>
+                        {productStats.reduce((s,p) => s + p.totalQty, 0).toLocaleString('vi-VN')}
+                      </span>
+                      <span className="text-[10px] text-muted ml-1">sp</span>
                     </td>
                     <td className="px-4 py-3 text-right font-mono font-black text-sm text-[#e6edf3] tabular-nums whitespace-nowrap">
                       {fmtVNDFull(productStats.reduce((s,p) => s + p.totalRevenue, 0))}
