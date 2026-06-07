@@ -314,7 +314,7 @@ export default function OcrInvoiceModal({
 
             {!import.meta.env.VITE_GEMINI_API_KEY && (
               <div className="bg-cyellow/8 border border-cyellow/25 rounded-xl px-4 py-3 text-xs text-cyellow">
-                ⚠️ Cần thêm <code className="font-mono bg-black/30 px-1 rounded">VITE_GEMINI_API_KEY</code> vào <code className="font-mono bg-black/30 px-1 rounded">.env.local</code>
+                ⚠️ Chưa cấu hình Gemini API Key — vào <strong>Netlify → Environment variables</strong> thêm <code className="font-mono bg-black/30 px-1 rounded">VITE_GEMINI_API_KEY</code> rồi redeploy
               </div>
             )}
           </div>

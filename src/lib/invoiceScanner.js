@@ -82,13 +82,26 @@ export async function scanInvoice(file, type = 'SALE') {
     throw new Error(err?.error?.message || `Gemini lỗi HTTP ${res.status}`)
   }
 
-  const data  = await res.json()
-  const raw   = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-  const clean = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+  const data = await res.json()
+
+  // gemini-2.5-flash có thể trả nhiều parts (thinking + text), lấy tất cả text
+  const parts = data.candidates?.[0]?.content?.parts ?? []
+  const raw   = parts.map(p => p.text ?? '').join('')
+
+  // Strip markdown fences
+  let clean = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+
+  // Tìm JSON object đầu tiên trong response (bỏ qua text thừa trước/sau)
+  const start = clean.indexOf('{')
+  const end   = clean.lastIndexOf('}')
+  if (start !== -1 && end !== -1 && end > start) {
+    clean = clean.slice(start, end + 1)
+  }
 
   try {
     return JSON.parse(clean)
   } catch {
+    console.error('Gemini raw response:', raw)
     throw new Error('AI trả về dữ liệu không hợp lệ, vui lòng thử lại.')
   }
 }
