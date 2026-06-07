@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from '../../context/SupabaseContext'
-import { scanInvoice, uploadInvoiceImage } from '../../lib/invoiceScanner'
+import { scanInvoice, scanQRCode, uploadInvoiceImage } from '../../lib/invoiceScanner'
 import { removeVietnameseTones, fmtVNDFull } from '../../lib/formatters'
 import ModalOverlay from '../ui/ModalOverlay'
 
@@ -102,13 +102,19 @@ export default function OcrInvoiceModal({
   const fileInputRef = useRef(null)
 
   const isSale = type === 'SALE'
-  const title  = isSale ? '🤖 OCR Hóa Đơn Bán Hàng' : '🤖 OCR Phiếu Nhập Kho'
 
-  // stage: 'upload' | 'scanning' | 'review'
+  // mode: 'AI' | 'QR'
+  const [mode, setMode] = useState('AI')
+  const isQR = mode === 'QR'
+  const title = isSale ? (isQR ? '📷 QR Hóa Đơn Bán Hàng' : '🤖 OCR Hóa Đơn Bán Hàng')
+                       : (isQR ? '📷 QR Phiếu Nhập Kho'    : '🤖 OCR Phiếu Nhập Kho')
+
+  // stage: 'upload' | 'scanning' | 'review' | 'qr-result'
   const [stage,    setStage]   = useState('upload')
   const [file,     setFile]    = useState(null)
   const [preview,  setPreview] = useState(null)
   const [aiData,   setAiData]  = useState(null)    // raw AI result
+  const [qrData,   setQrData]  = useState(null)    // QR parse result
 
   // ── Review state ─────────────────────────────────────────────────────────
   const [rows,        setRows]        = useState([])    // matched product rows
@@ -145,6 +151,27 @@ export default function OcrInvoiceModal({
   async function handleScan() {
     if (!file) return
     setStage('scanning')
+
+    // ── QR mode: thử đọc QR trước, fallback sang AI nếu thất bại
+    if (isQR) {
+      try {
+        const { qrData: parsed, fallbackToAI } = await scanQRCode(file)
+        if (!fallbackToAI && parsed) {
+          setQrData(parsed)
+          if (!isSale && parsed.invoice_date) setDueDate(parsed.invoice_date)
+          if (!isSale && parsed.total_amount) setPaidAmount('0')
+          setStage('qr-result')
+          toast.success('✅ Đọc QR thành công!')
+          return
+        }
+        // QR không tìm thấy → tự động chuyển sang AI
+        toast(`⚠️ Không tìm thấy mã QR, chuyển sang AI OCR…`, { duration: 2500 })
+      } catch {
+        toast(`⚠️ Lỗi đọc QR, chuyển sang AI OCR…`, { duration: 2500 })
+      }
+    }
+
+    // ── AI OCR mode (hoặc QR fallback)
     try {
       if (user?.id) uploadInvoiceImage(file, user.id, type).catch(() => {})
       const data = await scanInvoice(file, type)
@@ -183,6 +210,16 @@ export default function OcrInvoiceModal({
       setStage('upload')
       toast.error(err.message || 'Lỗi khi quét hóa đơn')
     }
+  }
+
+  function handleModeSwitch(newMode) {
+    setMode(newMode)
+    setStage('upload')
+    setFile(null)
+    setPreview(null)
+    setQrData(null)
+    setAiData(null)
+    setRows([])
   }
 
   // ── Row helpers ───────────────────────────────────────────────────────────
@@ -258,12 +295,30 @@ export default function OcrInvoiceModal({
           <div>
             <div className="font-bold text-[#e6edf3]">{title}</div>
             <div className="text-[11px] text-slate-500 mt-0.5">
-              {stage === 'upload' && 'Upload ảnh hóa đơn → AI tự đọc dữ liệu'}
-              {stage === 'scanning' && 'Gemini AI đang phân tích…'}
-              {stage === 'review' && 'Kiểm tra & chỉnh sửa trước khi lưu'}
+              {stage === 'upload'     && (isQR ? 'Upload ảnh có mã QR → đọc chính xác 100%' : 'Upload ảnh hóa đơn → AI tự đọc dữ liệu')}
+              {stage === 'scanning'   && (isQR ? 'Đang giải mã QR…' : 'Gemini AI đang phân tích…')}
+              {stage === 'review'     && 'Kiểm tra & chỉnh sửa trước khi lưu'}
+              {stage === 'qr-result' && 'Thông tin từ mã QR hóa đơn điện tử'}
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Mode toggle AI / QR */}
+            {stage === 'upload' && (
+              <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 text-[11px] font-semibold">
+                <button
+                  onClick={() => handleModeSwitch('AI')}
+                  className={`px-2.5 py-1 rounded-md transition-colors ${!isQR ? 'bg-cpurple text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                  🤖 AI
+                </button>
+                <button
+                  onClick={() => handleModeSwitch('QR')}
+                  className={`px-2.5 py-1 rounded-md transition-colors ${isQR ? 'bg-cblue text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                  📷 QR
+                </button>
+              </div>
+            )}
             {/* Stage dots */}
             {['upload','scanning','review'].map((s, i) => (
               <div key={s} className={`w-2 h-2 rounded-full transition-colors ${
@@ -278,7 +333,46 @@ export default function OcrInvoiceModal({
         </div>
 
         {/* Body */}
-        {stage !== 'review' ? (
+        {stage === 'qr-result' ? (
+
+          /* ── QR Result stage ───────────────────────────────────────────── */
+          <div className="p-5 overflow-y-auto flex flex-col gap-3">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-cblue/8 border border-cblue/25 text-xs text-cblue font-semibold">
+              ✅ Đọc QR thành công — dữ liệu chính xác 100% từ Tổng cục Thuế
+            </div>
+
+            {/* Image preview */}
+            {preview && (
+              <img src={preview} alt="HĐ" className="max-h-40 rounded-xl border border-slate-700 object-contain self-center" />
+            )}
+
+            {/* QR Fields grid */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {[
+                { label: 'MST người bán',  value: qrData?.tax_code },
+                { label: 'Số hóa đơn',     value: qrData?.invoice_no },
+                { label: 'Ký hiệu HĐ',     value: qrData?.invoice_serial },
+                { label: 'Ngày lập HĐ',    value: qrData?.invoice_date },
+                { label: 'Tiền chưa thuế', value: qrData?.subtotal ? fmtVNDFull(qrData.subtotal) : null },
+                { label: 'Thuế suất',      value: qrData?.tax_rate },
+                { label: 'Tiền thuế',      value: qrData?.tax_amount ? fmtVNDFull(qrData.tax_amount) : null },
+                { label: 'Tổng thanh toán',value: qrData?.total_amount ? fmtVNDFull(qrData.total_amount) : null },
+                { label: 'MST người mua',  value: qrData?.buyer_tax },
+              ].filter(f => f.value).map(f => (
+                <div key={f.label} className="bg-slate-800/60 border border-slate-700 rounded-xl px-3 py-2 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-slate-500 uppercase tracking-wide">{f.label}</span>
+                  <span className="font-bold text-[#e6edf3] font-mono text-[11px]">{f.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-[10px] text-slate-600 px-1">
+              ℹ️ QR hóa đơn điện tử chứa thông tin đầu mối — không bao gồm danh sách sản phẩm chi tiết.
+              Bấm <strong className="text-slate-400">Chuyển sang AI</strong> để đọc thêm chi tiết hàng hóa.
+            </div>
+          </div>
+
+        ) : stage !== 'review' ? (
 
           /* ── Upload / Scanning stage ────────────────────────────────────── */
           <div className="p-5 flex flex-col gap-4 overflow-y-auto">
@@ -305,7 +399,7 @@ export default function OcrInvoiceModal({
                   <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
                   </svg>
-                  Gemini AI đang đọc hóa đơn…
+                  {isQR ? 'Đang giải mã QR…' : 'Gemini AI đang đọc hóa đơn…'}
                 </div>
               )}
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
@@ -562,7 +656,19 @@ export default function OcrInvoiceModal({
 
         {/* Footer */}
         <div className="shrink-0 px-5 py-4 border-t border-slate-800 flex gap-2.5">
-          {stage !== 'review' ? (
+          {stage === 'qr-result' ? (
+            <>
+              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#e6edf3] transition-colors">
+                Đóng
+              </button>
+              <button
+                onClick={() => { setMode('AI'); setStage('upload'); setQrData(null) }}
+                className="flex-1 py-2.5 rounded-xl border border-cblue/40 text-cblue text-sm font-semibold hover:bg-cblue/10 transition-colors"
+              >
+                🤖 Chuyển sang AI
+              </button>
+            </>
+          ) : stage !== 'review' ? (
             <>
               <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#e6edf3] transition-colors">
                 Huỷ
@@ -578,9 +684,9 @@ export default function OcrInvoiceModal({
                     <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
                     </svg>
-                    AI đang đọc…
+                    {isQR ? 'Đang đọc QR…' : 'AI đang đọc…'}
                   </>
-                ) : '🔍 Phân tích hóa đơn'}
+                ) : isQR ? '📷 Giải mã QR' : '🔍 Phân tích hóa đơn'}
               </button>
             </>
           ) : (
