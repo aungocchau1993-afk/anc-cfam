@@ -9,6 +9,7 @@ import Cashbook           from './Cashbook'
 import Stocktake          from './Stocktake'
 import ProfitReport       from './ProfitReport'
 import DataManagement    from './DataManagement'
+import ShopSettings      from './ShopSettings'
 
 // ── Tab definitions (thứ tự hợp lý theo workflow bán lẻ) ──────────────────
 
@@ -50,6 +51,10 @@ const TABS = [
     color: 'text-yellow-400', activeBorder: 'border-yellow-500', activeBg: 'bg-yellow-500/10',
   },
   {
+    id: 'settings',  icon: '⚙️', label: 'Cài Đặt',       sub: 'CFG',
+    color: 'text-slate-400', activeBorder: 'border-slate-500', activeBg: 'bg-slate-500/10',
+  },
+  {
     id: 'admin',     icon: '🗑️', label: 'Xóa Dữ Liệu',  sub: 'ADM',
     color: 'text-red-400', activeBorder: 'border-red-500', activeBg: 'bg-red-500/10',
   },
@@ -65,6 +70,7 @@ const PAGES = {
   suppliers: <Suppliers />,
   stocktake: <Stocktake />,
   report:    <ProfitReport />,
+  settings:  <ShopSettings />,
   admin:     <DataManagement />,
 }
 
