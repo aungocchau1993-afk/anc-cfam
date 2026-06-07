@@ -9,7 +9,7 @@ import {
   subscribeProducts,
   subscribeCustomers,
 } from '../../lib/dataService'
-import { loadOrders, cancelOrder, calcPointsEarned } from '../../lib/supabase'
+import { loadOrders, cancelOrder, calcPointsEarned, productToCamel, customerToCamel } from '../../lib/supabase'
 import { formatMoneyLive, parseVNDInput, fmtVNDFull, removeVietnameseTones } from '../../lib/formatters'
 import { buildReceiptHtml, printViaIframe } from '../../lib/printReceipt'
 import ModalOverlay from '../../components/ui/ModalOverlay'
@@ -641,10 +641,31 @@ export default function PointOfSale() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  // Realtime: khi máy khác thêm/sửa sản phẩm hoặc khách hàng → POS tự cập nhật
+  // Realtime: patch từng record thay vì reload toàn bộ list (nhanh hơn, không bị lag)
   useEffect(() => {
-    const unsubP = subscribeProducts(() => loadProducts().then(setProducts).catch(() => {}))
-    const unsubC = subscribeCustomers(() => loadCustomers().then(setCustomers).catch(() => {}))
+    const unsubP = subscribeProducts((payload) => {
+      const { eventType, new: newRow, old: oldRow } = payload
+      setProducts(prev => {
+        if (eventType === 'INSERT') return [{ ...productToCamel(newRow) }, ...prev]
+        if (eventType === 'DELETE') return prev.filter(p => p.id !== oldRow.id)
+        if (eventType === 'UPDATE') return prev.map(p => p.id === newRow.id ? productToCamel(newRow) : p)
+        return prev
+      })
+    })
+    const unsubC = subscribeCustomers((payload) => {
+      const { eventType, new: newRow, old: oldRow } = payload
+      setCustomers(prev => {
+        if (eventType === 'INSERT') return [customerToCamel(newRow), ...prev]
+        if (eventType === 'DELETE') return prev.filter(c => c.id !== oldRow.id)
+        if (eventType === 'UPDATE') {
+          const updated = customerToCamel(newRow)
+          // Cập nhật luôn customer đang chọn nếu trùng id
+          setCustomer(cur => cur?.id === updated.id ? { ...cur, ...updated } : cur)
+          return prev.map(c => c.id === updated.id ? updated : c)
+        }
+        return prev
+      })
+    })
     return () => { unsubP(); unsubC() }
   }, [])
 
@@ -827,11 +848,13 @@ export default function PointOfSale() {
         discount:    actualDiscount,
         paidAmount:  customerPaid,
       })
-      // Trừ tồn kho local
+      // Tồn kho được Realtime tự patch qua subscribeProducts — không cần update local thủ công.
+      // Vẫn patch optimistic để UI phản hồi ngay (trước khi Realtime event đến)
       setProducts(prev => prev.map(p => {
         const cartItem = cart.find(i => i.productId === p.id)
         return cartItem ? { ...p, stockQuantity: Math.max(0, p.stockQuantity - cartItem.quantity) } : p
       }))
+
       // Tích điểm + cập nhật tier nếu có khách
       let loyaltyResult = null
       if (customer?.id) {
@@ -840,21 +863,23 @@ export default function PointOfSale() {
           orderId:    order.id,
           orderTotal: total,
         })
-        // Cập nhật local customers list
+        // Cập nhật local — Realtime customer event cũng sẽ arrive và sync
+        const debtAmount = order.debt_amount ?? 0
         setCustomers(prev => prev.map(c =>
           c.id === customer.id ? {
             ...c,
             totalSpent:   loyaltyResult.newSpent,
             vipTier:      loyaltyResult.newTier,
             rewardPoints: loyaltyResult.newPoints,
+            currentDebt:  (c.currentDebt ?? 0) + debtAmount,
           } : c
         ))
-        // Cập nhật customer đang chọn
         setCustomer(prev => prev ? {
           ...prev,
           totalSpent:   loyaltyResult.newSpent,
           vipTier:      loyaltyResult.newTier,
           rewardPoints: loyaltyResult.newPoints,
+          currentDebt:  (prev.currentDebt ?? 0) + debtAmount,
         } : prev)
       }
       setSuccessData({ order, items: [...cart], total, profit, customer, discount: actualDiscount, note, pointsEarned: loyaltyResult?.earned ?? 0, paidAmount: customerPaid, debtAmount })

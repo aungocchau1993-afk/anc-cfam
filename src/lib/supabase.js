@@ -204,7 +204,7 @@ export async function saveRiskConfig(config) {
 
 // ── Products ───────────────────────────────────────────────────────────────
 
-function productToCamel(row) {
+export function productToCamel(row) {
   if (!row) return null
   return {
     id:            row.id,
@@ -341,7 +341,42 @@ export async function createOrder({ customerId, items, note, discount = 0, paidA
   const paid        = paidAmount !== undefined ? Math.min(Math.max(0, paidAmount), totalAmount) : totalAmount
   const debt        = Math.max(0, totalAmount - paid)
 
-  // 1. Tạo đơn hàng — thử với paid/debt, fallback nếu cột chưa migrate
+  // ── Thử gọi RPC atomic (kiểm tra kho + trừ kho + tạo đơn + ghi nợ trong 1 transaction)
+  const payload = {
+    user_id:      user.id,
+    customer_id:  customerId || null,
+    items:        items.map(i => ({
+      product_id: i.productId,
+      quantity:   i.quantity,
+      price:      i.price,
+      cost:       i.cost ?? 0,
+    })),
+    total_amount: totalAmount,
+    paid_amount:  paid,
+    debt_amount:  debt,
+    profit,
+    note:         note || null,
+  }
+
+  const { data: rpcResult, error: rpcErr } = await supabase.rpc('create_order_atomic', { payload })
+
+  if (!rpcErr && rpcResult) {
+    // RPC thành công — trả về order object
+    return { ...rpcResult, paid_amount: paid, debt_amount: debt }
+  }
+
+  // ── Fallback: RPC chưa được tạo trên DB → dùng luồng cũ (multi-query)
+  if (rpcErr?.code === 'PGRST202' || rpcErr?.message?.includes('create_order_atomic')) {
+    console.warn('[createOrder] RPC create_order_atomic chưa được tạo — dùng fallback. Hãy chạy migration SQL.')
+    return _createOrderFallback({ user, customerId, items, note, totalAmount, paid, debt, profit })
+  }
+
+  // Lỗi thực sự từ RPC (ví dụ: không đủ kho) → throw để hiện toast lỗi
+  throw new Error(rpcErr?.message || 'Lỗi tạo đơn hàng')
+}
+
+// Fallback multi-query (dùng khi RPC chưa được deploy lên DB)
+async function _createOrderFallback({ user, customerId, items, note, totalAmount, paid, debt, profit }) {
   let order
   const basePayload = {
     user_id:      user.id,
@@ -352,14 +387,11 @@ export async function createOrder({ customerId, items, note, discount = 0, paidA
     status:       'completed',
   }
 
-  const fullPayload = { ...basePayload, paid_amount: paid, debt_amount: debt }
   const { data: orderFull, error: errFull } = await supabase
-    .from('orders').insert(fullPayload).select().single()
+    .from('orders').insert({ ...basePayload, paid_amount: paid, debt_amount: debt }).select().single()
 
   if (errFull) {
-    // Cột paid_amount / debt_amount chưa được migrate — thử lại không có 2 cột đó
-    if (errFull.message?.includes('debt_amount') || errFull.message?.includes('paid_amount') || errFull.code === '42703') {
-      console.warn('[createOrder] paid_amount/debt_amount columns missing — run migration SQL. Falling back.')
+    if (errFull.code === '42703') {
       const { data: orderFallback, error: errFallback } = await supabase
         .from('orders').insert(basePayload).select().single()
       if (errFallback) throw errFallback
@@ -371,29 +403,23 @@ export async function createOrder({ customerId, items, note, discount = 0, paidA
     order = orderFull
   }
 
-  // 2. Thêm order_items
   const { error: itemsErr } = await supabase.from('order_items').insert(
     items.map(i => ({ order_id: order.id, product_id: i.productId, quantity: i.quantity, price: i.price, cost: i.cost }))
   )
   if (itemsErr) throw itemsErr
 
-  // 3. Trừ tồn kho từng sản phẩm
   for (const item of items) {
     const { data: prod } = await supabase.from('products').select('stock_quantity').eq('id', item.productId).single()
     const newQty = Math.max(0, (prod?.stock_quantity || 0) - item.quantity)
     await supabase.from('products').update({ stock_quantity: newQty }).eq('id', item.productId)
   }
 
-  // 4. Ghi nợ vào current_debt nếu có — total_spent/vip_tier/points do finalizeCustomerAfterOrder xử lý
   if (customerId && debt > 0) {
     try {
-      const { data: cust } = await supabase
-        .from('customers').select('current_debt').eq('id', customerId).single()
-      const newDebt = Math.max(0, (cust?.current_debt || 0) + debt)
-      await supabase.from('customers').update({ current_debt: newDebt }).eq('id', customerId)
+      const { data: cust } = await supabase.from('customers').select('current_debt').eq('id', customerId).single()
+      await supabase.from('customers').update({ current_debt: Math.max(0, (cust?.current_debt || 0) + debt) }).eq('id', customerId)
     } catch (e) {
-      // Cột current_debt chưa được migrate — cần chạy migration SQL
-      console.warn('[createOrder] current_debt update failed (run migration):', e.message)
+      console.warn('[createOrder] current_debt update failed:', e.message)
     }
   }
 
@@ -713,7 +739,7 @@ export async function createImportOrder({ supplierId, items, note, paidAmount })
 
 // ── Customers ─────────────────────────────────────────────────────────────
 
-function customerToCamel(row) {
+export function customerToCamel(row) {
   if (!row) return null
   return {
     id:           row.id,
