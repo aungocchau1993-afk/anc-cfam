@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
+import { useReactToPrint } from 'react-to-print'
 import { loadOrdersFiltered, cancelOrderRollback, loadOrderDetail, cancelOrderFull, partialReturnItem } from '../../lib/supabase'
 import { fmtVNDFull } from '../../lib/formatters'
-import { buildReceiptHtml, printViaIframe } from '../../lib/printReceipt'
+import { buildReceiptHtml, printViaIframe, getShopConfig } from '../../lib/printReceipt'
 import ModalOverlay from '../../components/ui/ModalOverlay'
+import PrintableReceipt from '../../components/business/PrintableReceipt'
 
 // ── Date helpers ───────────────────────────────────────────────────────────
 
@@ -191,6 +193,14 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
   const items      = order.order_items || []
   const code       = (order.order_code || order.id.slice(-8)).toUpperCase()
 
+  // ── react-to-print (A5 PrintableReceipt) ───────────────────────────────
+  const printRef   = useRef(null)
+  const handlePrintA5 = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `HoaDon_${code}`,
+    pageStyle: `@page { size: A5; margin: 10mm; }`,
+  })
+
   // Re-fetch chi tiết đơn sau mỗi thao tác
   async function refresh() {
     setFetching(true)
@@ -245,18 +255,33 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
             <div className="text-xs text-slate-500 mt-0.5">{fmtDatetime(order.created_at)}</div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Nút in lại */}
+            {/* In nhiệt (iframe) */}
             <button
               onClick={() => reprintOrder(order)}
-              title="In lại hóa đơn"
+              title="In hóa đơn nhiệt 80mm"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cblue/15 border border-cblue/30 text-cblue text-xs font-bold hover:bg-cblue/25 transition-colors"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
                 <path d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
                 <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.8"/>
               </svg>
-              In HĐ
+              <span className="hidden sm:inline">In</span> 80mm
             </button>
+            {/* In A5 (react-to-print + PrintableReceipt) */}
+            {!isImport && (
+              <button
+                onClick={handlePrintA5}
+                title="In hóa đơn A5 (PDF)"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cpurple/15 border border-cpurple/30 text-cpurple text-xs font-bold hover:bg-cpurple/25 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                  <rect x="4" y="2" width="12" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M8 2v16M12 2v16M16 2v4" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 2"/>
+                  <path d="M14 6h4M14 10h4M14 14h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <span className="hidden sm:inline">In</span> A5
+              </button>
+            )}
             <button onClick={onClose} className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg">×</button>
           </div>
         </div>
@@ -391,6 +416,22 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
         </div>
 
       </div>
+
+      {/* PrintableReceipt — ẩn, chỉ dùng khi react-to-print kích hoạt */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+        <PrintableReceipt
+          printRef={printRef}
+          shopConfig={getShopConfig()}
+          orderData={{
+            ...order,
+            customer: order.customers
+              ? { fullName: order.customers.full_name, phone: order.customers.phone, address: order.customers.address, currentDebt: order.customers.current_debt }
+              : null,
+            items: order.order_items || [],
+          }}
+        />
+      </div>
+
     </ModalOverlay>
   )
 }
