@@ -27,7 +27,7 @@ const GROUPS = [
       { tab: 'suppliers', icon: '🏢', label: 'Nhà Cung Cấp' },
       { tab: 'cashbook',  icon: '💵', label: 'Sổ Quỹ' },
       { tab: 'stocktake', icon: '🗂️', label: 'Kiểm Kho' },
-      { tab: 'report',    icon: '📈', label: 'Báo Cáo P&L' },
+      { tab: 'report',    icon: '📈', label: 'Báo Cáo' },
       { tab: 'settings',  icon: '⚙️', label: 'Cài Đặt' },
       { tab: 'admin',     icon: '🗑️', label: 'Xóa Dữ Liệu' },
     ],
