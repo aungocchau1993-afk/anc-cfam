@@ -404,7 +404,7 @@ async function _createOrderFallback({ user, customerId, items, note, totalAmount
   }
 
   const { error: itemsErr } = await supabase.from('order_items').insert(
-    items.map(i => ({ order_id: order.id, product_id: i.productId, quantity: i.quantity, price: i.price, cost: i.cost }))
+    items.map(i => ({ order_id: order.id, product_id: i.productId, quantity: i.quantity, price: i.price, cost: i.cost, unit: i.unit ?? null }))
   )
   if (itemsErr) throw itemsErr
 
@@ -713,6 +713,7 @@ export async function createImportOrder({ supplierId, items, note, paidAmount })
         quantity:   i.qty,
         price:      i.importPrice || 0,
         cost:       i.importPrice || 0,
+        unit:       i.unit ?? null,
       }))
     )
     if (itemsErr) throw itemsErr

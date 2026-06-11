@@ -23,7 +23,8 @@ function stockBadge(qty) {
 
 // ── Product Form Modal ─────────────────────────────────────────────────────
 
-const EMPTY = { sku: '', name: '', importPrice: '', sellPrice: '', stockQuantity: '', minStock: '5' }
+const EMPTY = { sku: '', name: '', importPrice: '', sellPrice: '', stockQuantity: '', minStock: '5', unit: '' }
+const COMMON_UNITS = ['Cái', 'Hộp', 'Lon', 'Thùng', 'Chai', 'Gói', 'Kg', 'Lít', 'Bộ', 'Đôi', 'Tá', 'Cuộn']
 
 // ── Modal 1: Thêm hàng mới / Sửa thông tin ────────────────────────────────
 function AddProductModal({ initial, onSave, onClose }) {
@@ -35,6 +36,7 @@ function AddProductModal({ initial, onSave, onClose }) {
     sellPrice:     initial.sellPrice?.toLocaleString('vi-VN')   ?? '',
     stockQuantity: String(initial.stockQuantity ?? ''),
     minStock:      String(initial.minStock ?? 5),
+    unit:          initial.unit ?? '',
   } : { ...EMPTY })
   const [saving, setSaving]       = useState(false)
   const [imageFile, setImageFile] = useState(null)
@@ -81,6 +83,7 @@ function AddProductModal({ initial, onSave, onClose }) {
         stockQuantity: parseInt(form.stockQuantity) || 0,
         minStock:      parseInt(form.minStock) || 5,
         imageUrl:      finalImageUrl,
+        unit:          form.unit.trim() || null,
       })
       onClose()
     } catch (err) {
@@ -186,6 +189,29 @@ function AddProductModal({ initial, onSave, onClose }) {
                 </div>
               </div>
 
+              {/* Đơn vị tính */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">
+                  Đơn vị tính
+                </label>
+                <input className={iCls} placeholder="Lon, Thùng, Hộp…" value={form.unit}
+                  onChange={e => set('unit', e.target.value)} />
+                <div className="flex flex-wrap gap-1.5">
+                  {COMMON_UNITS.map(u => (
+                    <button key={u} type="button"
+                      onClick={() => set('unit', u)}
+                      className={`px-2 py-0.5 rounded-full text-[11px] border transition-colors
+                        ${form.unit === u
+                          ? 'bg-cblue/20 border-cblue/50 text-cblue font-bold'
+                          : 'border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300'
+                        }`}
+                    >
+                      {u}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex justify-end gap-2 pt-2 mt-auto">
                 <button type="button" onClick={onClose} className="btn-ghost px-4 py-2 text-sm">Huỷ</button>
                 <button type="submit" disabled={saving} className="btn-primary px-6 py-2 text-sm disabled:opacity-60">
@@ -264,6 +290,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
       currentStock: p.stockQuantity ?? 0,
       qty:          1,
       unitPrice:    p.importPrice ? p.importPrice.toLocaleString('vi-VN') : '',
+      unit:         p.unit ?? null,
     }])
     setQuery('')
     setShowDrop(false)
@@ -315,6 +342,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
         qty:          i.qty,
         importPrice:  parseVNDInput(i.unitPrice) || 0,
         currentStock: i.currentStock,
+        unit:         i.unit ?? null,
       }))
 
       const order = await createImportOrder({
@@ -558,8 +586,8 @@ function ImportStockModal({ products = [], onImported, onClose }) {
               <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="bg-slate-950/80 border-b border-slate-800">
-                    {['Sản phẩm', 'Tồn kho', 'Số lượng nhập', 'Giá nhập (₫)', 'Thành tiền', ''].map((h, i) => (
-                      <th key={i} className={`px-4 py-2.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap ${i >= 1 ? 'text-right' : 'text-left'} ${i === 5 ? 'w-8' : ''}`}>{h}</th>
+                    {['Sản phẩm', 'Tồn kho', 'SL nhập', 'ĐVT', 'Giá nhập (₫)', 'Thành tiền', ''].map((h, i) => (
+                      <th key={i} className={`px-4 py-2.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap ${i >= 1 ? 'text-right' : 'text-left'} ${i === 6 ? 'w-8' : ''}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -591,6 +619,13 @@ function ImportStockModal({ products = [], onImported, onClose }) {
                             onChange={e => updateQty(item.productId, e.target.value)}
                             className="w-20 rounded-lg bg-cgreen/10 border border-cgreen/40 text-cgreen text-sm text-center font-bold font-mono outline-none focus:border-cgreen px-2 py-1 transition-all"
                           />
+                        </td>
+                        {/* ĐVT */}
+                        <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                          {item.unit
+                            ? <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-cblue/10 border border-cblue/30 text-cblue">{item.unit}</span>
+                            : <span className="text-[11px] text-slate-600">—</span>
+                          }
                         </td>
                         <td className="px-4 py-2.5 text-right whitespace-nowrap">
                           <input
@@ -1316,7 +1351,14 @@ export default function Products() {
                             </div>
                           )}
                           <div className="min-w-0">
-                            <div className="font-medium text-slate-100 truncate max-w-[180px]">{p.name}</div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-medium text-slate-100 truncate max-w-[160px]">{p.name}</span>
+                              {p.unit && (
+                                <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-cblue/10 border border-cblue/30 text-cblue">
+                                  {p.unit}
+                                </span>
+                              )}
+                            </div>
                             <div className="text-[11px] text-slate-400 font-mono mt-0.5">{p.sku}</div>
                           </div>
                         </div>

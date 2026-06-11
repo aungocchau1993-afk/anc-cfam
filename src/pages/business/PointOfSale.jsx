@@ -280,7 +280,14 @@ function CartItem({ item, onQty, onRemove, onPriceEdit }) {
 
       {/* Name + price */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold text-[#e6edf3] truncate leading-tight">{item.name}</div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-semibold text-[#e6edf3] truncate leading-tight">{item.name}</span>
+          {item.unit && (
+            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-cblue/10 border border-cblue/30 text-cblue">
+              {item.unit}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1 mt-0.5">
           {editingPrice ? (
             <input
@@ -629,7 +636,14 @@ function ProductCard({ product, inCart, onAdd }) {
         <div className="text-sm font-bold text-[#e6edf3] line-clamp-2 leading-snug flex-1 mb-2">
           {product.name}
         </div>
-        <div className="text-[11px] text-slate-500 font-mono mb-2 truncate">{product.sku}</div>
+        <div className="flex items-center gap-1.5 mb-2">
+          <span className="text-[11px] text-slate-500 font-mono truncate">{product.sku}</span>
+          {product.unit && (
+            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-cblue/10 border border-cblue/30 text-cblue">
+              {product.unit}
+            </span>
+          )}
+        </div>
         <div className="flex items-end justify-between gap-1">
           <div className="text-base font-black text-cblue tabular-nums leading-none">
             {fmtVNDFull(product.sellPrice)}
@@ -773,6 +787,7 @@ export default function PointOfSale() {
         cost:      product.importPrice,
         imageUrl:  product.imageUrl ?? null,
         quantity:  1,
+        unit:      product.unit ?? null,
       }]
     })
   }, [])
@@ -816,6 +831,7 @@ export default function PointOfSale() {
           cost:      product.importPrice,
           imageUrl:  product.imageUrl ?? null,
           quantity:  qty,
+          unit:      product.unit ?? null,
         }]
       })
     })
@@ -886,7 +902,7 @@ export default function PointOfSale() {
     try {
       const order = await createOrder({
         customerId:  customer?.id || null,
-        items:       cart.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price, cost: i.cost })),
+        items:       cart.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price, cost: i.cost, unit: i.unit ?? null })),
         note,
         discount:    actualDiscount,
         paidAmount:  customerPaid,
@@ -998,7 +1014,10 @@ export default function PointOfSale() {
                             }`}
                         >
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold text-[#e6edf3] truncate">{p.name}</div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-semibold text-[#e6edf3] truncate">{p.name}</span>
+                              {p.unit && <span className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-cblue/10 border border-cblue/30 text-cblue">{p.unit}</span>}
+                            </div>
                             <div className="text-[10px] text-slate-500 font-mono">{p.sku}</div>
                           </div>
                           <div className="text-right shrink-0">
