@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from '../../context/SupabaseContext'
 import { scanInvoice, scanMultipleInvoices, scanQRCode, uploadInvoiceImage } from '../../lib/invoiceScanner'
-import { offlineScanInvoice } from '../../lib/offlineScanner'
 import { removeVietnameseTones, fmtVNDFull } from '../../lib/formatters'
 import ModalOverlay from '../ui/ModalOverlay'
 
@@ -104,20 +103,15 @@ export default function OcrInvoiceModal({
 
   const isSale = type === 'SALE'
 
-  // mode: 'AI' | 'QR' | 'OFFLINE'
+  // mode: 'AI' | 'QR'
   const [mode, setMode] = useState('AI')
   // billMode: 'split' (mỗi ảnh = 1 bill) | 'merge' (nhiều ảnh gộp 1 bill)
   const [billMode, setBillMode] = useState('split')
 
-  // Offline OCR state
-  const [offlineProgress, setOfflineProgress] = useState(null)  // { status, progress }
-  const [offlineMeta, setOfflineMeta]           = useState(null)  // { confidence, rawText, lowConfidence }
-  const [showRawText, setShowRawText]           = useState(false)
-  const isQR      = mode === 'QR'
-  const isOffline = mode === 'OFFLINE'
-  const title = isSale
-    ? (isQR ? '📷 QR Hóa Đơn Bán Hàng' : isOffline ? '💾 Offline OCR Bán Hàng' : '🤖 OCR Hóa Đơn Bán Hàng')
-    : (isQR ? '📷 QR Phiếu Nhập Kho'   : isOffline ? '💾 Offline OCR Nhập Kho'  : '🤖 OCR Phiếu Nhập Kho')
+  const isQR   = mode === 'QR'
+  const title  = isSale
+    ? (isQR ? '📷 QR Hóa Đơn Bán Hàng' : '🤖 OCR Hóa Đơn Bán Hàng')
+    : (isQR ? '📷 QR Phiếu Nhập Kho'   : '🤖 OCR Phiếu Nhập Kho')
 
   // ── Queue nhiều hóa đơn ────────────────────────────────────────────────────
   const [queue,    setQueue]    = useState([])   // [File, File, ...]
@@ -241,57 +235,6 @@ export default function OcrInvoiceModal({
       }
     }
 
-    // ── Offline Tesseract mode ─────────────────────────────────────────────
-    if (isOffline) {
-      try {
-        setOfflineProgress({ status: 'preprocessing', progress: 0 })
-        const data = await offlineScanInvoice(file, prog => setOfflineProgress(prog))
-        setOfflineProgress(null)
-
-        // Lưu meta (confidence + raw text) để hiển thị cảnh báo
-        setOfflineMeta({
-          confidence:    data._confidence,
-          lowConfidence: data._lowConfidence,
-          rawText:       data._rawText,
-        })
-
-        // Build rows từ items (có thể rỗng nếu Tesseract không parse được bảng)
-        const newRows = (data.items || []).map(item => {
-          const matches = findMatches(item.name, products)
-          const best    = matches[0] ?? null
-          return {
-            item,
-            matches,
-            product:  best?.item  ?? null,
-            score:    best?.score ?? 0,
-            selected: (best?.score ?? 0) >= 40,
-            qty:      item.quantity > 0 ? item.quantity : 1,
-            price:    best?.item ? (isSale ? best.item.sellPrice : best.item.importPrice) : (item.price || 0),
-          }
-        })
-        setRows(newRows)
-        setAiData(data)
-
-        if (!isSale && data.due_date)    setDueDate(data.due_date)
-        if (!isSale && data.supplier_name) {
-          const supMatches = findMatches(data.supplier_name, suppliers, 'name')
-          setSupplierMatch(supMatches[0] ?? null)
-        }
-
-        setStage('review')
-        if (data._lowConfidence) {
-          toast.warning(`⚠️ Độ tin cậy thấp (${data._confidence}%) — nên kiểm tra lại dữ liệu`)
-        } else {
-          toast.success(`✅ Tesseract đọc xong! Độ tin cậy: ${data._confidence}%`)
-        }
-      } catch (err) {
-        setStage('upload')
-        setOfflineProgress(null)
-        toast.error(err.message || 'Lỗi Tesseract OCR')
-      }
-      return
-    }
-
     // ── AI OCR mode (hoặc QR fallback)
     try {
       const filesToScan = billMode === 'merge' && queue.length > 1 ? queue : [file]
@@ -344,9 +287,6 @@ export default function OcrInvoiceModal({
     setQrData(null)
     setAiData(null)
     setRows([])
-    setOfflineProgress(null)
-    setOfflineMeta(null)
-    setShowRawText(false)
   }
 
   // ── Row helpers ───────────────────────────────────────────────────────────
@@ -441,7 +381,6 @@ export default function OcrInvoiceModal({
             </div>
             <div className="text-[11px] text-slate-500 mt-0.5">
               {stage === 'upload'     && (isQR ? 'Upload ảnh có mã QR → đọc chính xác 100%'
-                : isOffline           ? 'Tesseract.js — không cần API, chạy hoàn toàn trên trình duyệt'
                 : billMode === 'merge' ? 'Upload nhiều ảnh → AI gộp thành 1 hóa đơn'
                 : 'Upload ảnh hóa đơn → AI tự đọc dữ liệu')}
               {stage === 'scanning'   && (isQR ? 'Đang giải mã QR…' : 'Gemini AI đang phân tích…')}
@@ -465,13 +404,6 @@ export default function OcrInvoiceModal({
                     className={`px-2.5 py-1 rounded-md transition-colors ${isQR ? 'bg-cblue text-black' : 'text-slate-400 hover:text-slate-200'}`}
                   >
                     📷 QR
-                  </button>
-                  <button
-                    onClick={() => handleModeSwitch('OFFLINE')}
-                    className={`px-2.5 py-1 rounded-md transition-colors ${isOffline ? 'bg-cgreen text-black' : 'text-slate-400 hover:text-slate-200'}`}
-                    title="Tesseract OCR — không cần internet"
-                  >
-                    💾 Offline
                   </button>
                 </div>
                 {/* Bill mode toggle — chỉ hiện khi AI mode */}
@@ -614,41 +546,12 @@ export default function OcrInvoiceModal({
                   </div>
                 </>
               )}
-              {stage === 'scanning' && !offlineProgress && (
+              {stage === 'scanning' && (
                 <div className="flex items-center gap-2 text-sm text-slate-400 mt-2">
                   <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
                   </svg>
                   {isQR ? 'Đang giải mã QR…' : 'Gemini AI đang đọc hóa đơn…'}
-                </div>
-              )}
-              {offlineProgress && (
-                <div className="w-full flex flex-col gap-2 mt-2">
-                  <div className="flex items-center gap-2 text-sm text-cgreen">
-                    <svg className="w-4 h-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
-                    </svg>
-                    <span className="text-xs font-semibold">
-                      {offlineProgress.status === 'preprocessing'   && 'Xử lý ảnh (tăng tương phản)…'}
-                      {offlineProgress.status === 'loading-core'    && `Tải Tesseract engine… ${offlineProgress.progress}%`}
-                      {offlineProgress.status === 'loading-lang'    && `Tải ngôn ngữ Tiếng Việt… ${offlineProgress.progress}%`}
-                      {offlineProgress.status === 'loading-language'&& 'Chuẩn bị engine OCR…'}
-                      {offlineProgress.status === 'recognizing'     && `Nhận diện văn bản… ${offlineProgress.progress}%`}
-                    </span>
-                  </div>
-                  {offlineProgress.progress > 0 && (
-                    <div className="w-full bg-slate-700 rounded-full h-1.5">
-                      <div
-                        className="bg-cgreen h-1.5 rounded-full transition-all duration-300"
-                        style={{ width: `${offlineProgress.progress}%` }}
-                      />
-                    </div>
-                  )}
-                  {offlineProgress.status === 'loading-lang' && (
-                    <div className="text-[10px] text-slate-600 text-center">
-                      Lần đầu tải ~4MB dữ liệu tiếng Việt — sẽ cache lại cho lần sau
-                    </div>
-                  )}
                 </div>
               )}
               <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
@@ -693,76 +596,13 @@ export default function OcrInvoiceModal({
             {/* Cột phải — Dữ liệu trích xuất */}
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
               <div className="px-4 py-2.5 border-b border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wide flex items-center justify-between">
-                <span>{isOffline ? '💾 Tesseract trích xuất' : '📋 Dữ liệu AI trích xuất'}</span>
+                <span>📋 Dữ liệu AI trích xuất</span>
                 {aiData?.total_amount > 0 && (
                   <span className="text-cyellow font-mono font-black normal-case">{fmtVNDFull(aiData.total_amount)}</span>
                 )}
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-
-                {/* ── Offline: confidence badge + raw text toggle ── */}
-                {offlineMeta && (
-                  <div className="flex flex-col gap-2">
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold
-                      ${offlineMeta.lowConfidence
-                        ? 'bg-cred/8 border-cred/30 text-cred'
-                        : 'bg-cgreen/8 border-cgreen/30 text-cgreen'
-                      }`}
-                    >
-                      <span className="text-base">{offlineMeta.lowConfidence ? '⚠️' : '✅'}</span>
-                      <div className="flex-1">
-                        {offlineMeta.lowConfidence
-                          ? `Độ tin cậy thấp: ${offlineMeta.confidence}% — nên kiểm tra và nhập tay`
-                          : `Độ tin cậy: ${offlineMeta.confidence}% — dữ liệu tốt`
-                        }
-                      </div>
-                      <button
-                        onClick={() => setShowRawText(v => !v)}
-                        className="text-[10px] px-2 py-0.5 rounded-lg border border-current/30 hover:bg-current/10 transition-colors font-normal"
-                      >
-                        {showRawText ? 'Ẩn text' : 'Xem raw text'}
-                      </button>
-                    </div>
-                    {showRawText && (
-                      <pre className="text-[10px] text-slate-400 bg-slate-900 border border-slate-700 rounded-xl p-3 max-h-40 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed">
-                        {offlineMeta.rawText}
-                      </pre>
-                    )}
-                    {/* Offline extracted header fields */}
-                    <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                      {aiData?.tax_code && (
-                        <div className="bg-slate-800/60 border border-slate-700 rounded-lg px-2.5 py-1.5">
-                          <div className="text-slate-500 uppercase tracking-wide mb-0.5">MST</div>
-                          <div className="font-mono font-bold text-[#e6edf3]">{aiData.tax_code}</div>
-                        </div>
-                      )}
-                      {aiData?.invoice_date && (
-                        <div className="bg-slate-800/60 border border-slate-700 rounded-lg px-2.5 py-1.5">
-                          <div className="text-slate-500 uppercase tracking-wide mb-0.5">Ngày HĐ</div>
-                          <div className="font-mono font-bold text-[#e6edf3]">{aiData.invoice_date}</div>
-                        </div>
-                      )}
-                      {aiData?.invoice_no && (
-                        <div className="bg-slate-800/60 border border-slate-700 rounded-lg px-2.5 py-1.5">
-                          <div className="text-slate-500 uppercase tracking-wide mb-0.5">Số HĐ</div>
-                          <div className="font-mono font-bold text-[#e6edf3]">{aiData.invoice_no}</div>
-                        </div>
-                      )}
-                      {aiData?.tax_amount > 0 && (
-                        <div className="bg-slate-800/60 border border-slate-700 rounded-lg px-2.5 py-1.5">
-                          <div className="text-slate-500 uppercase tracking-wide mb-0.5">Tiền thuế</div>
-                          <div className="font-mono font-bold text-[#e6edf3]">{fmtVNDFull(aiData.tax_amount)}</div>
-                        </div>
-                      )}
-                    </div>
-                    {rows.length === 0 && (
-                      <div className="px-3 py-2.5 rounded-xl border border-cyellow/25 bg-cyellow/5 text-[11px] text-cyellow">
-                        💡 Tesseract không tách được bảng sản phẩm. Dùng nút 🔍 để chọn sản phẩm thủ công bên dưới, hoặc thử chế độ <strong>AI</strong> để đọc chính xác hơn.
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* ── PURCHASE: Thông tin nhà cung cấp + ngày ── */}
                 {!isSale && (
@@ -992,19 +832,18 @@ export default function OcrInvoiceModal({
               </button>
               <button
                 onClick={handleScan}
-                disabled={!file || stage === 'scanning' || !!offlineProgress}
+                disabled={!file || stage === 'scanning'}
                 className={`flex-1 py-2.5 rounded-xl text-black text-sm font-black transition-all disabled:opacity-40 flex items-center justify-center gap-2
-                  ${isOffline ? 'bg-cgreen hover:brightness-110' : isSale ? 'bg-cpurple hover:brightness-110' : 'bg-cteal hover:brightness-110'}`}
+                  ${isSale ? 'bg-cpurple hover:brightness-110' : 'bg-cteal hover:brightness-110'}`}
               >
-                {(stage === 'scanning' || offlineProgress) ? (
+                {stage === 'scanning' ? (
                   <>
                     <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
                     </svg>
-                    {isOffline ? 'Tesseract đang chạy…' : isQR ? 'Đang đọc QR…' : 'AI đang đọc…'}
+                    {isQR ? 'Đang đọc QR…' : 'AI đang đọc…'}
                   </>
                 ) : isQR ? '📷 Giải mã QR'
-                  : isOffline ? '💾 Quét Offline (Tesseract)'
                   : billMode === 'merge' && queue.length > 1
                     ? `🗂️ Gộp & phân tích ${queue.length} ảnh`
                     : '🔍 Phân tích hóa đơn'}
