@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from '../../context/SupabaseContext'
-import { scanInvoice, scanQRCode, uploadInvoiceImage } from '../../lib/invoiceScanner'
+import { scanInvoice, scanMultipleInvoices, scanQRCode, uploadInvoiceImage } from '../../lib/invoiceScanner'
 import { removeVietnameseTones, fmtVNDFull } from '../../lib/formatters'
 import ModalOverlay from '../ui/ModalOverlay'
 
@@ -105,6 +105,8 @@ export default function OcrInvoiceModal({
 
   // mode: 'AI' | 'QR'
   const [mode, setMode] = useState('AI')
+  // billMode: 'split' (mỗi ảnh = 1 bill) | 'merge' (nhiều ảnh gộp 1 bill)
+  const [billMode, setBillMode] = useState('split')
   const isQR = mode === 'QR'
   const title = isSale ? (isQR ? '📷 QR Hóa Đơn Bán Hàng' : '🤖 OCR Hóa Đơn Bán Hàng')
                        : (isQR ? '📷 QR Phiếu Nhập Kho'    : '🤖 OCR Phiếu Nhập Kho')
@@ -233,8 +235,11 @@ export default function OcrInvoiceModal({
 
     // ── AI OCR mode (hoặc QR fallback)
     try {
-      if (user?.id) uploadInvoiceImage(file, user.id, type).catch(() => {})
-      const data = await scanInvoice(file, type)
+      const filesToScan = billMode === 'merge' && queue.length > 1 ? queue : [file]
+      if (user?.id) filesToScan.forEach(f => uploadInvoiceImage(f, user.id, type).catch(() => {}))
+      const data = billMode === 'merge' && queue.length > 1
+        ? await scanMultipleInvoices(filesToScan, type)
+        : await scanInvoice(file, type)
       setAiData(data)
 
       // Build product rows
@@ -337,7 +342,11 @@ export default function OcrInvoiceModal({
       })
     }
 
-    // Advance to next invoice in queue
+    // Advance to next invoice in queue (chỉ khi tách bill)
+    if (billMode === 'merge') {
+      onClose()
+      return
+    }
     const nextIdx = queueIdx + 1
     if (nextIdx < queue.length) {
       setQueueIdx(nextIdx)
@@ -369,7 +378,9 @@ export default function OcrInvoiceModal({
               )}
             </div>
             <div className="text-[11px] text-slate-500 mt-0.5">
-              {stage === 'upload'     && (isQR ? 'Upload ảnh có mã QR → đọc chính xác 100%' : 'Upload ảnh hóa đơn → AI tự đọc dữ liệu')}
+              {stage === 'upload'     && (isQR ? 'Upload ảnh có mã QR → đọc chính xác 100%'
+                : billMode === 'merge' ? 'Upload nhiều ảnh → AI gộp thành 1 hóa đơn'
+                : 'Upload ảnh hóa đơn → AI tự đọc dữ liệu')}
               {stage === 'scanning'   && (isQR ? 'Đang giải mã QR…' : 'Gemini AI đang phân tích…')}
               {stage === 'review'     && 'Kiểm tra & chỉnh sửa trước khi lưu'}
               {stage === 'qr-result' && 'Thông tin từ mã QR hóa đơn điện tử'}
@@ -378,20 +389,41 @@ export default function OcrInvoiceModal({
           <div className="flex items-center gap-2">
             {/* Mode toggle AI / QR */}
             {stage === 'upload' && (
-              <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 text-[11px] font-semibold">
-                <button
-                  onClick={() => handleModeSwitch('AI')}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${!isQR ? 'bg-cpurple text-black' : 'text-slate-400 hover:text-slate-200'}`}
-                >
-                  🤖 AI
-                </button>
-                <button
-                  onClick={() => handleModeSwitch('QR')}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${isQR ? 'bg-cblue text-black' : 'text-slate-400 hover:text-slate-200'}`}
-                >
-                  📷 QR
-                </button>
-              </div>
+              <>
+                <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 text-[11px] font-semibold">
+                  <button
+                    onClick={() => handleModeSwitch('AI')}
+                    className={`px-2.5 py-1 rounded-md transition-colors ${!isQR ? 'bg-cpurple text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    🤖 AI
+                  </button>
+                  <button
+                    onClick={() => handleModeSwitch('QR')}
+                    className={`px-2.5 py-1 rounded-md transition-colors ${isQR ? 'bg-cblue text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    📷 QR
+                  </button>
+                </div>
+                {/* Bill mode toggle — chỉ hiện khi AI mode */}
+                {!isQR && (
+                  <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 text-[11px] font-semibold">
+                    <button
+                      onClick={() => setBillMode('split')}
+                      className={`px-2.5 py-1 rounded-md transition-colors ${billMode === 'split' ? 'bg-cgreen/80 text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                      title="Mỗi ảnh = 1 hóa đơn riêng"
+                    >
+                      ✂️ Tách
+                    </button>
+                    <button
+                      onClick={() => setBillMode('merge')}
+                      className={`px-2.5 py-1 rounded-md transition-colors ${billMode === 'merge' ? 'bg-cyellow/80 text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                      title="Nhiều ảnh gộp thành 1 hóa đơn"
+                    >
+                      🗂️ Gộp
+                    </button>
+                  </div>
+                )}
+              </>
             )}
             {/* Stage dots */}
             {['upload','scanning','review'].map((s) => (
@@ -471,7 +503,33 @@ export default function OcrInvoiceModal({
               className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-colors
                 ${stage === 'scanning' ? 'border-slate-700 cursor-default' : 'border-slate-700 hover:border-cblue/30 focus-within:border-cblue/50 group'}`}
             >
-              {preview ? (
+              {billMode === 'merge' && queue.length > 1 ? (
+                /* Merge mode: hiện grid tất cả ảnh đã chọn */
+                <div className="w-full flex flex-col gap-2">
+                  <div className="grid grid-cols-3 gap-2 w-full">
+                    {queue.map((f, i) => (
+                      <div key={i} className="relative group">
+                        <img
+                          src={URL.createObjectURL(f)}
+                          alt={`Ảnh ${i+1}`}
+                          className="w-full h-24 object-cover rounded-lg border border-slate-700"
+                        />
+                        <div className="absolute top-1 left-1 bg-black/70 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                          {i + 1}
+                        </div>
+                        <button
+                          onClick={e => { e.stopPropagation(); const next = queue.filter((_,idx) => idx !== i); setQueue(next); if (next.length === 0) { setFile(null); setPreview(null) } else { loadFileAt(next, 0) } }}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/80 text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Xóa ảnh này"
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-[11px] text-cyellow/80 text-center font-semibold">
+                    🗂️ {queue.length} ảnh sẽ được gộp thành 1 hóa đơn
+                  </div>
+                </div>
+              ) : preview ? (
                 <img src={preview} alt="Hóa đơn" className="max-h-52 rounded-lg object-contain border border-slate-700" />
               ) : (
                 <>
@@ -783,7 +841,10 @@ export default function OcrInvoiceModal({
                     </svg>
                     {isQR ? 'Đang đọc QR…' : 'AI đang đọc…'}
                   </>
-                ) : isQR ? '📷 Giải mã QR' : '🔍 Phân tích hóa đơn'}
+                ) : isQR ? '📷 Giải mã QR'
+                  : billMode === 'merge' && queue.length > 1
+                    ? `🗂️ Gộp & phân tích ${queue.length} ảnh`
+                    : '🔍 Phân tích hóa đơn'}
               </button>
             </>
           ) : (

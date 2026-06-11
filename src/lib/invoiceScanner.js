@@ -185,6 +185,66 @@ Chỉ trả về JSON, không giải thích gì thêm.`
 
 // ── Gemini API call ────────────────────────────────────────────────────────
 
+// Gộp nhiều ảnh thành 1 bill — gửi tất cả files trong 1 request
+export async function scanMultipleInvoices(files, type = 'SALE') {
+  if (!GEMINI_KEY) throw new Error('Chưa cấu hình VITE_GEMINI_API_KEY trong .env.local')
+  if (!files?.length) throw new Error('Không có ảnh nào để phân tích')
+
+  const toBase64 = f => new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload  = () => resolve({ data: reader.result.split(',')[1], mimeType: f.type })
+    reader.onerror = reject
+    reader.readAsDataURL(f)
+  })
+
+  const images = await Promise.all(files.map(toBase64))
+
+  const mergeNote = files.length > 1
+    ? `\nLưu ý: có ${files.length} ảnh bên dưới thuộc CÙNG 1 đơn hàng. Hãy GỘP tất cả sản phẩm từ các ảnh lại thành 1 JSON duy nhất. Nếu cùng tên sản phẩm xuất hiện ở nhiều ảnh, cộng số lượng lại.`
+    : ''
+
+  const parts = [
+    { text: buildPrompt(type) + mergeNote },
+    ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+  ]
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts }],
+        generationConfig: {
+          temperature:     0.1,
+          maxOutputTokens: 4096,
+          thinkingConfig:  { thinkingBudget: 0 },
+        },
+      }),
+    }
+  )
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err?.error?.message || `Gemini lỗi HTTP ${res.status}`)
+  }
+
+  const data  = await res.json()
+  const parts2 = data.candidates?.[0]?.content?.parts ?? []
+  const raw    = parts2.map(p => p.text ?? '').join('')
+  let clean    = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+  const start  = clean.indexOf('{')
+  const end    = clean.lastIndexOf('}')
+  if (start !== -1 && end !== -1 && end > start) clean = clean.slice(start, end + 1)
+
+  try {
+    return JSON.parse(clean)
+  } catch {
+    console.error('Gemini raw response:', raw)
+    throw new Error('AI trả về dữ liệu không hợp lệ, vui lòng thử lại.')
+  }
+}
+
 export async function scanInvoice(file, type = 'SALE') {
   if (!GEMINI_KEY) throw new Error('Chưa cấu hình VITE_GEMINI_API_KEY trong .env.local')
 
