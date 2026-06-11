@@ -183,7 +183,8 @@ export async function scanInvoice(file, type = 'SALE') {
             { inlineData: { mimeType: file.type, data: base64 } },
           ]
         }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 1024 },
+        generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+        thinkingConfig:   { thinkingBudget: 0 },
       }),
     }
   )
