@@ -47,7 +47,7 @@ function MainLayout() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 md:ml-[220px] min-h-screen pb-20 md:pb-0">
+      <div className="flex-1 md:ml-[240px] min-h-screen pb-20 md:pb-0">
         <Topbar page={page} />
         <div className="overflow-x-hidden">
           {page === 'business'

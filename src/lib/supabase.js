@@ -215,22 +215,39 @@ export function productToCamel(row) {
     stockQuantity: row.stock_quantity,
     minStock:      row.min_stock ?? 5,
     imageUrl:      row.image_url ?? null,
+    unit:          row.unit ?? null,
+    lastUsedUnit:  row.last_used_unit ?? null,
     createdAt:     row.created_at,
     updatedAt:     row.updated_at,
   }
 }
 
 function productToSnake(p) {
-  const row = {
-    sku:            p.sku,
-    name:           p.name,
-    import_price:   p.importPrice   ?? 0,
-    sell_price:     p.sellPrice     ?? 0,
-    stock_quantity: p.stockQuantity ?? 0,
-    min_stock:      p.minStock      ?? 5,
-  }
-  if (p.imageUrl !== undefined) row.image_url = p.imageUrl
+  const row = {}
+  if (p.sku           !== undefined) row.sku            = p.sku
+  if (p.name          !== undefined) row.name           = p.name
+  if (p.importPrice   !== undefined) row.import_price   = p.importPrice   ?? 0
+  if (p.sellPrice     !== undefined) row.sell_price     = p.sellPrice     ?? 0
+  if (p.stockQuantity !== undefined) row.stock_quantity = p.stockQuantity ?? 0
+  if (p.minStock      !== undefined) row.min_stock      = p.minStock      ?? 5
+  if (p.imageUrl      !== undefined) row.image_url      = p.imageUrl
+  if (p.unit          !== undefined) row.unit           = p.unit          ?? null
+  if (p.lastUsedUnit  !== undefined) row.last_used_unit = p.lastUsedUnit  ?? null
   return row
+}
+
+// Ghi nhớ đơn vị vừa dùng cho từng sản phẩm (fire-and-forget, không block luồng chính)
+async function _saveLastUsedUnits(items) {
+  if (!supabase) return
+  const toUpdate = items.filter(i => i.productId && i.unit)
+  if (!toUpdate.length) return
+  await Promise.all(
+    toUpdate.map(i =>
+      supabase.from('products')
+        .update({ last_used_unit: i.unit })
+        .eq('id', i.productId)
+    )
+  )
 }
 
 export async function uploadProductImage(file) {
@@ -361,7 +378,7 @@ export async function createOrder({ customerId, items, note, discount = 0, paidA
   const { data: rpcResult, error: rpcErr } = await supabase.rpc('create_order_atomic', { payload })
 
   if (!rpcErr && rpcResult) {
-    // RPC thành công — trả về order object
+    _saveLastUsedUnits(items)
     return { ...rpcResult, paid_amount: paid, debt_amount: debt }
   }
 
@@ -423,6 +440,7 @@ async function _createOrderFallback({ user, customerId, items, note, totalAmount
     }
   }
 
+  _saveLastUsedUnits(items)
   return { ...order, paid_amount: paid, debt_amount: debt }
 }
 
@@ -448,7 +466,7 @@ export async function loadOrdersFiltered({ from, to, type } = {}) {
       customer_id, supplier_id,
       customers(id, full_name, phone),
       suppliers(id, name, phone),
-      order_items(id, quantity, price, cost, product_id, products(name, sku, unit))
+      order_items(id, quantity, price, cost, unit, product_id, products(name, sku, unit))
     `)
     .order('created_at', { ascending: false })
 
@@ -470,7 +488,7 @@ export async function loadOrderDetail(orderId) {
       customer_id, supplier_id,
       customers(id, full_name, phone),
       suppliers(id, name, phone),
-      order_items(id, quantity, price, cost, product_id, returned_quantity, products(name, sku, unit))
+      order_items(id, quantity, price, cost, unit, product_id, returned_quantity, products(name, sku, unit))
     `)
     .eq('id', orderId)
     .single()
@@ -621,7 +639,7 @@ export async function loadSupplierImportOrders(supplierId, { from, to } = {}) {
     .from('orders')
     .select(`
       id, type, order_code, total_amount, paid_amount, debt_amount, profit, note, status, created_at,
-      order_items(id, quantity, price, cost, returned_quantity, product_id, products(name, sku, unit))
+      order_items(id, quantity, price, cost, unit, returned_quantity, product_id, products(name, sku, unit))
     `)
     .eq('supplier_id', supplierId)
     .eq('type', 'import')
@@ -735,6 +753,7 @@ export async function createImportOrder({ supplierId, items, note, paidAmount })
     await addSupplierDebt(supplierId, debtDelta)
   }
 
+  _saveLastUsedUnits(items.map(i => ({ productId: i.productId, unit: i.unit ?? null })))
   return { ...order, paid_amount: paid, debt_amount: Math.max(0, debtDelta) }
 }
 
@@ -1558,3 +1577,53 @@ export async function loadCashflowForecast() {
     supplierDebts: suppliers.slice(0, 6).map(s => ({ id: s.id, name: s.name, debt: s.current_debt })),
   }
 }
+
+// ── Audit Logs ─────────────────────────────────────────────────────────────
+
+export async function loadAuditLogs(tableName, recordId, limit = 50) {
+  if (!supabase || !recordId) return []
+  const { data, error } = await supabase
+    .from('audit_logs')
+    .select('id, action, old_data, new_data, changed_by, created_at')
+    .eq('table_name', tableName)
+    .eq('record_id', recordId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) { console.warn('[audit_logs]', error.message); return [] }
+  return data || []
+}
+
+export async function loadAuditLogsDashboard({
+  from, to,
+  actions = [],       // ['INSERT','UPDATE','DELETE']
+  tables  = [],       // ['products','orders']
+  search  = '',
+  page    = 0,
+  pageSize = 30,
+} = {}) {
+  if (!supabase) return { data: [], count: 0 }
+
+  let q = supabase
+    .from('audit_logs')
+    .select('id, table_name, record_id, action, old_data, new_data, changed_by, created_at', { count: 'exact' })
+
+  if (from)           q = q.gte('created_at', from)
+  if (to)             q = q.lte('created_at', to)
+  if (actions.length) q = q.in('action', actions)
+  if (tables.length)  q = q.in('table_name', tables)
+
+  // Tìm kiếm trong new_data / old_data (tên sản phẩm, mã đơn)
+  if (search.trim()) {
+    const s = search.trim()
+    q = q.or(`new_data->name.ilike.%${s}%,old_data->name.ilike.%${s}%,new_data->order_code.ilike.%${s}%,old_data->order_code.ilike.%${s}%,new_data->sku.ilike.%${s}%`)
+  }
+
+  q = q
+    .order('created_at', { ascending: false })
+    .range(page * pageSize, (page + 1) * pageSize - 1)
+
+  const { data, error, count } = await q
+  if (error) { console.warn('[audit_dashboard]', error.message); return { data: [], count: 0 } }
+  return { data: data || [], count: count ?? 0 }
+}
+

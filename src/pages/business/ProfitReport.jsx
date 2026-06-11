@@ -197,7 +197,7 @@ export default function ProfitReport() {
 
   // ── Render ────────────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-7xl flex flex-col gap-5">
+    <div className="p-6 w-full flex flex-col gap-5">
 
       {/* ── Filter bar ────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2">

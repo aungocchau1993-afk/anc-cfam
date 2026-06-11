@@ -372,7 +372,7 @@ export default function Stocktake() {
   // ── Màn hình danh sách ────────────────────────────────────────────────────
   if (!session) {
     return (
-      <div className="p-6 max-w-5xl">
+      <div className="p-6 w-full">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
             <h2 className="text-lg font-bold text-[#e6edf3]">📋 Kiểm Kho</h2>
@@ -464,7 +464,7 @@ export default function Stocktake() {
 
   // ── Phiếu đang mở ─────────────────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-7xl flex flex-col gap-4">
+    <div className="p-6 w-full flex flex-col gap-4">
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>

@@ -232,7 +232,7 @@ export default function Cashbook() {
   }
 
   return (
-    <div className="p-6 max-w-5xl flex flex-col gap-5">
+    <div className="p-6 w-full flex flex-col gap-5">
 
       {/* ── Toolbar ──────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3">

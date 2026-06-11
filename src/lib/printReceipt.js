@@ -12,6 +12,7 @@ const DEFAULTS = {
   bankName:   '',          // Tên ngân hàng (VD: Vietcombank)
   bankNumber: '',          // Số tài khoản / VietQR
   bankAccount:'',          // Tên chủ tài khoản
+  bankQrImage:'',          // Ảnh QR upload từ máy (base64)
   thankMsg:   'Cảm ơn quý khách! Hẹn gặp lại 🙏',
   printMode:  'thermal',   // 'thermal' | 'a4'
 }
@@ -28,10 +29,60 @@ export function saveShopConfig(cfg) {
   localStorage.setItem(SHOP_KEY, JSON.stringify(cfg))
 }
 
-// QR code ảnh từ qrserver.com (không cần internet nếu đã cache)
+// ── Bank code lookup → VietQR short code ──────────────────────────────────
+const BANK_CODES = {
+  'mb':         'MB',  'mbbank':   'MB',  'mb bank':    'MB',  '970422': 'MB',
+  'vcb':        'VCB', 'vietcombank':'VCB','970436':     'VCB',
+  'tcb':        'TCB', 'techcombank':'TCB','970407':     'TCB',
+  'acb':        'ACB', '970416':   'ACB',
+  'bidv':       'BIDV','970418':   'BIDV',
+  'agribank':   'AGR', '970405':   'AGR',
+  'vpb':        'VPB', 'vpbank':   'VPB', '970432':     'VPB',
+  'tpb':        'TPB', 'tpbank':   'TPB', '970423':     'TPB',
+  'vib':        'VIB', '970441':   'VIB',
+  'msb':        'MSB', 'maritime': 'MSB', '970426':     'MSB',
+  'ocb':        'OCB', '970448':   'OCB',
+  'hdb':        'HDB', 'hdbank':   'HDB', '970437':     'HDB',
+  'shb':        'SHB', '970443':   'SHB',
+  'exim':       'EIB', 'eximbank': 'EIB', '970431':     'EIB',
+  'sacom':      'STB', 'sacombank':'STB', '970403':     'STB',
+  'seab':       'SEAB','seabank':  'SEAB','970440':     'SEAB',
+  'abbank':     'ABB', '970425':   'ABB',
+  'nam a':      'NAB', 'namabank': 'NAB', '970428':     'NAB',
+  'lpbank':     'LPB', 'lien viet':'LPB', '970449':     'LPB',
+  'vietinbank': 'ICB', 'viettin':  'ICB', '970415':     'ICB',
+  'pvcombank':  'PVCB','pvcom':    'PVCB','970412':     'PVCB',
+  'ncb':        'NCB', '970419':   'NCB',
+  'scb':        'SCB', '970429':   'SCB',
+  'dongabank':  'DAB', 'dong a':   'DAB', '970406':     'DAB',
+}
+
+function getBankVietQrCode(bankName) {
+  if (!bankName) return null
+  return BANK_CODES[bankName.toLowerCase().trim()] ?? null
+}
+
+// Sinh URL ảnh VietQR chuẩn (quét được qua app ngân hàng)
+function vietQrUrl(shop) {
+  const code = getBankVietQrCode(shop.bankName)
+  if (!code || !shop.bankNumber) return null
+  const name = encodeURIComponent((shop.bankAccount || '').toUpperCase())
+  return `https://img.vietqr.io/image/${code}-${shop.bankNumber}-qr_only.png?accountName=${name}`
+}
+
+// Fallback: QR từ qrserver.com (text QR, không phải VietQR chuẩn)
 function qrImg(data, size = 120) {
   const enc = encodeURIComponent(data)
   return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${enc}&margin=4&format=svg" width="${size}" height="${size}" alt="QR" style="display:block" />`
+}
+
+// Sinh thẻ <img> QR ngân hàng — ưu tiên VietQR, fallback qrserver
+function bankQrImg(shop, size = 120, style = '') {
+  const url = vietQrUrl(shop)
+  if (url) return `<img src="${url}" width="${size}" height="${size}" alt="QR" style="display:block;${style}" />`
+  if (shop.bankName && shop.bankNumber)
+    return qrImg(`${shop.bankName} ${shop.bankNumber} ${shop.bankAccount || ''}`, size)
+  return ''
 }
 
 // Format số tiền
@@ -60,11 +111,11 @@ function buildThermalHtml({
     </tr>`
   }).join('')
 
-  const bankQr = shop.bankName && shop.bankNumber
+  const bankQr = shop.bankName || shop.bankNumber
     ? `<div class="section" style="text-align:center">
-        <div class="label">Thanh toán QR</div>
-        ${qrImg(`${shop.bankName} ${shop.bankNumber} ${shop.bankAccount || ''}`, 100)}
-        <div style="font-size:7pt;margin-top:3px">${shop.bankName} · ${shop.bankNumber}${shop.bankAccount ? ` · ${shop.bankAccount}` : ''}</div>
+        <div class="label">Thanh toán chuyển khoản</div>
+        ${bankQrImg(shop, 130, 'margin:4px auto')}
+        <div style="font-size:7pt;margin-top:3px">${[shop.bankName, shop.bankNumber, shop.bankAccount].filter(Boolean).join(' · ')}</div>
        </div>`
     : ''
 
@@ -249,22 +300,34 @@ function buildA4Html({
     <tr class="${idx % 2 === 1 ? 'alt' : ''}">
       <td class="td-name">${name}</td>
       <td class="td-center">${i.quantity}</td>
-      <td class="td-center" style="color:${unit ? '#1a73e8' : '#999'};font-weight:${unit ? '700' : '400'}">${unit || '—'}</td>
+      <td class="td-center dvt">${unit || '—'}</td>
       <td class="td-right">${fmtN(i.price)}</td>
       <td class="td-right td-bold">${fmtN(lineAmt)}</td>
     </tr>`
   }).join('')
 
-  const bankQr = shop.bankName && shop.bankNumber
-    ? `<div style="text-align:center;margin-top:12px">
-        <div style="font-size:9pt;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Thanh toán QR</div>
-        ${qrImg(`${shop.bankName} ${shop.bankNumber} ${shop.bankAccount || ''}`, 110)}
-        <div style="font-size:8.5pt;margin-top:4px;color:#555">${shop.bankName} · ${shop.bankNumber}${shop.bankAccount ? ` · ${shop.bankAccount}` : ''}</div>
-       </div>`
-    : ''
+  const hasBankInfo = shop.bankName || shop.bankNumber
+  const bankQrHtml = hasBankInfo ? (() => {
+    const qrSrc = vietQrUrl(shop)
+    const qrBlock = qrSrc
+      ? `<img src="${qrSrc}" class="qr-img" alt="QR" />`
+      : bankQrImg(shop, 140)
+    return `
+    <div class="bank-block">
+      <div class="bank-label">THANH TOÁN CHUYỂN KHOẢN</div>
+      <div class="bank-inner">
+        ${qrBlock ? `<div class="qr-wrap">${qrBlock}</div>` : ''}
+        <div class="bank-info">
+          ${shop.bankName   ? `<div><span class="bi-label">Ngân hàng</span><span class="bi-val">${shop.bankName}</span></div>` : ''}
+          ${shop.bankNumber ? `<div><span class="bi-label">Số TK</span><span class="bi-val bi-acc">${shop.bankNumber}</span></div>` : ''}
+          ${shop.bankAccount? `<div><span class="bi-label">Chủ TK</span><span class="bi-val">${shop.bankAccount}</span></div>` : ''}
+        </div>
+      </div>
+    </div>`
+  })() : ''
 
   const logoHtml = shop.logo
-    ? `<img src="${shop.logo}" style="max-height:50px;max-width:120px;object-fit:contain;display:block;margin:0 auto 6px" alt="logo" />`
+    ? `<img src="${shop.logo}" class="logo" alt="logo" />`
     : ''
 
   return `<!DOCTYPE html>
@@ -274,77 +337,136 @@ function buildA4Html({
 <title>Hóa đơn #${code}</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  @page { size: A5 portrait; margin: 10mm 12mm; }
-  body { font-family:'Segoe UI',Arial,sans-serif; font-size:11.5pt; color:#1a1a1a; background:#fff; width:100%; }
-  .header { text-align:center; padding-bottom:10px; border-bottom:2px solid #1a1a1a; margin-bottom:12px; }
-  .shop-name { font-size:20pt; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
-  .shop-sub  { font-size:9.5pt; color:#555; margin-top:2px; }
-  .invoice-title { font-size:13pt; font-weight:700; letter-spacing:2px; margin-top:8px; text-transform:uppercase; }
-  .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:3px 16px; margin-bottom:12px; font-size:10.5pt; }
-  .info-row  { display:flex; gap:5px; }
-  .info-label{ color:#666; white-space:nowrap; }
-  .info-value{ font-weight:600; }
-  .divider   { border:none; border-top:1.5px dashed #aaa; margin:10px 0; }
-  .divider-solid { border:none; border-top:1.5px solid #1a1a1a; margin:10px 0; }
+  @page { size: A5 portrait; margin: 6mm 10mm 6mm; }
+  body { font-family:'Segoe UI',Arial,sans-serif; font-size:10.5pt; color:#1a1a1a; background:#fff; }
+
+  /* ── HEADER ── */
+  .header { text-align:center; padding-bottom:6px; border-bottom:2px solid #1a1a1a; margin-bottom:7px; }
+  .logo   { max-height:44px; max-width:110px; object-fit:contain; display:block; margin:0 auto 4px; }
+  .shop-name { font-size:17pt; font-weight:900; letter-spacing:0.5px; text-transform:uppercase; line-height:1.15; }
+  .shop-sub  { font-size:8.5pt; color:#666; font-style:italic; margin-top:3px; line-height:1.4; }
+  .invoice-title { display:inline-block; font-size:11pt; font-weight:700; letter-spacing:2px;
+                   text-transform:uppercase; margin-top:5px; padding:2px 14px;
+                   border-top:1px solid #bbb; border-bottom:1px solid #bbb; }
+
+  /* ── META INFO ── */
+  .meta { display:flex; justify-content:space-between; align-items:flex-start;
+          gap:8px; margin-bottom:7px; font-size:9.5pt; }
+  .meta-col { display:flex; flex-direction:column; gap:2px; }
+  .meta-row { display:flex; gap:5px; }
+  .meta-label { color:#777; white-space:nowrap; }
+  .meta-value { font-weight:600; }
+
+  /* ── TABLE ── */
   table { width:100%; border-collapse:collapse; margin-bottom:4px; }
   thead tr { background:#1a1a1a; color:#fff; }
-  thead th { padding:6px 8px; font-size:10pt; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
-  .th-name { text-align:left; } .th-right { text-align:right; } .th-center { text-align:center; }
-  tbody tr { border-bottom:1px solid #e8e8e8; }
-  tbody tr.alt { background:#f8f8f8; }
-  .td-name   { padding:7px 8px; font-size:10.5pt; vertical-align:middle; }
-  .td-center { text-align:center; padding:7px 6px; font-size:10.5pt; white-space:nowrap; }
-  .td-right  { text-align:right; padding:7px 8px; font-size:10.5pt; white-space:nowrap; }
-  .td-bold   { font-weight:600; }
-  .summary   { width:55%; margin-left:auto; margin-top:8px; font-size:10.5pt; }
-  .sum-row   { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid #eee; }
+  thead th { padding:5px 7px; font-size:9pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; }
+  .th-left   { text-align:left; }
+  .th-center { text-align:center; }
+  .th-right  { text-align:right; }
+  tbody tr { border-bottom:1px solid #ddd; }
+  tbody tr.alt { background:#f7f7f7; }
+  tbody tr:last-child { border-bottom:2px solid #bbb; }
+  .td-name   { padding:5px 7px; font-size:9.5pt; vertical-align:middle; line-height:1.35; }
+  .td-center { text-align:center; padding:5px 5px; font-size:9.5pt; white-space:nowrap; }
+  .td-right  { text-align:right; padding:5px 7px; font-size:9.5pt; white-space:nowrap; }
+  .td-bold   { font-weight:700; }
+  .dvt       { color:#1a73e8; font-weight:700; font-size:8.5pt; }
+
+  /* ── SUMMARY ── */
+  .summary-wrap { display:flex; justify-content:flex-end; margin-top:4px; }
+  .summary { width:58%; font-size:9.5pt; }
+  .sum-row  { display:flex; justify-content:space-between; padding:2.5px 0;
+              border-bottom:1px solid #ebebeb; }
   .sum-row:last-child { border-bottom:none; }
-  .sum-label { color:#555; } .sum-value { font-weight:600; }
-  .sum-total { display:flex; justify-content:space-between; padding:8px 0 4px; font-size:14pt; font-weight:800; border-top:2px solid #1a1a1a; margin-top:4px; }
-  .footer    { text-align:center; margin-top:16px; padding-top:10px; border-top:1.5px dashed #aaa; font-size:10pt; color:#555; line-height:1.7; }
-  .footer-thanks { font-size:12pt; font-weight:700; color:#1a1a1a; margin-bottom:3px; }
+  .sum-label { color:#555; }
+  .sum-value { font-weight:600; }
+  .sum-total { display:flex; justify-content:space-between; align-items:baseline;
+               padding:5px 0 4px; font-size:13pt; font-weight:900;
+               border-top:2.5px solid #1a1a1a; border-bottom:2.5px solid #1a1a1a;
+               margin-top:3px; }
+  .sum-total span:last-child { color:#c0392b; }
+
+  /* ── FOOTER ── */
+  .footer { margin-top:8px; padding-top:6px; border-top:1.5px dashed #bbb;
+            font-size:9pt; color:#555; text-align:center; line-height:1.55; }
+  .footer-thanks { font-size:10.5pt; font-weight:700; color:#1a1a1a; margin-bottom:2px; }
+
+  /* ── BANK / QR ── */
+  .bank-block { margin-top:7px; padding:6px 8px; border:1px solid #ddd;
+                border-radius:6px; break-inside:avoid; page-break-inside:avoid; }
+  .bank-label { font-size:7.5pt; font-weight:700; color:#777; text-transform:uppercase;
+                letter-spacing:1px; text-align:center; margin-bottom:5px; }
+  .bank-inner { display:flex; align-items:center; gap:10px; }
+  .qr-wrap    { flex-shrink:0; }
+  .qr-img     { width:140px; height:140px; object-fit:contain; display:block;
+                border:1px solid #ddd; border-radius:4px; padding:4px; background:#fff; image-rendering:crisp-edges; }
+  .bank-info  { display:flex; flex-direction:column; gap:3px; font-size:9pt; }
+  .bank-info > div { display:flex; gap:6px; align-items:baseline; }
+  .bi-label   { color:#888; white-space:nowrap; font-size:8pt; min-width:52px; }
+  .bi-val     { font-weight:600; color:#1a1a1a; }
+  .bi-acc     { font-size:10pt; font-weight:800; color:#1a73e8; letter-spacing:0.5px; }
+
   @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
 </style>
 </head>
 <body>
-  <div class="header">
-    ${logoHtml}
-    <div class="shop-name">${shop.name}</div>
-    <div class="shop-sub">Địa chỉ: ${shop.address} &nbsp;|&nbsp; SĐT: ${shop.phone}</div>
-    <div class="invoice-title">${invoiceTitle}</div>
+
+<div class="header">
+  ${logoHtml}
+  <div class="shop-name">${shop.name}</div>
+  <div class="shop-sub">Địa chỉ: ${shop.address} &nbsp;|&nbsp; SĐT: ${shop.phone}</div>
+  <div class="invoice-title">— ${invoiceTitle} —</div>
+</div>
+
+<div class="meta">
+  <div class="meta-col">
+    <div class="meta-row"><span class="meta-label">Mã đơn:</span><span class="meta-value">#${code}</span></div>
+    ${partnerName ? `<div class="meta-row"><span class="meta-label">${partnerLabelTx}</span><span class="meta-value">${partnerName}</span></div>` : ''}
+    ${note ? `<div class="meta-row"><span class="meta-label">Ghi chú:</span><span class="meta-value">${note}</span></div>` : ''}
   </div>
-  <div class="info-grid">
-    <div class="info-row"><span class="info-label">Mã đơn:</span><span class="info-value">#${code}</span></div>
-    <div class="info-row"><span class="info-label">Ngày:</span><span class="info-value">${now}</span></div>
-    ${partnerName ? `<div class="info-row"><span class="info-label">${partnerLabelTx}</span><span class="info-value">${partnerName}</span></div>` : ''}
-    ${note ? `<div class="info-row" style="grid-column:1/-1"><span class="info-label">Ghi chú:</span><span class="info-value">${note}</span></div>` : ''}
+  <div class="meta-col" style="text-align:right;align-items:flex-end">
+    <div class="meta-row"><span class="meta-label">Ngày:</span><span class="meta-value">${now}</span></div>
   </div>
-  <table>
-    <thead><tr>
-      <th class="th-name">Sản phẩm</th><th class="th-center">SL</th><th class="th-center">ĐVT</th>
-      <th class="th-right">Đơn giá (₫)</th><th class="th-right">Thành tiền (₫)</th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
+</div>
+
+<table>
+  <thead><tr>
+    <th class="th-left" style="width:40%">Sản phẩm</th>
+    <th class="th-center" style="width:8%">SL</th>
+    <th class="th-center" style="width:10%">ĐVT</th>
+    <th class="th-right" style="width:20%">Đơn giá (₫)</th>
+    <th class="th-right" style="width:22%">Thành tiền (₫)</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+
+<div class="summary-wrap">
   <div class="summary">
     ${subtotal !== grandTotal || discount > 0 ? `<div class="sum-row"><span class="sum-label">Tạm tính</span><span class="sum-value">${fmtN(subtotal)} ₫</span></div>` : ''}
     ${discount > 0 ? `<div class="sum-row"><span class="sum-label">Giảm giá</span><span class="sum-value" style="color:#dc2626">− ${fmtN(discount)} ₫</span></div>` : ''}
-    <div class="sum-total"><span>${isImport ? 'TỔNG TIỀN NHẬP' : 'TỔNG CỘNG'}</span><span>${fmtN(grandTotal)} ₫</span></div>
+    <div class="sum-total">
+      <span>${isImport ? 'TỔNG TIỀN NHẬP' : 'TỔNG CỘNG'}</span>
+      <span>${fmtN(grandTotal)} ₫</span>
+    </div>
     ${showPayment ? `
-    <div style="margin-top:6px;border-top:1px dashed #ccc;padding-top:6px;">
+    <div style="margin-top:5px;padding-top:5px;border-top:1px dashed #ccc;">
       <div class="sum-row"><span class="sum-label">${isImport ? 'Đã trả NCC' : 'Khách đã trả'}</span><span class="sum-value" style="color:#16a34a">${fmtN(paid)} ₫</span></div>
-      ${debt > 0 ? `<div class="sum-row" style="background:#fef2f2;padding:4px 6px;border-radius:4px;margin-top:3px;"><span style="color:#dc2626;font-weight:700">⚠ Còn nợ lại</span><span style="color:#dc2626;font-weight:800">${fmtN(debt)} ₫</span></div>` : ''}
-      ${surplus > 0 ? `<div class="sum-row" style="background:#f0fdf4;padding:4px 6px;border-radius:4px;margin-top:3px;"><span style="color:#16a34a;font-weight:700">✓ Trả lại</span><span style="color:#16a34a;font-weight:800">${fmtN(surplus)} ₫</span></div>` : ''}
+      ${debt > 0    ? `<div class="sum-row" style="color:#dc2626"><span style="font-weight:700">⚠ Còn nợ lại</span><span style="font-weight:800">${fmtN(debt)} ₫</span></div>` : ''}
+      ${surplus > 0 ? `<div class="sum-row" style="color:#16a34a"><span style="font-weight:700">✓ Tiền thừa</span><span style="font-weight:800">${fmtN(surplus)} ₫</span></div>` : ''}
       ${!debt && !surplus ? `<div class="sum-row"><span style="color:#16a34a">✓ Đã thanh toán đủ</span><span></span></div>` : ''}
     </div>` : ''}
-    ${pointsEarned > 0 ? `<div class="sum-row" style="margin-top:4px"><span class="sum-label">Điểm tích lũy</span><span class="sum-value">+${pointsEarned} ★</span></div>` : ''}
+    ${pointsEarned > 0 ? `<div class="sum-row" style="margin-top:3px"><span class="sum-label">Điểm tích lũy</span><span class="sum-value">+${pointsEarned} ★</span></div>` : ''}
   </div>
-  <div class="footer">
-    <div class="footer-thanks">${isImport ? '📦 Phiếu nhập kho đã ghi nhận' : (shop.thankMsg || '🙏 Cảm ơn quý khách đã mua hàng!')}</div>
-    ${!isImport ? '<div>Hàng đã mua không được đổi trả sau 24 giờ.</div>' : ''}
-    <div>Mọi thắc mắc vui lòng liên hệ: <strong>${shop.phone}</strong></div>
-    ${bankQr}
-  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-thanks">${isImport ? '📦 Phiếu nhập kho đã ghi nhận' : (shop.thankMsg || '🙏 Cảm ơn quý khách đã mua hàng!')}</div>
+  ${!isImport ? '<div>Hàng đã mua không được đổi trả sau 24 giờ.</div>' : ''}
+  <div>Mọi thắc mắc vui lòng liên hệ: <strong>${shop.phone}</strong></div>
+  ${bankQrHtml}
+</div>
+
 </body>
 </html>`
 }
@@ -389,21 +511,77 @@ export function buildReceiptHtml({
 // printViaIframe — in qua iframe ẩn (không block UI)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function printViaIframe(html) {
+export function printViaIframe(html, onAfterPrint) {
   setTimeout(() => {
     const frame = document.createElement('iframe')
-    frame.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:0;opacity:0'
+    frame.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:800px;height:600px;border:0;opacity:0'
     document.body.appendChild(frame)
     const doc = frame.contentWindow.document
     doc.open(); doc.write(html); doc.close()
-    frame.onload = () => {
+
+    const cleanup = () => {
+      document.body.contains(frame) && document.body.removeChild(frame)
+    }
+
+    const doPrint = () => {
+      let done = false
+      const finish = () => {
+        if (done) return
+        done = true
+        try { frame.contentWindow?.removeEventListener('afterprint', onAfter) } catch {}
+        window.removeEventListener('afterprint', onAfter)
+        mql.removeEventListener('change', onMqlChange)
+        clearTimeout(fallbackTimer)
+        setTimeout(() => { cleanup(); onAfterPrint?.() }, 80)
+      }
+
+      // ── Cách 1: matchMedia('print') — hoạt động tốt nhất trên Chrome với iframe
+      const mql = window.matchMedia('print')
+      let printOpened = false
+      const onMqlChange = (e) => {
+        if (e.matches) { printOpened = true }           // dialog vừa mở
+        else if (printOpened)  { finish() }             // dialog vừa đóng
+      }
+      mql.addEventListener('change', onMqlChange)
+
+      // ── Cách 2: afterprint event — Firefox + một số browser khác
+      const onAfter = () => finish()
+      try { frame.contentWindow.addEventListener('afterprint', onAfter) } catch {}
+      window.addEventListener('afterprint', onAfter, { once: true })
+
+      // ── In
       try {
         frame.contentWindow.focus()
         frame.contentWindow.print()
       } catch (e) {
         console.warn('[Print]', e)
       }
-      setTimeout(() => document.body.contains(frame) && document.body.removeChild(frame), 2000)
+
+      // ── Fallback cứng sau 10s
+      const fallbackTimer = setTimeout(finish, 10000)
+    }
+
+    // Đợi tất cả ảnh (logo, QR...) load xong trước khi in
+    // Guard: doPrint chỉ được gọi đúng 1 lần
+    let printTriggered = false
+    const safeDoPrint = () => {
+      if (printTriggered) return
+      printTriggered = true
+      doPrint()
+    }
+
+    const imgs = Array.from(frame.contentDocument.images)
+    if (imgs.length === 0) {
+      safeDoPrint()
+    } else {
+      let loaded = 0
+      const onImgDone = () => { if (++loaded >= imgs.length) safeDoPrint() }
+      imgs.forEach(img => {
+        if (img.complete) onImgDone()
+        else { img.onload = onImgDone; img.onerror = onImgDone }
+      })
+      // Fallback timeout 4s nếu ảnh lâu load
+      setTimeout(safeDoPrint, 4000)
     }
   }, 200)
 }

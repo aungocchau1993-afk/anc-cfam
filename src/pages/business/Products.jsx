@@ -5,6 +5,7 @@ import { loadProducts, insertProduct, updateProduct, deleteProduct, uploadProduc
 import { buildReceiptHtml, printViaIframe } from '../../lib/printReceipt'
 import ModalOverlay from '../../components/ui/ModalOverlay'
 import OcrInvoiceModal from '../../components/business/OcrInvoiceModal'
+import AuditLogModal from '../../components/business/AuditLogModal'
 import useDebounce from '../../hooks/useDebounce'
 import { formatMoneyLive, parseVNDInput, fmtVNDFull, removeVietnameseTones } from '../../lib/formatters'
 
@@ -290,7 +291,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
       currentStock: p.stockQuantity ?? 0,
       qty:          1,
       unitPrice:    p.importPrice ? p.importPrice.toLocaleString('vi-VN') : '',
-      unit:         p.unit ?? null,
+      unit:         p.lastUsedUnit ?? p.unit ?? null,
     }])
     setQuery('')
     setShowDrop(false)
@@ -377,6 +378,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
           quantity: i.qty,
           price:    parseVNDInput(i.unitPrice) || 0,
           cost:     parseVNDInput(i.unitPrice) || 0,
+          unit:     i.unit ?? null,
         })),
         total:       grandTotal,
         paidAmount:  customerPaid,
@@ -869,6 +871,7 @@ export default function Products() {
   const [editTarget,   setEditTarget]   = useState(null)
   const [stockTarget, setStockTarget]   = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [auditTarget,  setAuditTarget]  = useState(null)
   const [suppliers,      setSuppliers]      = useState([])
   const [deleting,   setDeleting]   = useState(false)
   const [importing,     setImporting]     = useState(false)
@@ -973,6 +976,7 @@ export default function Products() {
       const rows = all.map(p => ({
         'Mã Hàng (SKU)': p.sku,
         'Tên Hàng':      p.name,
+        'ĐVT':           p.unit          ?? '',
         'Giá Vốn':       p.importPrice   ?? 0,
         'Giá Bán':       p.sellPrice     ?? 0,
         'Tồn Kho':       p.stockQuantity ?? 0,
@@ -982,7 +986,7 @@ export default function Products() {
 
       // Đặt độ rộng cột
       ws['!cols'] = [
-        { wch: 16 }, { wch: 36 }, { wch: 14 }, { wch: 14 }, { wch: 10 },
+        { wch: 16 }, { wch: 36 }, { wch: 10 }, { wch: 14 }, { wch: 14 }, { wch: 10 },
       ]
       XLSX.utils.book_append_sheet(wb, ws, 'Hàng Hóa')
       XLSX.writeFile(wb, 'Danh_Sach_Hang_Hoa.xlsx')
@@ -1020,10 +1024,25 @@ export default function Products() {
         }
 
         // ── 2. Map cột (hỗ trợ KiotViet lẫn format app) ─
+        // Normalize: bỏ dấu, lowercase, trim — để khớp header dù encoding khác nhau
+        const norm = s => String(s ?? '').toLowerCase().trim()
+          .normalize('NFD').replace(/[̀-ͯ]/g, '')
+          .replace(/đ/g, 'd').replace(/\s+/g, ' ')
+
+        const rowNorm = Object.fromEntries(
+          Object.entries(jsonData[0] || {}).map(([k]) => [norm(k), k])
+        )
         function pick(row, keys) {
           for (const k of keys) {
+            // thử exact match trước
             const v = row[k]
             if (v !== undefined && v !== null && v !== '') return v
+            // thử normalized match
+            const origKey = rowNorm[norm(k)]
+            if (origKey) {
+              const v2 = row[origKey]
+              if (v2 !== undefined && v2 !== null && v2 !== '') return v2
+            }
           }
           return null
         }
@@ -1031,6 +1050,7 @@ export default function Products() {
         const COL = {
           sku:           ['Mã hàng', 'Mã Hàng (SKU)', 'Mã Hàng', 'SKU', 'sku'],
           name:          ['Tên hàng', 'Tên Hàng', 'Tên', 'name'],
+          unit:          ['ĐVT', 'DVT', 'Đvt', 'đvt', 'Đơn vị tính', 'Don vi tinh', 'unit'],
           importPrice:   ['Giá vốn', 'Giá Vốn', 'import_price'],
           sellPrice:     ['Giá bán', 'Giá Bán', 'sell_price'],
           stockQuantity: ['Tồn kho', 'Tồn Kho', 'stock_quantity'],
@@ -1053,6 +1073,7 @@ export default function Products() {
             return {
               sku,
               name,
+              unit:              String(pick(row, COL.unit) ?? '').trim() || null,
               importPrice:       cleanNumber(pick(row, COL.importPrice)),
               sellPrice:         cleanNumber(pick(row, COL.sellPrice)),
               stockQuantity:     cleanNumber(pick(row, COL.stockQuantity)),
@@ -1110,7 +1131,7 @@ export default function Products() {
 
   // ── Render ───────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-7xl">
+    <div className="p-6 w-full">
 
       {/* Low-stock alert */}
       {lowStockItems.length > 0 && (
@@ -1311,7 +1332,7 @@ export default function Products() {
             <table className="w-full min-w-0">
               <thead>
                 <tr className="bg-slate-800 border-b border-slate-700">
-                  <th className="sticky top-0 z-10 bg-slate-800 px-3 sm:px-4 py-3 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                  <th className="sticky top-0 z-10 bg-slate-800 px-3 sm:px-4 py-3 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
                     Sản phẩm
                   </th>
                   <th className="col-hide-mobile sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
@@ -1322,6 +1343,9 @@ export default function Products() {
                   </th>
                   <th className="col-hide-mobile sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     Lợi nhuận
+                  </th>
+                  <th className="col-hide-tablet sticky top-0 z-10 bg-slate-800 px-4 py-3 text-center text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                    ĐVT
                   </th>
                   <th className="sticky top-0 z-10 bg-slate-800 px-3 sm:px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
                     Tồn kho
@@ -1358,14 +1382,7 @@ export default function Products() {
                             </div>
                           )}
                           <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-medium text-slate-100 truncate max-w-[160px]">{p.name}</span>
-                              {p.unit && (
-                                <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-cblue/10 border border-cblue/30 text-cblue">
-                                  {p.unit}
-                                </span>
-                              )}
-                            </div>
+                            <div className="font-medium text-slate-100 whitespace-nowrap">{p.name}</div>
                             <div className="text-[11px] text-slate-400 font-mono mt-0.5">{p.sku}</div>
                           </div>
                         </div>
@@ -1387,6 +1404,17 @@ export default function Products() {
                           {fmtVNDFull(profit)}
                         </div>
                         <div className="text-[10px] text-slate-500">{margin}%</div>
+                      </td>
+
+                      {/* ĐVT — ẩn trên mobile */}
+                      <td className="col-hide-tablet px-4 py-2.5 text-center whitespace-nowrap">
+                        {p.unit ? (
+                          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-cblue/10 border border-cblue/25 text-cblue">
+                            {p.unit}
+                          </span>
+                        ) : (
+                          <span className="text-slate-600 text-[11px]">—</span>
+                        )}
                       </td>
 
                       {/* Tồn kho — luôn hiện */}
@@ -1427,6 +1455,10 @@ export default function Products() {
                             className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cblue hover:text-cblue hover:bg-cblue/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                           </button>
+                          <button onClick={() => setAuditTarget(p)} title="Lịch sử chỉnh sửa"
+                            className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cpurple hover:text-cpurple hover:bg-cpurple/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                          </button>
                           <button onClick={() => setDeleteTarget(p)} title="Xoá"
                             className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cred hover:text-cred hover:bg-cred/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -1464,6 +1496,14 @@ export default function Products() {
       )}
       {editTarget   && <AddProductModal initial={editTarget} onSave={handleEdit} onClose={() => setEditTarget(null)} />}
       {stockTarget  && <AdjustStockModal product={stockTarget} onSave={handleStock} onClose={() => setStockTarget(null)} />}
+      {auditTarget  && (
+        <AuditLogModal
+          tableName="products"
+          recordId={auditTarget.id}
+          title={`[${auditTarget.sku}] ${auditTarget.name}`}
+          onClose={() => setAuditTarget(null)}
+        />
+      )}
 
       {/* Delete confirm */}
       {deleteTarget && (

@@ -450,7 +450,7 @@ function OrderHistoryModal({ onClose }) {
 
 // ── Print receipt ─────────────────────────────────────────────────────────
 
-function handlePrintReceipt(data, printMode) {
+function handlePrintReceipt(data, printMode, onAfterPrint) {
   const shop = getShopConfig()
   const mode = printMode ?? shop.printMode ?? 'thermal'
   printViaIframe(buildReceiptHtml({
@@ -459,7 +459,7 @@ function handlePrintReceipt(data, printMode) {
     debtAmount: data.debtAmount,
     isImport:   false,
     printMode:  mode,
-  }))
+  }), onAfterPrint)
 }
 
 // ── Modal xác nhận in hóa đơn ─────────────────────────────────────────────
@@ -467,7 +467,7 @@ function handlePrintReceipt(data, printMode) {
 function PrintConfirmModal({ data, onPrint, onSkip }) {
   const { order, customer, items, total, paidAmount, debtAmount } = data
   const shop = getShopConfig()
-  const [mode, setMode] = React.useState(shop.printMode ?? 'thermal')
+  const [mode, setMode] = useState(shop.printMode ?? 'thermal')
 
   const surplus = paidAmount > total ? paidAmount - total : 0
 
@@ -557,7 +557,7 @@ function PrintConfirmModal({ data, onPrint, onSkip }) {
             onClick={onSkip}
             className="flex-1 py-3 rounded-xl border border-border text-muted text-sm font-bold hover:bg-surface2 transition-colors active:scale-95 touch-manipulation"
           >
-            Bỏ qua
+            Hủy
           </button>
           <button
             onClick={() => onPrint(mode)}
@@ -786,7 +786,7 @@ export default function PointOfSale() {
         cost:      product.importPrice,
         imageUrl:  product.imageUrl ?? null,
         quantity:  1,
-        unit:      product.unit ?? null,
+        unit:      product.lastUsedUnit ?? product.unit ?? null,
       }]
     })
   }, [])
@@ -830,7 +830,7 @@ export default function PointOfSale() {
           cost:      product.importPrice,
           imageUrl:  product.imageUrl ?? null,
           quantity:  qty,
-          unit:      product.unit ?? null,
+          unit:      product.lastUsedUnit ?? product.unit ?? null,
         }]
       })
     })
@@ -1441,9 +1441,8 @@ export default function PointOfSale() {
           data={successData}
           onSkip={() => { clearCart(); setSuccessData(null) }}
           onPrint={(mode) => {
-            handlePrintReceipt(successData, mode)
             clearCart()
-            setSuccessData(null)
+            handlePrintReceipt(successData, mode, () => setSuccessData(null))
           }}
         />
       )}

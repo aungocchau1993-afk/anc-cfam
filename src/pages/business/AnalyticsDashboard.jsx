@@ -189,7 +189,7 @@ export default function AnalyticsDashboard() {
   }
 
   return (
-    <div className="px-5 pt-3 pb-6 max-w-7xl flex flex-col gap-5">
+    <div className="px-5 pt-3 pb-6 w-full flex flex-col gap-5">
 
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between">

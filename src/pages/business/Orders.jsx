@@ -6,6 +6,7 @@ import { fmtVNDFull } from '../../lib/formatters'
 import { buildReceiptHtml, printViaIframe, getShopConfig } from '../../lib/printReceipt'
 import ModalOverlay from '../../components/ui/ModalOverlay'
 import PrintableReceipt from '../../components/business/PrintableReceipt'
+import AuditLogModal from '../../components/business/AuditLogModal'
 
 // ── Date helpers ───────────────────────────────────────────────────────────
 
@@ -154,6 +155,7 @@ function reprintOrder(ord) {
     quantity: i.quantity,
     price:    i.price,
     cost:     i.cost ?? i.price,
+    unit:     i.unit ?? i.products?.unit ?? null,
   }))
 
   // Đối tác: khách hàng hoặc NCC
@@ -185,6 +187,7 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
   const [returnItemId, setReturnItemId] = useState(null)   // item.id đang mở return input
   const [processing,   setProcessing]  = useState(false)
   const [fetching,     setFetching]    = useState(false)
+  const [showAudit,    setShowAudit]   = useState(false)
 
   const isImport   = order.type === 'import'
   const partner    = isImport ? order.suppliers?.name : order.customers?.full_name
@@ -282,9 +285,21 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
                 <span className="hidden sm:inline">In</span> A5
               </button>
             )}
+            <button onClick={() => setShowAudit(true)} title="Lịch sử chỉnh sửa"
+              className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cpurple hover:border-cpurple/50 transition-colors flex items-center justify-center">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+            </button>
             <button onClick={onClose} className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg">×</button>
           </div>
         </div>
+        {showAudit && (
+          <AuditLogModal
+            tableName="orders"
+            recordId={order.id}
+            title={`Đơn #${code}`}
+            onClose={() => setShowAudit(false)}
+          />
+        )}
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
@@ -532,7 +547,7 @@ export default function Orders() {
 
   // ── Render ────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-7xl flex flex-col gap-5">
+    <div className="p-6 w-full flex flex-col gap-5">
 
       {/* ── Bộ lọc ─────────────────────────────────── */}
       <div className="flex flex-col gap-3">

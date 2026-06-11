@@ -21,7 +21,7 @@ export default {
         // '#e6edf3' → đặt trong body CSS
       },
       fontFamily: {
-        sans: ['Segoe UI', 'system-ui', 'sans-serif'],
+        sans: ['Be Vietnam Pro', 'system-ui', 'sans-serif'],
         mono: ['Cascadia Code', 'Consolas', 'monospace'],
       },
     },

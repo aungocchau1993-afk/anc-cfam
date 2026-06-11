@@ -19,17 +19,19 @@ const GROUPS = [
     dotCls:      'bg-emerald-400',
     // Các tab con — tab = id tab trong BusinessModule
     items: [
-      { tab: 'analytics', icon: '📊', label: 'Dashboard KPI' },
+      { tab: 'analytics', icon: '📊', label: 'Tổng Quan' },
       { tab: 'pos',       icon: '🛒', label: 'Bán Hàng' },
       { tab: 'products',  icon: '📦', label: 'Hàng Hóa' },
       { tab: 'customers', icon: '👥', label: 'Khách Hàng' },
       { tab: 'orders',    icon: '🧾', label: 'Đơn Hàng' },
       { tab: 'suppliers', icon: '🏢', label: 'Nhà Cung Cấp' },
       { tab: 'cashbook',  icon: '💵', label: 'Sổ Quỹ' },
-      { tab: 'stocktake', icon: '🗂️', label: 'Kiểm Kho' },
-      { tab: 'report',    icon: '📈', label: 'Báo Cáo' },
-      { tab: 'settings',  icon: '⚙️', label: 'Cài Đặt' },
-      { tab: 'admin',     icon: '🗑️', label: 'Xóa Dữ Liệu' },
+      { tab: 'stocktake',   icon: '🗂️', label: 'Kiểm Kho' },
+      { tab: 'report',      icon: '📈', label: 'Báo Cáo' },
+      { tab: 'hrm',         icon: '👔', label: 'Nhân Sự' },
+      { tab: 'activitylog', icon: '🕒', label: 'Nhật Ký' },
+      { tab: 'settings',    icon: '⚙️', label: 'Cài Đặt' },
+      { tab: 'admin',       icon: '🗑️', label: 'Xóa Dữ Liệu' },
     ],
   },
   {
@@ -114,7 +116,7 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
   }
 
   return (
-    <nav className="w-[220px] bg-surface border-r border-border flex flex-col fixed top-0 left-0 h-screen z-30 overflow-y-auto shrink-0">
+    <nav className="w-[240px] bg-surface border-r border-border flex flex-col fixed top-0 left-0 h-screen z-30 overflow-y-auto shrink-0">
 
       {/* ── Logo ───────────────────────────────────────────── */}
       <div className="px-4 pt-5 pb-4 border-b border-border shrink-0">
@@ -148,10 +150,10 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
 
                 {/* Label + desc */}
                 <div className="flex-1 min-w-0">
-                  <div className={`text-xs font-black truncate ${isActive ? group.colorCls : 'text-slate-300'}`}>
+                  <div className={`text-[13px] font-black truncate tracking-wide ${isActive ? group.colorCls : 'text-slate-300'}`}>
                     {group.label}
                   </div>
-                  <div className="text-[9px] text-slate-600 truncate font-medium mt-0.5">
+                  <div className="text-[10px] text-slate-600 truncate font-medium mt-0.5">
                     {group.desc}
                   </div>
                 </div>
@@ -186,11 +188,11 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
                           }
                         }}
                         className={`
-                          w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg
-                          text-left text-xs font-medium transition-all duration-100
+                          w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
+                          text-left text-[13px] font-medium transition-all duration-100
                           ${isItemActive
                             ? `${group.activeBgCls} ${group.colorCls} font-semibold`
-                            : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800/60'
+                            : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
                           }
                         `}
                       >
@@ -199,7 +201,7 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
                           ? <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${group.dotCls}`} />
                           : <span className="w-1.5 h-1.5 shrink-0" />
                         }
-                        <span className="text-[13px] leading-none shrink-0">{item.icon}</span>
+                        <span className="text-[15px] leading-none shrink-0">{item.icon}</span>
                         <span className="truncate">{item.label}</span>
                       </button>
                     )

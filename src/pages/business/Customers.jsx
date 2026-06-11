@@ -555,7 +555,7 @@ export default function Customers() {
 
   // ── Render ───────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-7xl">
+    <div className="p-6 w-full">
 
       {/* KPI row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">

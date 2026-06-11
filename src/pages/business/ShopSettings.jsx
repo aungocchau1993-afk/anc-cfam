@@ -50,12 +50,45 @@ export default function ShopSettings() {
       {/* Logo */}
       <div className="card space-y-4">
         <div className="font-bold text-sm text-muted uppercase tracking-wider">🖼️ Logo</div>
-        <label className="block">
-          <span className="text-xs text-muted mb-1 block">URL ảnh logo (để trống = không hiện)</span>
-          <input className={inp} value={cfg.logo} onChange={e => set('logo', e.target.value)} placeholder="https://..." />
-        </label>
+        <div
+          className="relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border hover:border-cblue/60 transition-colors cursor-pointer bg-surface2/50 hover:bg-cblue/5 py-6"
+          onClick={() => document.getElementById('logo-upload-input').click()}
+        >
+          {cfg.logo ? (
+            <>
+              <img src={cfg.logo} alt="logo preview" className="h-16 object-contain rounded" onError={e => e.target.style.display='none'} />
+              <span className="text-xs text-muted">Click để đổi ảnh</span>
+            </>
+          ) : (
+            <>
+              <span className="text-3xl">🖼️</span>
+              <span className="text-sm font-bold text-[#e6edf3]">Click để tải logo lên</span>
+              <span className="text-xs text-muted">PNG, JPG, SVG, WEBP — khuyến nghị nền trong suốt</span>
+            </>
+          )}
+          <input
+            id="logo-upload-input"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={e => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              const reader = new FileReader()
+              reader.onload = ev => set('logo', ev.target.result)
+              reader.readAsDataURL(file)
+              e.target.value = ''
+            }}
+          />
+        </div>
         {cfg.logo && (
-          <img src={cfg.logo} alt="logo preview" className="h-14 object-contain rounded border border-border" onError={e => e.target.style.display='none'} />
+          <button
+            type="button"
+            onClick={() => set('logo', '')}
+            className="text-xs text-red-400 hover:text-red-300 transition-colors"
+          >
+            🗑️ Xóa logo
+          </button>
         )}
       </div>
 
@@ -79,6 +112,45 @@ export default function ShopSettings() {
           <span className="text-xs text-muted mb-1 block">Tên chủ tài khoản</span>
           <input className={inp} value={cfg.bankAccount} onChange={e => set('bankAccount', e.target.value)} placeholder="NGUYEN VAN A" />
         </label>
+        <div>
+          <span className="text-xs text-muted mb-1 block">Ảnh mã QR chuyển khoản (tùy chọn)</span>
+          <div
+            className="relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border hover:border-cblue/60 transition-colors cursor-pointer bg-surface2/50 hover:bg-cblue/5 py-5"
+            onClick={() => document.getElementById('qr-upload-input').click()}
+          >
+            {cfg.bankQrImage ? (
+              <>
+                <img src={cfg.bankQrImage} alt="QR preview" className="h-24 w-24 object-contain rounded" />
+                <span className="text-xs text-muted">Click để đổi ảnh QR</span>
+              </>
+            ) : (
+              <>
+                <span className="text-2xl">📱</span>
+                <span className="text-sm font-bold text-[#e6edf3]">Upload ảnh QR từ máy</span>
+                <span className="text-xs text-muted">Nếu không upload, hệ thống tự tạo QR từ số TK</span>
+              </>
+            )}
+            <input
+              id="qr-upload-input"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                const reader = new FileReader()
+                reader.onload = ev => set('bankQrImage', ev.target.result)
+                reader.readAsDataURL(file)
+                e.target.value = ''
+              }}
+            />
+          </div>
+          {cfg.bankQrImage && (
+            <button type="button" onClick={() => set('bankQrImage', '')} className="text-xs text-red-400 hover:text-red-300 mt-1 transition-colors">
+              🗑️ Xóa ảnh QR
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Chế độ in mặc định */}
