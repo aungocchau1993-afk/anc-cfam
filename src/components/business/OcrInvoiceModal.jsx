@@ -400,17 +400,20 @@ export default function OcrInvoiceModal({
             <div
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
-              onClick={() => stage !== 'scanning' && fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-colors
-                ${stage === 'scanning' ? 'border-slate-700 cursor-default' : 'border-slate-700 hover:border-cblue/50 cursor-pointer group'}`}
+                ${stage === 'scanning' ? 'border-slate-700 cursor-default' : 'border-slate-700 hover:border-cblue/30 focus-within:border-cblue/50 group'}`}
             >
               {preview ? (
                 <img src={preview} alt="Hóa đơn" className="max-h-52 rounded-lg object-contain border border-slate-700" />
               ) : (
                 <>
-                  <div className="text-4xl opacity-40 group-hover:opacity-70 transition-opacity">🧾</div>
+                  <div className="text-4xl opacity-40 group-hover:opacity-60 transition-opacity">🧾</div>
                   <div className="text-sm text-slate-500 text-center">
-                    Kéo thả hoặc <span className="text-cblue font-semibold">click chọn ảnh</span>
+                    Kéo thả hoặc{' '}
+                    <span
+                      className="text-cblue font-semibold underline underline-offset-2 cursor-pointer hover:brightness-125"
+                      onClick={e => { e.stopPropagation(); stage !== 'scanning' && fileInputRef.current?.click() }}
+                    >click chọn ảnh</span>
                     <br/><span className="text-[11px] text-slate-600">JPG, PNG, WEBP… hoặc <kbd className="bg-slate-800 border border-slate-700 rounded px-1 text-[10px] text-slate-400 font-mono">Ctrl+V</kbd> để dán</span>
                   </div>
                 </>
