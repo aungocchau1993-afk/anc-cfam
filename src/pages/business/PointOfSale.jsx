@@ -282,11 +282,10 @@ function CartItem({ item, onQty, onRemove, onPriceEdit }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-semibold text-[#e6edf3] truncate leading-tight">{item.name}</span>
-          {item.unit && (
-            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-cblue/10 border border-cblue/30 text-cblue">
-              {item.unit}
-            </span>
-          )}
+          {item.unit
+            ? <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-cblue/10 border border-cblue/30 text-cblue">{item.unit}</span>
+            : <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full border border-dashed border-slate-600 text-slate-600" title="Chưa cài đơn vị tính — vào Hàng Hóa để thêm">chưa có ĐVT</span>
+          }
         </div>
         <div className="flex items-center gap-1 mt-0.5">
           {editingPrice ? (

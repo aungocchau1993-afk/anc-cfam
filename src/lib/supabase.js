@@ -430,7 +430,7 @@ export async function loadOrders(limit = 50) {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('orders')
-    .select('*, customers(full_name, phone), order_items(*, products(name, sku))')
+    .select('*, customers(full_name, phone), order_items(*, products(name, sku, unit))')
     .order('created_at', { ascending: false })
     .limit(limit)
   if (error) throw error
@@ -448,7 +448,7 @@ export async function loadOrdersFiltered({ from, to, type } = {}) {
       customer_id, supplier_id,
       customers(id, full_name, phone),
       suppliers(id, name, phone),
-      order_items(id, quantity, price, cost, product_id, products(name, sku))
+      order_items(id, quantity, price, cost, product_id, products(name, sku, unit))
     `)
     .order('created_at', { ascending: false })
 
@@ -470,7 +470,7 @@ export async function loadOrderDetail(orderId) {
       customer_id, supplier_id,
       customers(id, full_name, phone),
       suppliers(id, name, phone),
-      order_items(id, quantity, price, cost, product_id, returned_quantity, products(name, sku))
+      order_items(id, quantity, price, cost, product_id, returned_quantity, products(name, sku, unit))
     `)
     .eq('id', orderId)
     .single()
@@ -621,7 +621,7 @@ export async function loadSupplierImportOrders(supplierId, { from, to } = {}) {
     .from('orders')
     .select(`
       id, type, order_code, total_amount, paid_amount, debt_amount, profit, note, status, created_at,
-      order_items(id, quantity, price, cost, returned_quantity, product_id, products(name, sku))
+      order_items(id, quantity, price, cost, returned_quantity, product_id, products(name, sku, unit))
     `)
     .eq('supplier_id', supplierId)
     .eq('type', 'import')
@@ -637,7 +637,7 @@ export async function loadOrdersByDateRange(from, to) {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('orders')
-    .select('*, customers(full_name, phone), order_items(quantity, price, cost, products(name, sku))')
+    .select('*, customers(full_name, phone), order_items(quantity, price, cost, products(name, sku, unit))')
     .gte('created_at', from.toISOString())
     .lte('created_at', to.toISOString())
     .order('created_at', { ascending: false })
@@ -914,7 +914,7 @@ export async function loadCustomerOrders(customerId) {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('orders')
-    .select('*, order_items(*, products(name, sku))')
+    .select('*, order_items(*, products(name, sku, unit))')
     .eq('customer_id', customerId)
     .order('created_at', { ascending: false })
   if (error) throw error
@@ -1169,7 +1169,7 @@ export async function loadStocktakeItems(stocktakeId) {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('stocktake_items')
-    .select('*, products(name, sku)')
+    .select('*, products(name, sku, unit)')
     .eq('stocktake_id', stocktakeId)
     .order('variance', { ascending: true })
   if (error) throw error
@@ -1343,7 +1343,7 @@ export async function loadTopSellingProducts(limit = 5) {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('order_items')
-    .select('product_id, quantity, price, cost, products(name, sku)')
+    .select('product_id, quantity, price, cost, products(name, sku, unit)')
   if (error) throw error
 
   const map = {}
