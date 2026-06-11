@@ -1,31 +1,28 @@
-import { createWorker } from 'tesseract.js'
+import { createWorker, PSM } from 'tesseract.js'
 
 // ── Worker singleton ───────────────────────────────────────────────────────
-// Khởi tạo 1 lần, tái sử dụng cho mọi lần quét để tiết kiệm thời gian load
 
-let _worker   = null
-let _loading  = false
+let _worker    = null
+let _loading   = false
 let _callbacks = []
 
 async function getWorker(onProgress) {
   if (_worker) return _worker
-
-  // Nếu đang load → đợi
-  if (_loading) {
-    return new Promise(resolve => _callbacks.push(resolve))
-  }
+  if (_loading) return new Promise(resolve => _callbacks.push(resolve))
 
   _loading = true
   onProgress?.({ status: 'loading-language', progress: 0 })
 
   const w = await createWorker('vie', 1, {
-    // Web worker mode (mặc định) → không block UI thread
     logger: m => {
-      if (m.status === 'loading tesseract core') onProgress?.({ status: 'loading-core',     progress: Math.round(m.progress * 100) })
-      if (m.status === 'loading language traineddata') onProgress?.({ status: 'loading-lang', progress: Math.round(m.progress * 100) })
-      if (m.status === 'recognizing text') onProgress?.({ status: 'recognizing',   progress: Math.round(m.progress * 100) })
+      if (m.status === 'loading tesseract core')         onProgress?.({ status: 'loading-core', progress: Math.round(m.progress * 100) })
+      if (m.status === 'loading language traineddata')   onProgress?.({ status: 'loading-lang', progress: Math.round(m.progress * 100) })
+      if (m.status === 'recognizing text')               onProgress?.({ status: 'recognizing',  progress: Math.round(m.progress * 100) })
     },
   })
+
+  // PSM 6 = Single uniform block — tốt hơn cho layout hóa đơn
+  await w.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_BLOCK })
 
   _worker  = w
   _loading = false
@@ -35,16 +32,49 @@ async function getWorker(onProgress) {
 }
 
 // ── Image preprocessing ────────────────────────────────────────────────────
-// Grayscale + contrast + threshold để tăng độ chính xác OCR
+// Chiến lược: scale lên lớn + grayscale + contrast sigmoid + sharpen kernel
+// KHÔNG dùng binary threshold — Tesseract hoạt động tốt hơn với grayscale
 
-function preprocessImage(file) {
+function applySharpKernel(data, width, height) {
+  // 3×3 unsharp mask: [0,-1,0,-1,5,-1,0,-1,0]
+  const src = new Uint8ClampedArray(data)
+  const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0]
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      let acc = 0
+      let ki  = 0
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const idx = ((y + dy) * width + (x + dx)) * 4
+          acc += src[idx] * kernel[ki++]
+        }
+      }
+      const idx = (y * width + x) * 4
+      const v   = Math.max(0, Math.min(255, acc))
+      data[idx] = data[idx + 1] = data[idx + 2] = v
+    }
+  }
+}
+
+// Sigmoid contrast: kéo shadows xuống, highlights lên — giữ được chi tiết chữ
+function sigmoidContrast(v, gain = 8, cutoff = 0.5) {
+  const norm = v / 255
+  const sig  = 1 / (1 + Math.exp(-gain * (norm - cutoff)))
+  // Normalize về [0,1] dựa trên endpoint
+  const lo = 1 / (1 + Math.exp(gain * cutoff))
+  const hi = 1 / (1 + Math.exp(-gain * (1 - cutoff)))
+  return Math.round(((sig - lo) / (hi - lo)) * 255)
+}
+
+export function preprocessImageToBlob(file) {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
 
     img.onload = () => {
-      // Scale up nhỏ hơn 1200px chiều rộng để Tesseract nhận tốt hơn
-      const scale  = img.width < 1200 ? Math.min(2, 1200 / img.width) : 1
+      // Scale: target ít nhất 2400px chiều rộng — Tesseract nhận tốt hơn
+      const targetW = 2400
+      const scale   = img.width < targetW ? targetW / img.width : 1
       const W = Math.round(img.width  * scale)
       const H = Math.round(img.height * scale)
 
@@ -52,25 +82,25 @@ function preprocessImage(file) {
       canvas.width  = W
       canvas.height = H
       const ctx = canvas.getContext('2d')
+
+      // Dùng imageSmoothingQuality cao khi scale up
+      ctx.imageSmoothingEnabled  = true
+      ctx.imageSmoothingQuality  = 'high'
       ctx.drawImage(img, 0, 0, W, H)
 
       const imgData = ctx.getImageData(0, 0, W, H)
-      const d = imgData.data
+      const d       = imgData.data
 
-      // Contrast factor (giá trị 80 là tốt cho hóa đơn)
-      const contrast = 80
-      const factor   = (259 * (contrast + 255)) / (255 * (259 - contrast))
-
+      // Pass 1: Grayscale + Sigmoid contrast
       for (let i = 0; i < d.length; i += 4) {
-        // Grayscale (luma)
-        const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]
-        // Tăng tương phản
-        const c    = Math.max(0, Math.min(255, factor * (gray - 128) + 128))
-        // Ngưỡng (threshold) → nhị phân hóa
-        const bw   = c > 145 ? 255 : 0
-        d[i] = d[i + 1] = d[i + 2] = bw
+        const gray = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2])
+        const c    = sigmoidContrast(gray, 7, 0.5)
+        d[i] = d[i + 1] = d[i + 2] = c
         d[i + 3] = 255
       }
+
+      // Pass 2: Sharpen để chữ rõ hơn (đặc biệt hữu ích sau scale up)
+      applySharpKernel(d, W, H)
 
       ctx.putImageData(imgData, 0, 0)
       URL.revokeObjectURL(url)
@@ -85,86 +115,83 @@ function preprocessImage(file) {
 
 function parseMoney(str) {
   if (!str) return 0
-  // "1.234.567" hoặc "1,234,567" hoặc "1234567"
   return parseInt(str.replace(/[.,\s]/g, ''), 10) || 0
 }
 
 // ── Regex-based field extractor ────────────────────────────────────────────
+// Lưu ý: Tesseract hay nhầm dấu thanh → dùng pattern loose + cả không dấu
 
 function extractFields(text) {
-  // ── MST (Mã số thuế) ──
-  // Format: 10 chữ số hoặc 10-3 chữ số
-  const mstMatch = text.match(
-    /(?:mã\s*số\s*thuế|m\s*s\s*t|tax\s*(?:code|id))[:\s]*([0-9]{10}(?:-[0-9]{3})?)/i
-  ) ?? text.match(/\b([0-9]{10}(?:-[0-9]{3})?)\b/)
+  const t = text || ''
+
+  // ── MST ── (số thuần, ít bị ảnh hưởng bởi dấu thanh)
+  const mstMatch = t.match(
+    /(?:mã\s*s[ôo]\s*thu[eế]|m[^\w\s]{0,3}s[^\w\s]{0,3}t|tax\s*(?:code|id))[:\s]*([0-9]{10}(?:-[0-9]{3})?)/i
+  ) ?? t.match(/\b([0-9]{10}(?:-[0-9]{3})?)\b/)
   const tax_code = mstMatch?.[1] ?? null
 
-  // ── Tổng tiền ──
-  const totalMatch = text.match(
-    /(?:tổng\s*(?:cộng|tiền|thanh\s*toán|số\s*tiền)|thành\s*tiền|total\s*amount|total)[:\s]*([\d.,]+)/i
-  ) ?? text.match(
-    /(?:cộng\s*tiền\s*hàng|tiền\s*thanh\s*toán)[:\s]*([\d.,]+)/i
-  )
-  const total_amount = totalMatch ? parseMoney(totalMatch[1]) : 0
+  // ── Tổng tiền ── (cũng tìm dạng không dấu Tesseract hay xuất ra)
+  const totalPatterns = [
+    /(?:t[oô]ng\s*c[oô]ng|tong\s*cong|t[oô]ng\s*ti[eề]n|thanh\s*to[aá]n)[:\s]*([\d.,]+)/i,
+    /(?:th[aà]nh\s*ti[eề]n|total)[:\s]*([\d.,]+)/i,
+    /(?:c[oô]ng\s*ti[eề]n|ti[eề]n\s*thanh)[:\s]*([\d.,]+)/i,
+  ]
+  let total_amount = 0
+  for (const pat of totalPatterns) {
+    const m = t.match(pat)
+    if (m) { total_amount = parseMoney(m[1]); break }
+  }
 
-  // ── Tiền thuế VAT ──
-  const vatMatch = text.match(
-    /(?:tiền\s*thuế|thuế\s*gtgt|vat|tax\s*amount)[:\s]*([\d.,]+)/i
+  // ── Tiền thuế ──
+  const vatMatch = t.match(
+    /(?:ti[eề]n\s*thu[eế]|thu[eế]\s*(?:gtgt|vat)|vat)[:\s]*([\d.,]+)/i
   )
   const tax_amount = vatMatch ? parseMoney(vatMatch[1]) : 0
 
-  // ── Ngày hóa đơn ──
-  // Dạng: "ngày 15 tháng 3 năm 2024" hoặc "15/03/2024" hoặc "15-03-2024"
+  // ── Ngày ──
   let invoice_date = null
-  const dmy1 = text.match(
-    /ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*(\d{4})/i
-  )
+  const dmy1 = t.match(/ng[aà]y\s*(\d{1,2})\s*th[aá]ng\s*(\d{1,2})\s*n[aă]m\s*(\d{4})/i)
   if (dmy1) {
     const [, d, m, y] = dmy1
     invoice_date = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`
   } else {
-    const dmy2 = text.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/)
+    const dmy2 = t.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/)
     if (dmy2) {
       const [, d, m, y] = dmy2
       invoice_date = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`
     }
   }
 
-  // ── Số hóa đơn ──
-  const invoiceNoMatch = text.match(
-    /(?:số\s*(?:hóa\s*đơn|h\s*đ)|invoice\s*(?:no|number|#))[:\s]*([A-Z0-9\/\-]+)/i
+  // ── Số HĐ ──
+  const invoiceNoMatch = t.match(
+    /(?:s[oô]\s*(?:h[oó][aá]\s*[dđ][oơ]n|h[^\w]{0,2}[dđ])|invoice\s*(?:no|number|#))[:\s]*([A-Z0-9\/\-]{3,20})/i
   )
-  const invoice_no = invoiceNoMatch?.[1] ?? null
+  const invoice_no = invoiceNoMatch?.[1]?.trim() ?? null
 
-  // ── Tên công ty / nhà cung cấp ──
-  const companyMatch = text.match(
-    /(?:công\s*ty\s*(?:tnhh|cổ\s*phần|cp|hd)?|cty\s*(?:tnhh|cp)?|company)[^\n]*/i
+  // ── Nhà cung cấp ──
+  const companyMatch = t.match(
+    /(?:c[oô]ng\s*ty|cty\s*(?:tnhh|cp)|company)[^\n]{2,60}/i
   )
   const supplier_name = companyMatch?.[0]?.trim().slice(0, 80) ?? null
 
-  // ── Cố gắng extract items từ dạng bảng ──
-  // Nhận dạng dòng dạng: "Tên SP   SL   Đơn giá   Thành tiền"
+  // ── Items: nhận bảng hóa đơn ──
+  // Tesseract với PSM 6 thường giữ cấu trúc dòng tốt hơn
   const items = []
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3)
+  const lines = t.split('\n').map(l => l.trim()).filter(l => l.length > 4)
   for (const line of lines) {
-    // Pattern: text + số lượng + giá (3+ cột số)
-    const cols = line.match(/^(.+?)\s{2,}(\d+)\s{2,}([\d.,]+)\s{2,}([\d.,]+)\s*$/)
-    if (cols) {
-      items.push({
-        name:     cols[1].trim(),
-        quantity: parseInt(cols[2]) || 1,
-        price:    parseMoney(cols[3]),
-      })
-      continue
+    // 4 cột: Tên | SL | Đơn giá | Thành tiền
+    const c4 = line.match(/^(.+?)\s{2,}(\d{1,5})\s{2,}([\d.,]{4,})\s{2,}([\d.,]{4,})\s*$/)
+    if (c4) {
+      const price = parseMoney(c4[3])
+      if (price >= 1000) {
+        items.push({ name: c4[1].trim(), quantity: parseInt(c4[2]) || 1, price })
+        continue
+      }
     }
-    // Pattern đơn giản hơn: text + số + số
-    const cols2 = line.match(/^(.{4,40}?)\s+(\d{1,4})\s+([\d.,]{5,})\s*$/)
-    if (cols2 && parseMoney(cols2[3]) >= 1000) {
-      items.push({
-        name:     cols2[1].trim(),
-        quantity: parseInt(cols2[2]) || 1,
-        price:    parseMoney(cols2[3]),
-      })
+    // 3 cột: Tên | SL | Thành tiền
+    const c3 = line.match(/^(.{4,50}?)\s{2,}(\d{1,5})\s{2,}([\d.,]{5,})\s*$/)
+    if (c3 && parseMoney(c3[3]) >= 1000) {
+      items.push({ name: c3[1].trim(), quantity: parseInt(c3[2]) || 1, price: parseMoney(c3[3]) })
     }
   }
 
@@ -174,39 +201,30 @@ function extractFields(text) {
 // ── Main export ────────────────────────────────────────────────────────────
 
 export async function offlineScanInvoice(file, onProgress) {
-  // 1. Tiền xử lý ảnh
   onProgress?.({ status: 'preprocessing', progress: 0 })
-  const processedBlob = await preprocessImage(file)
+  const processedBlob = await preprocessImageToBlob(file)
 
-  // 2. Lấy worker (tải language data lần đầu ~4MB, cached sau đó)
   const worker = await getWorker(onProgress)
 
-  // 3. OCR
   onProgress?.({ status: 'recognizing', progress: 0 })
   const { data } = await worker.recognize(processedBlob)
 
-  // 4. Tính confidence trung bình
   const avgConfidence = data.words?.length
     ? Math.round(data.words.reduce((s, w) => s + w.confidence, 0) / data.words.length)
     : data.confidence ?? 0
 
-  const lowConfidence = avgConfidence < 70
-
-  // 5. Extract fields bằng regex
   const fields = extractFields(data.text)
 
   return {
-    _source:       'OFFLINE',
-    _confidence:   avgConfidence,
-    _lowConfidence: lowConfidence,
-    _rawText:      data.text,
+    _source:        'OFFLINE',
+    _confidence:    avgConfidence,
+    _lowConfidence: avgConfidence < 70,
+    _rawText:       data.text,
     ...fields,
-    // Tương thích shape AI output
-    customer_name: null,
+    customer_name:  null,
   }
 }
 
-// Giải phóng worker khi cần (gọi khi đóng app)
 export async function terminateOfflineWorker() {
   if (_worker) {
     await _worker.terminate()
