@@ -132,31 +132,55 @@ export async function scanQRCode(file) {
 
 function buildPrompt(type) {
   if (type === 'PURCHASE') {
-    return `Phân tích hóa đơn mua hàng / phiếu nhập kho trong ảnh.
-Trả về JSON thuần (không dùng markdown code block):
+    return `Bạn là trợ lý đọc hóa đơn nhập hàng / phiếu nhập kho tại Việt Nam.
+Phân tích ảnh và trả về JSON thuần (KHÔNG dùng markdown, KHÔNG có \`\`\`):
+
 {
   "supplier_name": "tên nhà cung cấp nếu có, null nếu không rõ",
-  "invoice_date": "ngày hóa đơn dạng YYYY-MM-DD nếu có, null nếu không",
-  "due_date": "ngày đáo hạn thanh toán dạng YYYY-MM-DD nếu có, null nếu không",
-  "total_amount": tổng tiền phải trả dạng số nguyên (VND),
-  "paid_amount": số tiền đã trả trước (nếu có, mặc định 0),
+  "invoice_date": "ngày hóa đơn YYYY-MM-DD nếu có, null nếu không",
+  "due_date": "ngày đáo hạn thanh toán YYYY-MM-DD nếu có, null nếu không",
+  "total_amount": tổng tiền số nguyên VND (0 nếu không rõ),
+  "paid_amount": tiền đã trả trước số nguyên (0 nếu không rõ),
   "items": [
-    { "name": "tên sản phẩm", "quantity": số lượng, "price": đơn giá nhập dạng số nguyên }
+    { "name": "tên đầy đủ sản phẩm", "quantity": số lượng nguyên dương, "price": đơn giá nhập số nguyên VND }
   ]
 }
-Nếu trường nào không đọc được, dùng null hoặc 0. Chỉ trả về JSON.`
+
+QUY TẮC ĐỌC SỐ LƯỢNG (quan trọng):
+- Dạng "Tên SP : 100" hoặc "Tên SP x100" hoặc "Tên SP - 100" → quantity=100, price=0
+- Dạng "Tên SP  100  50.000" → quantity=100, price=50000
+- Dạng "Tên SP  1  50.000  50.000" → quantity=1, price=50000
+- Nếu chỉ có 1 số sau tên SP và số đó <= 10000 (hợp lý là số lượng) → đó là quantity
+- Số lượng KHÔNG BAO GIỜ là 0; nếu không đọc được thì đặt là 1
+- Giá đơn vị thường là số lớn (>= 1000 VND); nếu không có giá thì để 0
+
+Chỉ trả về JSON, không giải thích gì thêm.`
   }
+
   // SALE
-  return `Phân tích hóa đơn bán hàng trong ảnh.
-Trả về JSON thuần (không dùng markdown code block):
+  return `Bạn là trợ lý đọc đơn hàng bán lẻ tại Việt Nam.
+Ảnh có thể là: hóa đơn in, ảnh chụp màn hình Zalo/Facebook, tin nhắn đặt hàng, biên lai tay.
+Trả về JSON thuần (KHÔNG dùng markdown, KHÔNG có \`\`\`):
+
 {
   "customer_name": "tên khách hàng nếu có, null nếu không rõ",
-  "total_amount": tổng tiền dạng số nguyên (VND),
+  "total_amount": tổng tiền số nguyên VND (0 nếu không rõ),
   "items": [
-    { "name": "tên sản phẩm", "quantity": số lượng, "price": đơn giá dạng số nguyên }
+    { "name": "tên đầy đủ sản phẩm", "quantity": số lượng nguyên dương, "price": đơn giá số nguyên VND }
   ]
 }
-Nếu trường nào không đọc được, dùng null hoặc 0. Chỉ trả về JSON.`
+
+QUY TẮC ĐỌC SỐ LƯỢNG (quan trọng):
+- Dạng "Tên SP : 100" hoặc "Tên SP x100" hoặc "Tên SP - 100 cái" → quantity=100, price=0
+- Dạng "Tã Hugies Size M : 100" → name="Tã Hugies Size M", quantity=100, price=0
+- Dạng "Tên SP  100  50.000" → quantity=100, price=50000
+- Dạng "Tên SP  1  50.000  50.000" → quantity=1, price=50000
+- Nếu chỉ có 1 số sau tên SP và số đó <= 10000 (hợp lý là số lượng) → đó là quantity
+- Số lượng KHÔNG BAO GIỜ là 0; nếu không đọc được thì đặt là 1
+- Giá đơn vị thường là số lớn (>= 1000 VND); nếu không có giá thì để 0
+- Tin nhắn khách đặt hàng thường KHÔNG có giá → price=0 là bình thường
+
+Chỉ trả về JSON, không giải thích gì thêm.`
 }
 
 // ── Gemini API call ────────────────────────────────────────────────────────
