@@ -413,7 +413,7 @@ function SupplierOrderDrawer({ supplier, onClose, onSupplierUpdated }) {
             <div className="text-center py-20 text-slate-600">
               <div className="text-4xl mb-2">📋</div>
               <div className="font-semibold">
-                {preset === 'all' ? 'Chưa có đơn nhập nào từ NCC này' : 'Không có đơn nhập trong khoảng thời gian này'}
+                {drawerPreset === 'all' ? 'Chưa có đơn nhập nào từ NCC này' : 'Không có đơn nhập trong khoảng thời gian này'}
               </div>
             </div>
           ) : (
