@@ -49,11 +49,12 @@ function buildThermalHtml({
 }) {
   const rows = items.map(i => {
     const name    = i.name || i.products?.name || '—'
+    const unit    = i.unit ?? i.products?.unit ?? null
     const lineAmt = (i.price || 0) * (i.quantity || 0)
     return `
     <tr>
       <td class="td-name">${name}</td>
-      <td class="td-c">${i.quantity}</td>
+      <td class="td-c">${i.quantity}${unit ? `<br/><span style="font-size:7pt;color:#1a73e8;font-weight:700">${unit}</span>` : ''}</td>
       <td class="td-r">${fmtN(i.price)}</td>
       <td class="td-r td-b">${fmtN(lineAmt)}</td>
     </tr>`
@@ -242,11 +243,13 @@ function buildA4Html({
 }) {
   const rows = items.map((i, idx) => {
     const name    = i.name || i.products?.name || '—'
+    const unit    = i.unit ?? i.products?.unit ?? null
     const lineAmt = (i.price || 0) * (i.quantity || 0)
     return `
     <tr class="${idx % 2 === 1 ? 'alt' : ''}">
       <td class="td-name">${name}</td>
       <td class="td-center">${i.quantity}</td>
+      <td class="td-center" style="color:${unit ? '#1a73e8' : '#999'};font-weight:${unit ? '700' : '400'}">${unit || '—'}</td>
       <td class="td-right">${fmtN(i.price)}</td>
       <td class="td-right td-bold">${fmtN(lineAmt)}</td>
     </tr>`
@@ -318,7 +321,7 @@ function buildA4Html({
   </div>
   <table>
     <thead><tr>
-      <th class="th-name">Sản phẩm</th><th class="th-center">SL</th>
+      <th class="th-name">Sản phẩm</th><th class="th-center">SL</th><th class="th-center">ĐVT</th>
       <th class="th-right">Đơn giá (₫)</th><th class="th-right">Thành tiền (₫)</th>
     </tr></thead>
     <tbody>${rows}</tbody>

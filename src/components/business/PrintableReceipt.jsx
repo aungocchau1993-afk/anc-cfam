@@ -306,20 +306,23 @@ export default function PrintableReceipt({ orderData, shopConfig, printRef }) {
       <table className="rcp-table">
         <thead>
           <tr>
-            <th className="th-l" style={{ width: '42%' }}>Sản phẩm</th>
-            <th className="th-c" style={{ width: '10%' }}>SL</th>
-            <th className="th-r" style={{ width: '22%' }}>Đơn giá</th>
-            <th className="th-r" style={{ width: '26%' }}>Thành tiền</th>
+            <th className="th-l" style={{ width: '40%' }}>Sản phẩm</th>
+            <th className="th-c" style={{ width: '8%' }}>SL</th>
+            <th className="th-c" style={{ width: '10%' }}>ĐVT</th>
+            <th className="th-r" style={{ width: '20%' }}>Đơn giá</th>
+            <th className="th-r" style={{ width: '22%' }}>Thành tiền</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item, i) => {
             const name    = item.name || item.products?.name || '—'
+            const unit    = item.unit ?? item.products?.unit ?? null
             const lineAmt = (item.price || 0) * (item.quantity || 0)
             return (
               <tr key={i}>
                 <td>{name}</td>
                 <td className="td-c">{fmtNum(item.quantity)}</td>
+                <td className="td-c" style={{ color: unit ? '#1a73e8' : '#aaa', fontWeight: unit ? 700 : 400 }}>{unit || '—'}</td>
                 <td className="td-r">{fmtNum(item.price)}</td>
                 <td className="td-r td-bold">{fmtNum(lineAmt)}</td>
               </tr>

@@ -310,6 +310,10 @@ function ImportStockModal({ products = [], onImported, onClose }) {
     setCart(prev => prev.map(i => i.productId === productId ? { ...i, unitPrice: formatMoneyLive(val) } : i))
   }
 
+  function updateUnit(productId, val) {
+    setCart(prev => prev.map(i => i.productId === productId ? { ...i, unit: val || null } : i))
+  }
+
   // Tổng tiền
   const grandTotal = useMemo(() =>
     cart.reduce((s, i) => s + (parseVNDInput(i.unitPrice) || 0) * i.qty, 0)
@@ -620,12 +624,15 @@ function ImportStockModal({ products = [], onImported, onClose }) {
                             className="w-20 rounded-lg bg-cgreen/10 border border-cgreen/40 text-cgreen text-sm text-center font-bold font-mono outline-none focus:border-cgreen px-2 py-1 transition-all"
                           />
                         </td>
-                        {/* ĐVT */}
+                        {/* ĐVT — có thể nhập tay */}
                         <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                          {item.unit
-                            ? <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-cblue/10 border border-cblue/30 text-cblue">{item.unit}</span>
-                            : <span className="text-[11px] text-slate-600">—</span>
-                          }
+                          <input
+                            type="text"
+                            value={item.unit ?? ''}
+                            onChange={e => updateUnit(item.productId, e.target.value)}
+                            placeholder="đvt"
+                            className="w-16 rounded-lg bg-cblue/10 border border-cblue/30 text-cblue text-xs text-center font-bold outline-none focus:border-cblue px-2 py-1 transition-all placeholder:text-slate-600"
+                          />
                         </td>
                         <td className="px-4 py-2.5 text-right whitespace-nowrap">
                           <input
