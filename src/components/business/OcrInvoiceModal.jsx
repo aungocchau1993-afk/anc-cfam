@@ -109,6 +109,10 @@ export default function OcrInvoiceModal({
   const title = isSale ? (isQR ? '📷 QR Hóa Đơn Bán Hàng' : '🤖 OCR Hóa Đơn Bán Hàng')
                        : (isQR ? '📷 QR Phiếu Nhập Kho'    : '🤖 OCR Phiếu Nhập Kho')
 
+  // ── Queue nhiều hóa đơn ────────────────────────────────────────────────────
+  const [queue,    setQueue]    = useState([])   // [File, File, ...]
+  const [queueIdx, setQueueIdx] = useState(0)    // index đang xử lý
+
   // stage: 'upload' | 'scanning' | 'review' | 'qr-result'
   const [stage,    setStage]   = useState('upload')
   const [file,     setFile]    = useState(null)
@@ -131,33 +135,68 @@ export default function OcrInvoiceModal({
 
   // ── File handling ─────────────────────────────────────────────────────────
 
-  function handleFile(f) {
+  function loadFileAt(fileList, idx) {
+    const f = fileList[idx]
     if (!f) return
-    if (!f.type.startsWith('image/')) { toast.error('Chỉ chấp nhận file ảnh'); return }
     setFile(f)
     setPreview(URL.createObjectURL(f))
     setStage('upload')
     setAiData(null)
+    setQrData(null)
     setRows([])
+    setSupplierMatch(null)
+    setDueDate('')
+    setPaidAmount('0')
+    setOrderNote('')
+  }
+
+  function handleFiles(fileArr) {
+    const imgs = fileArr.filter(f => f.type.startsWith('image/'))
+    if (!imgs.length) { toast.error('Chỉ chấp nhận file ảnh'); return }
+    setQueue(imgs)
+    setQueueIdx(0)
+    loadFileAt(imgs, 0)
+    if (imgs.length > 1) toast.success(`📂 Đã thêm ${imgs.length} hóa đơn vào hàng chờ`)
+  }
+
+  function handleFile(f) {
+    if (!f) return
+    handleFiles([f])
   }
 
   function handleDrop(e) {
     e.preventDefault()
-    handleFile(e.dataTransfer.files?.[0])
+    const files = [...(e.dataTransfer.files || [])]
+    if (files.length > 1) handleFiles(files)
+    else handleFile(files[0])
   }
 
   // ── Clipboard paste (Ctrl+V) ──────────────────────────────────────────────
+  // Dùng ref để tránh stale closure khi queue thay đổi
+  const queueRef = useRef(queue)
+  useEffect(() => { queueRef.current = queue }, [queue])
+  const fileRef  = useRef(file)
+  useEffect(() => { fileRef.current = file }, [file])
+
   useEffect(() => {
-    if (stage !== 'upload') return
     function handlePaste(e) {
       const items = e.clipboardData?.items
       if (!items) return
       for (const item of items) {
         if (item.type.startsWith('image/')) {
           const blob = item.getAsFile()
-          if (blob) {
-            handleFile(blob.name ? blob : new File([blob], 'paste.png', { type: blob.type || 'image/png' }))
-            toast.success('📋 Đã dán ảnh từ clipboard')
+          if (!blob) break
+          const f = blob.name ? blob : new File([blob], 'paste.png', { type: blob.type || 'image/png' })
+          if (!fileRef.current) {
+            // Chưa có ảnh → bắt đầu mới
+            handleFiles([f])
+          } else {
+            // Đã có ảnh → thêm vào cuối queue
+            setQueue(prev => {
+              const next = [...prev, f]
+              toast.success(`📋 Đã thêm vào hàng chờ (${next.length} ảnh)`)
+              return next
+            })
           }
           break
         }
@@ -165,7 +204,7 @@ export default function OcrInvoiceModal({
     }
     document.addEventListener('paste', handlePaste)
     return () => document.removeEventListener('paste', handlePaste)
-  }, [stage, file])
+  }, [])
 
   // ── Scan ──────────────────────────────────────────────────────────────────
 
@@ -281,9 +320,7 @@ export default function OcrInvoiceModal({
     if (isSale) {
       onAddItems(selected)
       toast.success(`✅ Đã thêm ${selected.length} sản phẩm vào giỏ`)
-      onClose()
     } else {
-      // PURCHASE → tạo đơn nhập
       const supplierId = supplierMatch?.item?.id ?? null
       const items = selected.map(r => ({
         productId:   r.product.id,
@@ -298,6 +335,15 @@ export default function OcrInvoiceModal({
         paidAmount:  parseFloat(paidAmount) || 0,
         dueDate:     dueDate || null,
       })
+    }
+
+    // Advance to next invoice in queue
+    const nextIdx = queueIdx + 1
+    if (nextIdx < queue.length) {
+      setQueueIdx(nextIdx)
+      loadFileAt(queue, nextIdx)
+      toast(`📄 Hóa đơn ${nextIdx + 1}/${queue.length}`, { duration: 1800 })
+    } else {
       onClose()
     }
   }
@@ -314,7 +360,14 @@ export default function OcrInvoiceModal({
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div>
-            <div className="font-bold text-[#e6edf3]">{title}</div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-[#e6edf3]">{title}</span>
+              {queue.length > 1 && (
+                <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-cblue/20 text-cblue border border-cblue/30">
+                  {queueIdx + 1} / {queue.length}
+                </span>
+              )}
+            </div>
             <div className="text-[11px] text-slate-500 mt-0.5">
               {stage === 'upload'     && (isQR ? 'Upload ảnh có mã QR → đọc chính xác 100%' : 'Upload ảnh hóa đơn → AI tự đọc dữ liệu')}
               {stage === 'scanning'   && (isQR ? 'Đang giải mã QR…' : 'Gemini AI đang phân tích…')}
@@ -341,13 +394,28 @@ export default function OcrInvoiceModal({
               </div>
             )}
             {/* Stage dots */}
-            {['upload','scanning','review'].map((s, i) => (
+            {['upload','scanning','review'].map((s) => (
               <div key={s} className={`w-2 h-2 rounded-full transition-colors ${
                 stage === s ? (isSale ? 'bg-cpurple' : 'bg-cteal') : 'bg-slate-700'
               }`} />
             ))}
+            {/* Bỏ qua ảnh hiện tại khi queue > 1 */}
+            {queue.length > 1 && queueIdx < queue.length - 1 && (
+              <button
+                onClick={() => {
+                  const nextIdx = queueIdx + 1
+                  setQueueIdx(nextIdx)
+                  loadFileAt(queue, nextIdx)
+                  toast(`⏭ Bỏ qua, chuyển sang ảnh ${nextIdx + 1}/${queue.length}`, { duration: 1500 })
+                }}
+                className="ml-1 px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cyellow text-[11px] font-semibold transition-colors"
+                title="Bỏ qua ảnh này, xử lý ảnh tiếp theo"
+              >
+                ⏭ Bỏ qua
+              </button>
+            )}
             <button onClick={onClose}
-              className="ml-2 w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg flex items-center justify-center">
+              className="ml-1 w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg flex items-center justify-center">
               ×
             </button>
           </div>
@@ -426,8 +494,13 @@ export default function OcrInvoiceModal({
                   {isQR ? 'Đang giải mã QR…' : 'Gemini AI đang đọc hóa đơn…'}
                 </div>
               )}
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
-                onChange={e => handleFile(e.target.files?.[0])} />
+              <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
+                onChange={e => {
+                  const files = [...(e.target.files || [])]
+                  if (files.length > 1) handleFiles(files)
+                  else handleFile(files[0])
+                  e.target.value = ''
+                }} />
             </div>
 
             {!import.meta.env.VITE_GEMINI_API_KEY && (
