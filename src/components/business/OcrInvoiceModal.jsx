@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from '../../context/SupabaseContext'
 import { scanInvoice, scanQRCode, uploadInvoiceImage } from '../../lib/invoiceScanner'
@@ -145,6 +145,27 @@ export default function OcrInvoiceModal({
     e.preventDefault()
     handleFile(e.dataTransfer.files?.[0])
   }
+
+  // ── Clipboard paste (Ctrl+V) ──────────────────────────────────────────────
+  useEffect(() => {
+    if (stage !== 'upload') return
+    function handlePaste(e) {
+      const items = e.clipboardData?.items
+      if (!items) return
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const blob = item.getAsFile()
+          if (blob) {
+            handleFile(blob.name ? blob : new File([blob], 'paste.png', { type: blob.type || 'image/png' }))
+            toast.success('📋 Đã dán ảnh từ clipboard')
+          }
+          break
+        }
+      }
+    }
+    document.addEventListener('paste', handlePaste)
+    return () => document.removeEventListener('paste', handlePaste)
+  }, [stage, file])
 
   // ── Scan ──────────────────────────────────────────────────────────────────
 
@@ -390,7 +411,7 @@ export default function OcrInvoiceModal({
                   <div className="text-4xl opacity-40 group-hover:opacity-70 transition-opacity">🧾</div>
                   <div className="text-sm text-slate-500 text-center">
                     Kéo thả hoặc <span className="text-cblue font-semibold">click chọn ảnh</span>
-                    <br/><span className="text-[11px] text-slate-600">JPG, PNG, WEBP…</span>
+                    <br/><span className="text-[11px] text-slate-600">JPG, PNG, WEBP… hoặc <kbd className="bg-slate-800 border border-slate-700 rounded px-1 text-[10px] text-slate-400 font-mono">Ctrl+V</kbd> để dán</span>
                   </div>
                 </>
               )}
