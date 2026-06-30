@@ -12,11 +12,11 @@ const GROUPS = [
     icon:        '🏪',
     label:       'Kinh Doanh',
     desc:        'POS · Kho · CRM · Báo Cáo',
-    accent:      '#3fb950',        // cgreen
-    colorCls:    'text-emerald-400',
-    activeBgCls: 'bg-emerald-500/12 border-emerald-500/25',
-    headerCls:   'hover:bg-emerald-500/8 border-emerald-500/20',
-    dotCls:      'bg-emerald-400',
+    accent:      '#16a34a',        // cgreen
+    colorCls:    'text-emerald-700',
+    activeBgCls: 'bg-emerald-50 border-emerald-200',
+    headerCls:   'hover:bg-emerald-50 border-emerald-200/60',
+    dotCls:      'bg-emerald-500',
     // Các tab con — tab = id tab trong BusinessModule
     items: [
       { tab: 'analytics', icon: '📊', label: 'Tổng Quan' },
@@ -30,6 +30,7 @@ const GROUPS = [
       { tab: 'report',      icon: '📈', label: 'Báo Cáo' },
       { tab: 'hrm',         icon: '👔', label: 'Nhân Sự' },
       { tab: 'activitylog', icon: '🕒', label: 'Nhật Ký' },
+      { tab: 'channels',    icon: '🌐', label: 'Đa Kênh' },
       { tab: 'settings',    icon: '⚙️', label: 'Cài Đặt' },
       { tab: 'admin',       icon: '🗑️', label: 'Xóa Dữ Liệu' },
     ],
@@ -39,11 +40,11 @@ const GROUPS = [
     icon:        '💼',
     label:       'Quản Trị Dòng Tiền',
     desc:        'KPI · Dự báo · Đầu tư',
-    accent:      '#58a6ff',        // cblue
-    colorCls:    'text-blue-400',
-    activeBgCls: 'bg-blue-500/12 border-blue-500/25',
-    headerCls:   'hover:bg-blue-500/8 border-blue-500/20',
-    dotCls:      'bg-blue-400',
+    accent:      '#2563eb',        // cblue
+    colorCls:    'text-blue-700',
+    activeBgCls: 'bg-blue-50 border-blue-200',
+    headerCls:   'hover:bg-blue-50 border-blue-200/60',
+    dotCls:      'bg-blue-500',
     // page = id trang trong App.jsx (PAGES object)
     items: [
       { page: 'dashboard',   icon: '📊', label: 'Dashboard' },
@@ -116,11 +117,12 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
   }
 
   return (
-    <nav className="w-[240px] bg-surface border-r border-border flex flex-col fixed top-0 left-0 h-screen z-30 overflow-y-auto shrink-0">
+    <nav className="w-[240px] bg-surface border-r border-border flex flex-col fixed top-0 left-0 h-screen z-30 overflow-y-auto shrink-0"
+      style={{ paddingTop: 'env(safe-area-inset-top)', paddingLeft: 'env(safe-area-inset-left)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
 
       {/* ── Logo ───────────────────────────────────────────── */}
       <div className="px-4 pt-5 pb-4 border-b border-border shrink-0">
-        <h1 className="text-base font-black text-[#e6edf3] leading-tight tracking-tight">ANC - CFAM</h1>
+        <h1 className="text-base font-black text-[#1e293b] leading-tight tracking-tight">ANC - CFAM</h1>
         <span className="text-[10px] text-muted">Cash Flow & Asset Management</span>
       </div>
 
@@ -187,22 +189,21 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
                             onChange(item.page)
                           }
                         }}
+                        style={isItemActive ? { borderLeftColor: group.accent } : undefined}
                         className={`
-                          w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
-                          text-left text-[13px] font-medium transition-all duration-100
+                          w-full flex items-center gap-2.5 py-2 rounded-lg border-l-[3px]
+                          text-left text-[13px] transition-all duration-100
                           ${isItemActive
-                            ? `${group.activeBgCls} ${group.colorCls} font-semibold`
-                            : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                            ? `pl-2.5 pr-3 ${group.activeBgCls} ${group.colorCls} font-bold shadow-sm`
+                            : 'pl-3 pr-3 border-transparent text-slate-500 font-medium hover:text-slate-900 hover:bg-surface2'
                           }
                         `}
                       >
-                        {/* Active dot */}
-                        {isItemActive
-                          ? <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${group.dotCls}`} />
-                          : <span className="w-1.5 h-1.5 shrink-0" />
-                        }
                         <span className="text-[15px] leading-none shrink-0">{item.icon}</span>
                         <span className="truncate">{item.label}</span>
+                        {isItemActive && (
+                          <span className={`ml-auto w-1.5 h-1.5 rounded-full shrink-0 ${group.dotCls}`} />
+                        )}
                       </button>
                     )
                   })}
@@ -256,7 +257,7 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
             {/* Info */}
             <div className="flex-1 min-w-0">
               {fullName && (
-                <div className="text-[11px] font-bold text-[#e6edf3] truncate leading-tight">{fullName}</div>
+                <div className="text-[11px] font-bold text-[#1e293b] truncate leading-tight">{fullName}</div>
               )}
               <div className="text-[10px] text-slate-500 truncate leading-tight">{email}</div>
               <div className="mt-0.5">

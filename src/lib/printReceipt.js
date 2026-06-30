@@ -222,7 +222,7 @@ function buildThermalHtml({
   <div class="irow"><span class="ilabel">Mã đơn</span><span class="ival">#${code}</span></div>
   <div class="irow"><span class="ilabel">Ngày</span><span class="ival">${now}</span></div>
   ${partnerName ? `<div class="irow"><span class="ilabel">${partnerLabelTx}</span><span class="ival">${partnerName}</span></div>` : ''}
-  ${note ? `<div class="irow"><span class="ilabel">Ghi chú</span><span class="ival">${note}</span></div>` : ''}
+  ${note && !isImport ? `<div class="irow"><span class="ilabel">Ghi chú</span><span class="ival">${note}</span></div>` : ''}
 </div>
 
 <hr class="dash"/>
@@ -423,7 +423,7 @@ function buildA4Html({
   <div class="meta-col">
     <div class="meta-row"><span class="meta-label">Mã đơn:</span><span class="meta-value">#${code}</span></div>
     ${partnerName ? `<div class="meta-row"><span class="meta-label">${partnerLabelTx}</span><span class="meta-value">${partnerName}</span></div>` : ''}
-    ${note ? `<div class="meta-row"><span class="meta-label">Ghi chú:</span><span class="meta-value">${note}</span></div>` : ''}
+    ${note && !isImport ? `<div class="meta-row"><span class="meta-label">Ghi chú:</span><span class="meta-value">${note}</span></div>` : ''}
   </div>
   <div class="meta-col" style="text-align:right;align-items:flex-end">
     <div class="meta-row"><span class="meta-label">Ngày:</span><span class="meta-value">${now}</span></div>

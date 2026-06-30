@@ -144,12 +144,12 @@ export default function AuditLogModal({ tableName, recordId, title, onClose }) {
 
   return (
     <ModalOverlay onClose={onClose} className="bg-black/80">
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[85vh] flex flex-col">
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[85vh] flex flex-col">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
           <div>
-            <div className="font-bold text-[#e6edf3]">🕒 Lịch sử chỉnh sửa</div>
+            <div className="font-bold text-[#1e293b]">🕒 Lịch sử chỉnh sửa</div>
             {title && <div className="text-xs text-slate-400 mt-0.5">{title}</div>}
           </div>
           <button onClick={onClose}
@@ -186,7 +186,7 @@ export default function AuditLogModal({ tableName, recordId, title, onClose }) {
           <div className="px-5 py-3 border-t border-slate-800 shrink-0 flex items-center justify-between">
             <span className="text-xs text-slate-500">{logs.length} mục gần nhất</span>
             <button onClick={onClose}
-              className="px-4 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs hover:text-[#e6edf3] transition-colors">
+              className="px-4 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs hover:text-[#1e293b] transition-colors">
               Đóng
             </button>
           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+﻿import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
 import ModalOverlay from '../../components/ui/ModalOverlay'
@@ -96,7 +96,7 @@ function CustomerModal({ initial, onSave, onClose }) {
     }
   }
 
-  const iCls = 'w-full rounded-lg bg-slate-900/60 border border-slate-700 px-3 py-2 text-sm text-[#e6edf3] placeholder:text-slate-600 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/30 transition-all'
+  const iCls = 'w-full rounded-lg bg-slate-900/60 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/30 transition-all min-h-[52px] rounded-xl'
 
   return (
     <ModalOverlay onClose={onClose}>
@@ -144,7 +144,7 @@ function CustomerModal({ initial, onSave, onClose }) {
             </div>
           )}
           <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={onClose} className="btn-ghost px-4 py-2 text-sm">Huỷ</button>
+            <button type="button" onClick={onClose} className="btn-ghost px-4 py-3 text-base">Huỷ</button>
             <button type="submit" disabled={saving} className="btn-primary px-5 py-2 text-sm disabled:opacity-60">
               {saving ? 'Đang lưu…' : isEdit ? 'Cập nhật' : 'Thêm khách'}
             </button>
@@ -191,7 +191,7 @@ function CustomerDrawer({ customer, onClose, onEdit }) {
                 {customer.fullName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <div className="font-black text-base text-[#e6edf3]">{customer.fullName}</div>
+                <div className="font-black text-base text-[#1e293b]">{customer.fullName}</div>
                 <div className="text-xs text-muted mt-0.5">{fmtPhone(customer.phone)}</div>
               </div>
             </div>
@@ -257,7 +257,7 @@ function CustomerDrawer({ customer, onClose, onEdit }) {
                         <div className="text-[10px] text-muted mt-0.5">{fmtDate(ord.created_at)}</div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-bold text-sm text-[#e6edf3] tabular-nums">{fmtVNDFull(ord.total_amount)}</div>
+                        <div className="font-bold text-sm text-[#1e293b] tabular-nums">{fmtVNDFull(ord.total_amount)}</div>
                         {/* Đã trả / Còn nợ */}
                         {(ord.paid_amount != null && ord.paid_amount < ord.total_amount) && (
                           <div className="text-[10px] text-cblue tabular-nums mt-0.5">
@@ -587,7 +587,7 @@ export default function Customers() {
           <div className="text-2xl">🏆</div>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-[#bc8cff] font-semibold uppercase tracking-wide">Khách hàng chi tiêu nhiều nhất</div>
-            <div className="font-black text-[#e6edf3] truncate">{kpis.top.fullName}</div>
+            <div className="font-black text-[#1e293b] truncate">{kpis.top.fullName}</div>
           </div>
           <div className="text-right shrink-0">
             <div className="font-black text-lg text-[#bc8cff] tabular-nums">{fmtVNDFull(kpis.top.totalSpent)}</div>
@@ -656,7 +656,7 @@ export default function Customers() {
           onChange={handleImportExcel}
         />
 
-        <button onClick={() => setShowAdd(true)} className="btn-primary flex items-center gap-2 px-4 py-2 text-sm">
+        <button onClick={() => setShowAdd(true)} className="btn-primary flex items-center gap-2 px-4 py-3 text-base">
           <span className="text-base leading-none">＋</span> Thêm khách
         </button>
       </div>
@@ -681,120 +681,135 @@ export default function Customers() {
             )}
           </div>
         ) : (
-          <div className="w-full overflow-x-auto whitespace-nowrap">
-            <table className="w-full min-w-[700px] text-xs md:text-sm">
-              <thead>
-                <tr className="bg-[#0a0e14] border-b border-border">
-                  {['Khách hàng', 'SĐT', 'Tổng chi tiêu', 'Công nợ kỳ', 'Nợ hiện tại', 'Hạn mức', 'Hạng VIP', 'Điểm ★', 'Ngày tạo', 'Thao tác'].map(h => (
-                    <th key={h} className={`px-4 py-3 text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap ${['Tổng chi tiêu','Công nợ kỳ','Nợ hiện tại','Hạn mức','Điểm ★'].includes(h) ? 'text-right' : 'text-left'}`}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {displayedCustomers.map((c, idx) => {
-                  const tier = tierOf(c.totalSpent || 0)
-                  return (
-                    <tr key={c.id}
-                      className="border-b border-border/40 last:border-0 hover:bg-slate-800/40 transition-colors group cursor-pointer"
-                      onClick={() => setViewTarget(c)}>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-cpurple/15 border border-cpurple/20 flex items-center justify-center text-sm font-black text-cpurple shrink-0">
-                            {c.fullName.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-sm text-[#e6edf3]">{c.fullName}</div>
-                            {idx === 0 && c.totalSpent > 0 && (
-                              <div className="text-[10px] text-[#bc8cff]">🏆 Top khách</div>
-                            )}
-                          </div>
+          <>
+            {/* ── Mobile: Card list (< sm) ── */}
+            <div className="sm:hidden flex flex-col gap-2 p-3">
+              {displayedCustomers.map((c, idx) => {
+                const debt = debtMap[c.id] ?? 0
+                return (
+                  <div key={c.id}
+                    onClick={() => setViewTarget(c)}
+                    className="bg-[#ffffff] border border-slate-800 rounded-xl p-3.5 active:bg-slate-800/40 cursor-pointer">
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <div className="w-11 h-11 rounded-xl bg-cpurple/15 border border-cpurple/20 flex items-center justify-center text-base font-black text-cpurple shrink-0">
+                        {c.fullName.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-slate-100 truncate">{c.fullName}</div>
+                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">{fmtPhone(c.phone)}</div>
+                        {idx === 0 && c.totalSpent > 0 && <div className="text-[10px] text-[#bc8cff] mt-0.5">🏆 Top khách</div>}
+                      </div>
+                      <VipBadge tier={c.vipTier || calcVipTier(c.totalSpent || 0)} />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center mb-2.5">
+                      <div className="bg-slate-800/60 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 mb-0.5">Chi tiêu</div>
+                        <div className="text-xs font-mono font-bold text-cpurple">{fmtVNDFull(c.totalSpent || 0)}</div>
+                      </div>
+                      <div className="bg-slate-800/60 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 mb-0.5">Nợ hiện tại</div>
+                        <div className={`text-xs font-mono font-bold ${(c.currentDebt ?? 0) > 0 ? 'text-cred' : 'text-slate-500'}`}>
+                          {(c.currentDebt ?? 0) > 0 ? fmtVNDFull(c.currentDebt) : '—'}
                         </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-sm text-slate-300 font-mono whitespace-nowrap">
-                        {fmtPhone(c.phone)}
-                      </td>
-                      <td className="px-4 py-3.5 text-right font-mono text-sm font-bold tabular-nums whitespace-nowrap">
-                        <span className={
-                          (c.totalSpent ?? 0) > 0 ? 'text-cpurple'
-                          : (c.totalSpent ?? 0) < 0 ? 'text-cgreen'
-                          : 'text-slate-400'
-                        }>
-                          {fmtVNDFull(c.totalSpent || 0)}
-                        </span>
-                      </td>
-
-                      {/* Công nợ trong kỳ */}
-                      <td className="px-4 py-3.5 text-right font-mono text-sm font-bold tabular-nums whitespace-nowrap">
-                        {debtLoading ? (
-                          <span className="text-slate-600 text-xs">…</span>
-                        ) : (() => {
-                          const debt = debtMap[c.id] ?? 0
-                          return (
-                            <span className={
-                              debt > 0 ? 'text-red-400'
-                              : debt < 0 ? 'text-green-400'
-                              : 'text-slate-500'
-                            }>
-                              {debt === 0 ? '—' : fmtVNDFull(debt)}
-                            </span>
-                          )
-                        })()}
-                      </td>
-
-                      {/* Nợ hiện tại */}
-                      <td className="px-4 py-3.5 text-right font-mono text-sm tabular-nums whitespace-nowrap">
-                        {(c.currentDebt ?? 0) > 0
-                          ? <span className="font-bold text-cred">{fmtVNDFull(c.currentDebt)}</span>
-                          : <span className="text-slate-600">—</span>
-                        }
-                      </td>
-
-                      {/* Hạn mức công nợ */}
-                      <td className="px-4 py-3.5 text-right font-mono text-sm tabular-nums whitespace-nowrap">
-                        {(c.creditLimit ?? 0) > 0
-                          ? <span className="text-cyellow">{fmtVNDFull(c.creditLimit)}</span>
-                          : <span className="text-slate-600 text-xs">Không nợ</span>
-                        }
-                      </td>
-
-                      {/* Hạng VIP */}
-                      <td className="px-4 py-3.5">
-                        <VipBadge tier={c.vipTier || calcVipTier(c.totalSpent || 0)} />
-                      </td>
-
-                      {/* Điểm tích lũy */}
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                        {(c.rewardPoints ?? 0) > 0
-                          ? <span className="text-cyellow font-bold text-sm">★ {c.rewardPoints.toLocaleString('vi-VN')}</span>
-                          : <span className="text-slate-600 text-xs">—</span>
-                        }
-                      </td>
-
-                      <td className="px-4 py-3.5 text-sm text-muted whitespace-nowrap">
-                        {fmtDate(c.createdAt)}
-                      </td>
-                      <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => setViewTarget(c)} title="Xem chi tiết"
-                            className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cpurple hover:text-cpurple hover:bg-cpurple/10 transition-colors flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.8"/></svg>
-                          </button>
-                          <button onClick={() => setEditTarget(c)} title="Sửa"
-                            className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          </button>
-                          <button onClick={() => setDeleteTarget(c)} title="Xoá"
-                            className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          </button>
+                      </div>
+                      <div className="bg-slate-800/60 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 mb-0.5">Điểm ★</div>
+                        <div className={`text-xs font-bold ${(c.rewardPoints ?? 0) > 0 ? 'text-cyellow' : 'text-slate-500'}`}>
+                          {(c.rewardPoints ?? 0) > 0 ? `★ ${c.rewardPoints.toLocaleString('vi-VN')}` : '—'}
                         </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => setViewTarget(c)} className="flex-1 h-9 rounded-lg border border-slate-700 text-slate-400 text-xs font-medium hover:border-cpurple hover:text-cpurple active:scale-95 transition-all">
+                        👁 Chi tiết
+                      </button>
+                      <button onClick={() => setEditTarget(c)} className="flex-1 h-9 rounded-lg border border-slate-700 text-slate-400 text-xs font-medium hover:border-cblue hover:text-cblue active:scale-95 transition-all">
+                        ✏️ Sửa
+                      </button>
+                      <button onClick={() => setDeleteTarget(c)} className="h-9 w-9 rounded-lg border border-slate-700 text-slate-500 hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* ── Desktop: Table (≥ sm) ── */}
+            <div className="hidden sm:block w-full overflow-x-auto whitespace-nowrap">
+              <table className="w-full min-w-[700px] text-xs md:text-sm">
+                <thead>
+                  <tr className="bg-[#f1f5f9] border-b border-border">
+                    {['Khách hàng', 'SĐT', 'Tổng chi tiêu', 'Công nợ kỳ', 'Nợ hiện tại', 'Hạn mức', 'Hạng VIP', 'Điểm ★', 'Ngày tạo', 'Thao tác'].map(h => (
+                      <th key={h} className={`px-4 py-3 text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap ${['Tổng chi tiêu','Công nợ kỳ','Nợ hiện tại','Hạn mức','Điểm ★'].includes(h) ? 'text-right' : 'text-left'}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayedCustomers.map((c, idx) => {
+                    return (
+                      <tr key={c.id}
+                        className="border-b border-border/40 last:border-0 hover:bg-slate-800/40 transition-colors group cursor-pointer"
+                        onClick={() => setViewTarget(c)}>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-cpurple/15 border border-cpurple/20 flex items-center justify-center text-sm font-black text-cpurple shrink-0">
+                              {c.fullName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-[#1e293b]">{c.fullName}</div>
+                              {idx === 0 && c.totalSpent > 0 && (
+                                <div className="text-[10px] text-[#bc8cff]">🏆 Top khách</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-sm text-slate-300 font-mono whitespace-nowrap">{fmtPhone(c.phone)}</td>
+                        <td className="px-4 py-3.5 text-right font-mono text-sm font-bold tabular-nums whitespace-nowrap">
+                          <span className={(c.totalSpent ?? 0) > 0 ? 'text-cpurple' : (c.totalSpent ?? 0) < 0 ? 'text-cgreen' : 'text-slate-400'}>
+                            {fmtVNDFull(c.totalSpent || 0)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-right font-mono text-sm font-bold tabular-nums whitespace-nowrap">
+                          {debtLoading ? <span className="text-slate-600 text-xs">…</span> : (() => {
+                            const debt = debtMap[c.id] ?? 0
+                            return <span className={debt > 0 ? 'text-red-400' : debt < 0 ? 'text-green-400' : 'text-slate-500'}>{debt === 0 ? '—' : fmtVNDFull(debt)}</span>
+                          })()}
+                        </td>
+                        <td className="px-4 py-3.5 text-right font-mono text-sm tabular-nums whitespace-nowrap">
+                          {(c.currentDebt ?? 0) > 0 ? <span className="font-bold text-cred">{fmtVNDFull(c.currentDebt)}</span> : <span className="text-slate-600">—</span>}
+                        </td>
+                        <td className="px-4 py-3.5 text-right font-mono text-sm tabular-nums whitespace-nowrap">
+                          {(c.creditLimit ?? 0) > 0 ? <span className="text-cyellow">{fmtVNDFull(c.creditLimit)}</span> : <span className="text-slate-600 text-xs">Không nợ</span>}
+                        </td>
+                        <td className="px-4 py-3.5"><VipBadge tier={c.vipTier || calcVipTier(c.totalSpent || 0)} /></td>
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                          {(c.rewardPoints ?? 0) > 0 ? <span className="text-cyellow font-bold text-sm">★ {c.rewardPoints.toLocaleString('vi-VN')}</span> : <span className="text-slate-600 text-xs">—</span>}
+                        </td>
+                        <td className="px-4 py-3.5 text-sm text-muted whitespace-nowrap">{fmtDate(c.createdAt)}</td>
+                        <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+                          <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => setViewTarget(c)} title="Xem chi tiết"
+                              className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cpurple hover:text-cpurple hover:bg-cpurple/10 transition-colors flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.8"/></svg>
+                            </button>
+                            <button onClick={() => setEditTarget(c)} title="Sửa"
+                              className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            </button>
+                            <button onClick={() => setDeleteTarget(c)} title="Xoá"
+                              className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -815,11 +830,11 @@ export default function Customers() {
           <div className="bg-surface border border-border rounded-2xl w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4">
             <div className="text-lg font-bold text-cred">Xoá khách hàng?</div>
             <div className="text-sm text-muted">
-              <span className="font-semibold text-[#e6edf3]">{deleteTarget.fullName}</span><br/>
+              <span className="font-semibold text-[#1e293b]">{deleteTarget.fullName}</span><br/>
               Lịch sử đơn hàng của khách sẽ không bị xoá.
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setDeleteTarget(null)} className="btn-ghost px-4 py-2 text-sm">Huỷ</button>
+              <button onClick={() => setDeleteTarget(null)} className="btn-ghost px-4 py-3 text-base">Huỷ</button>
               <button onClick={handleDelete} disabled={deleting}
                 className="px-4 py-2 rounded-lg bg-cred/20 border border-cred/40 text-cred text-sm font-bold hover:bg-cred/30 transition-colors disabled:opacity-60">
                 {deleting ? 'Đang xoá…' : 'Xoá'}

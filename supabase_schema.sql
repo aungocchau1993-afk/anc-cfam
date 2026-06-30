@@ -151,8 +151,10 @@ CREATE TABLE IF NOT EXISTS credit_cards (
   card_number_last4 TEXT,
   credit_limit BIGINT DEFAULT 0,
   used_amount BIGINT DEFAULT 0,
+  statement_amount BIGINT DEFAULT 0,
   statement_date INT,
   due_date INT,
+  has_statement BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -177,3 +179,10 @@ CREATE TABLE IF NOT EXISTS suppliers (
 -- ALTER TABLE monthly_data ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE portfolio_holdings ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE risk_config ENABLE ROW LEVEL SECURITY;
+
+-- Migration: Chạy lệnh này trên Supabase Dashboard > SQL Editor để cập nhật cột mới
+ALTER TABLE credit_cards ADD COLUMN IF NOT EXISTS has_statement BOOLEAN DEFAULT false;
+ALTER TABLE credit_cards ADD COLUMN IF NOT EXISTS statement_amount BIGINT DEFAULT 0;
+ALTER TABLE credit_cards ADD COLUMN IF NOT EXISTS card_number_full TEXT;
+
+

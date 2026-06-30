@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+﻿import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
   loadProducts, loadStocktakes, loadStocktakeItems,
@@ -36,17 +36,17 @@ function VarianceBadge({ variance }) {
 function ConfirmModal({ itemCount, changedCount, onConfirm, onClose, loading }) {
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#0d1117] border border-slate-700 rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl flex flex-col gap-4">
-        <div className="text-base font-bold text-[#e6edf3]">✅ Hoàn tất kiểm kho?</div>
+      <div className="bg-[#ffffff] border border-slate-700 rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl flex flex-col gap-4">
+        <div className="text-base font-bold text-[#1e293b]">✅ Hoàn tất kiểm kho?</div>
         <div className="text-sm text-slate-400 leading-relaxed">
           Hệ thống sẽ cân bằng tồn kho cho{' '}
-          <strong className="text-[#e6edf3]">{itemCount} sản phẩm</strong>
+          <strong className="text-[#1e293b]">{itemCount} sản phẩm</strong>
           {changedCount > 0 && <>, trong đó <strong className="text-cyellow">{changedCount} sản phẩm</strong> có chênh lệch</>}.
           <br /><span className="text-cred text-xs mt-1 block">Hành động này không thể hoàn tác.</span>
         </div>
         <div className="flex justify-end gap-2">
           <button onClick={onClose} disabled={loading}
-            className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-sm hover:text-[#e6edf3] transition-colors disabled:opacity-50">
+            className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors disabled:opacity-50">
             Huỷ
           </button>
           <button onClick={onConfirm} disabled={loading}
@@ -154,12 +154,12 @@ function DetailModal({ stocktake, onClose }) {
 
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl w-full max-w-3xl mx-4 shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-3xl mx-4 shadow-2xl flex flex-col max-h-[90vh]">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
           <div>
-            <div className="font-bold text-[#e6edf3]">📋 Chi tiết phiếu kiểm kho</div>
+            <div className="font-bold text-[#1e293b]">📋 Chi tiết phiếu kiểm kho</div>
             <div className="text-xs text-slate-500 mt-0.5">{fmtDate(stocktake.created_at)}</div>
             {stocktake.notes && <div className="text-xs text-slate-400 mt-0.5">📝 {stocktake.notes}</div>}
           </div>
@@ -222,7 +222,7 @@ function DetailModal({ stocktake, onClose }) {
                     return (
                       <tr key={item.id} className={`transition-colors ${changed ? 'bg-cyellow/5' : 'hover:bg-slate-800/30'}`}>
                         <td className="px-4 py-2.5 font-mono text-xs text-slate-400 whitespace-nowrap">{item.sku}</td>
-                        <td className="px-4 py-2.5 text-sm text-[#e6edf3] max-w-[200px]">
+                        <td className="px-4 py-3 text-base text-[#1e293b] max-w-[200px]">
                           <div className="truncate">{item.name}</div>
                         </td>
                         <td className="px-4 py-2.5 text-right font-mono text-sm text-slate-300 tabular-nums whitespace-nowrap">
@@ -375,7 +375,7 @@ export default function Stocktake() {
       <div className="p-6 w-full">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
-            <h2 className="text-lg font-bold text-[#e6edf3]">📋 Kiểm Kho</h2>
+            <h2 className="text-lg font-bold text-[#1e293b]">📋 Kiểm Kho</h2>
             <p className="text-xs text-slate-500 mt-0.5">Đối chiếu tồn kho thực tế với hệ thống và cân bằng tự động</p>
           </div>
           <button onClick={handleNewSession} disabled={loadingProd}
@@ -468,7 +468,7 @@ export default function Stocktake() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-[#e6edf3]">📋 Phiếu Kiểm Kho</h2>
+          <h2 className="text-lg font-bold text-[#1e293b]">📋 Phiếu Kiểm Kho</h2>
           <div className="text-xs text-slate-500 mt-0.5">
             Bắt đầu: {fmtDate(session.startedAt)} · {rows.length} sản phẩm
           </div>
@@ -506,13 +506,13 @@ export default function Stocktake() {
             <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
           <input
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#e6edf3] placeholder:text-slate-600 outline-none focus:border-cblue/60 transition-all"
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue/60 transition-all"
             placeholder="Lọc sản phẩm trong phiếu…"
             value={search} onChange={e => setSearch(e.target.value)}
           />
         </div>
         <input
-          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-[#e6edf3] placeholder:text-slate-600 outline-none focus:border-cblue/60 transition-all"
+          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue/60 transition-all"
           placeholder="Ghi chú phiếu kiểm kho…"
           value={notes} onChange={e => setNotes(e.target.value)}
         />
@@ -520,7 +520,7 @@ export default function Stocktake() {
 
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-xl">
         <div className="px-5 py-3 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
-          <span className="text-sm font-bold text-[#e6edf3]">Bảng Nhập Liệu</span>
+          <span className="text-sm font-bold text-[#1e293b]">Bảng Nhập Liệu</span>
           <span className="text-xs text-slate-500">
             {search ? `${filteredRows.length} / ${rows.length} sản phẩm` : `${rows.length} sản phẩm`}
           </span>
@@ -541,7 +541,7 @@ export default function Stocktake() {
                 return (
                   <tr key={r.productId} className={`transition-colors ${changed ? 'bg-cyellow/5 hover:bg-cyellow/8' : 'hover:bg-slate-800/40'}`}>
                     <td className="px-4 py-3 font-mono text-xs text-slate-400 whitespace-nowrap">{r.sku}</td>
-                    <td className="px-4 py-3 text-sm text-[#e6edf3] max-w-[220px]">
+                    <td className="px-4 py-3 text-sm text-[#1e293b] max-w-[220px]">
                       <div className="truncate">{r.name}</div>
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums font-mono text-slate-300 whitespace-nowrap">
@@ -553,7 +553,7 @@ export default function Stocktake() {
                         className={`w-24 rounded-lg px-3 py-1.5 text-sm text-right font-mono font-bold outline-none transition-all border ${
                           changed
                             ? 'bg-cyellow/10 border-cyellow/50 text-cyellow focus:border-cyellow'
-                            : 'bg-slate-800 border-slate-700 text-[#e6edf3] focus:border-cblue'
+                            : 'bg-slate-800 border-slate-700 text-[#1e293b] focus:border-cblue'
                         }`}
                       />
                     </td>

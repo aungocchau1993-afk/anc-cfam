@@ -1,0 +1,25 @@
+{
+  "appId": "com.anc.cfam",
+  "appName": "ANC-CFAM",
+  "webDir": "dist",
+  "ios": {
+    "scrollEnabled": true,
+    "allowsInlineMediaPlayback": true,
+    "contentInset": "automatic",
+    "allowsArbitraryLoads": true
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "Dark",
+      "backgroundColor": "#080b10"
+    },
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#080b10",
+      "showSpinner": false,
+      "spinnerColor": "#3fb950",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    }
+  }
+}

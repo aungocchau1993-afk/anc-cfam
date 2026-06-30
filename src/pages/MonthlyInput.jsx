@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+﻿import { useState, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import { useApp } from '../context/AppContext'
 import { fmtVNDFull, formatMoneyLive, parseVNDInput } from '../lib/formatters'
@@ -64,7 +64,7 @@ function MonthCell({ year, mi, fieldKey, initialValue, onSave, readOnly = false,
   const borderClass = flashOk  ? 'border-cgreen bg-cgreen/15 scale-[1.02]'
                     : flashErr ? 'border-cred bg-cred/15'
                     : saving   ? 'border-cyellow/60 bg-surface2'
-                    : 'border-cblue/25 bg-surface2 hover:border-cblue/50 focus:border-cblue focus:bg-[#1a2744]'
+                    : 'border-cblue/25 bg-surface2 hover:border-cblue/50 focus:border-cblue focus:bg-[#eef2ff]'
 
   return (
     <td className={`px-2 py-1.5 ${compact ? 'min-w-[110px]' : 'min-w-[150px]'} whitespace-nowrap`}>
@@ -398,7 +398,7 @@ export default function MonthlyInput() {
               onKeyDown={e => { if (e.key === 'Enter') { actions.addYear(parseInt(e.target.value)); e.target.value = '' } }}
             />
             <button
-              className="btn-primary px-3 py-2 text-sm"
+              className="btn-primary px-4 py-3 text-base"
               onClick={() => { const el = document.getElementById('custom-yr'); actions.addYear(parseInt(el.value)); el.value = '' }}
             >Thêm</button>
           </div>

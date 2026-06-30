@@ -3,50 +3,126 @@
 @tailwind utilities;
 
 @layer base {
-  body { @apply bg-bg font-sans; color: #e6edf3; }
+  /* ── Root / Body ── */
+  body { @apply bg-bg font-sans; color: #1e293b; }
   * { @apply box-border; }
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
+
+  /* ── Scrollbar (desktop) ── */
+  ::-webkit-scrollbar       { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { @apply bg-transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-border rounded; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  /* ── iOS font zoom prevention ──────────────────────────────────────────────
+     iOS tự zoom input nếu font-size < 16px. Fix: set 16px trên input,
+     sau khi focus Tailwind/JS có thể scale về nhỏ hơn nếu muốn.
+  ── */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* ── Tap highlight — tắt viền xanh khi tap trên iOS ── */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── Safe-area bottom padding cho trang full-height ── */
+  #root {
+    min-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 @layer components {
-  .card       { @apply bg-surface border border-border rounded-xl p-5; }
-  .card-green { @apply bg-gradient-to-br from-[#0d4429] to-[#1a6b3d] border-[#2d5a3d] rounded-xl p-5; }
-  .card-blue  { @apply bg-gradient-to-br from-[#0c2d54] to-[#1a4a7a] border-[#1a4a7a] rounded-xl p-5; }
-  .card-purple{ @apply bg-gradient-to-br from-[#2d1b69] to-[#4a2d99] border-[#4a2d99] rounded-xl p-5; }
-  .card-red   { @apply bg-gradient-to-br from-[#4a1c1c] to-[#7a2c2c] border-[#7a2c2c] rounded-xl p-5; }
-  .card-gold  { @apply bg-gradient-to-br from-[#3d2800] to-[#6b4400] border-[#6b4400] rounded-xl p-5; }
 
-  /* ── Buttons — touch feedback + minimum touch target 44px ── */
+  /* ─────────────────────────── CARDS ─────────────────────────────────────── */
+  .card        { @apply bg-surface border border-border rounded-xl p-5 shadow-sm; }
+  .card-green  { @apply bg-gradient-to-br from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-xl p-5; }
+  .card-blue   { @apply bg-gradient-to-br from-blue-50 to-blue-100/60 border border-blue-200 rounded-xl p-5; }
+  .card-purple { @apply bg-gradient-to-br from-violet-50 to-violet-100/60 border border-violet-200 rounded-xl p-5; }
+  .card-red    { @apply bg-gradient-to-br from-rose-50 to-rose-100/60 border border-rose-200 rounded-xl p-5; }
+  .card-gold   { @apply bg-gradient-to-br from-amber-50 to-amber-100/60 border border-amber-200 rounded-xl p-5; }
+
+  /* ─────────────────────────── BUTTONS ───────────────────────────────────── */
+  /* h-14 = 56px — tiêu chuẩn mobile touch target của Apple (HIG) */
   .btn-primary {
-    @apply bg-accent hover:opacity-85 text-white font-semibold px-4 py-2.5 rounded-lg
-           transition-all duration-100 cursor-pointer border-0
-           active:scale-95 touch-manipulation min-h-[44px];
+    @apply bg-accent hover:opacity-90 text-white font-semibold px-4 rounded-lg
+           transition-all duration-100 cursor-pointer border-0 shadow-sm
+           active:scale-95 touch-manipulation
+           h-14 flex items-center justify-center gap-2 text-base;
   }
   .btn-ghost {
-    @apply bg-surface2 hover:bg-border text-muted hover:text-[#e6edf3] px-3 py-2 rounded-lg text-sm
+    @apply bg-surface hover:bg-surface2 text-slate-600 hover:text-slate-900 px-4 rounded-lg
            transition-all duration-100 cursor-pointer border border-border
-           active:scale-95 touch-manipulation min-h-[44px];
+           active:scale-95 touch-manipulation
+           h-14 flex items-center justify-center gap-2 text-base;
   }
-  /* Nút lớn trên mobile — ngón cái bấm chính xác (56px) */
+  /* Nút nhỏ inline (dùng trong table, tag...) — 36px min */
+  .btn-sm {
+    @apply px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-100
+           active:scale-95 touch-manipulation min-h-[36px];
+  }
+  /* Nút full-width hành động chính */
   .btn-action {
     @apply w-full h-14 flex items-center justify-center gap-2 rounded-xl font-black text-base
            transition-all duration-100 active:scale-[0.97] touch-manipulation;
   }
 
-  .input-base  { @apply bg-surface2 border border-border text-[#e6edf3] px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:border-cblue transition-colors w-full touch-manipulation; }
-  .input-money { @apply bg-[rgba(31,111,235,0.08)] border border-[rgba(88,166,255,0.3)] text-cblue px-3 py-2.5 rounded-lg text-sm text-right font-mono focus:outline-none focus:border-cblue focus:bg-[rgba(31,111,235,0.18)] transition-colors w-full touch-manipulation; }
+  /* ─────────────────────────── INPUTS ────────────────────────────────────── */
+  /* h-14 để dễ tap, font 16px để iOS không zoom */
+  .input-base {
+    @apply bg-surface2 border border-border text-slate-900 px-4 rounded-lg
+           focus:outline-none focus:border-cblue focus:ring-2 focus:ring-cblue/15
+           transition-colors w-full touch-manipulation h-14 text-base;
+  }
+  .input-money {
+    @apply bg-blue-50 border border-blue-200 text-cblue px-4 rounded-lg
+           text-right font-mono focus:outline-none focus:border-cblue focus:ring-2 focus:ring-cblue/15
+           transition-colors w-full touch-manipulation h-14 text-base;
+  }
+  /* Input nhỏ — filter, search (44px) */
+  .input-sm {
+    @apply bg-surface2 border border-border text-slate-900 px-3 py-2 rounded-lg
+           focus:outline-none focus:border-cblue focus:ring-2 focus:ring-cblue/15
+           transition-colors touch-manipulation min-h-[44px] text-base;
+  }
 
-  .nav-item    { @apply flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-muted text-sm font-medium transition-all hover:bg-surface2 hover:text-[#e6edf3]; }
-  .nav-active  { @apply bg-[rgba(31,111,235,0.2)] text-cblue; }
+  /* ─────────────────────────── NAV ───────────────────────────────────────── */
+  .nav-item   { @apply flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-slate-500 text-sm font-medium transition-all hover:bg-surface2 hover:text-slate-900; }
+  .nav-active { @apply bg-cblue/10 text-cblue; }
 
-  .tag-green  { @apply bg-[rgba(63,185,80,0.15)] text-cgreen text-xs font-bold px-2 py-0.5 rounded; }
-  .tag-red    { @apply bg-[rgba(248,81,73,0.15)] text-cred text-xs font-bold px-2 py-0.5 rounded; }
-  .tag-blue   { @apply bg-[rgba(88,166,255,0.1)] text-cblue text-xs font-bold px-2 py-0.5 rounded; }
+  /* ─────────────────────────── TAGS ──────────────────────────────────────── */
+  .tag-green  { @apply bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-0.5 rounded; }
+  .tag-red    { @apply bg-rose-50    text-rose-600    text-xs font-bold px-2 py-0.5 rounded; }
+  .tag-blue   { @apply bg-blue-50    text-blue-600    text-xs font-bold px-2 py-0.5 rounded; }
+  .tag-yellow { @apply bg-amber-50   text-amber-600   text-xs font-bold px-2 py-0.5 rounded; }
 
-  /* ── Responsive table helpers ── */
-  /* Dùng trên <td>/<th> để ẩn cột phụ trên mobile */
-  .col-hide-mobile  { @apply hidden sm:table-cell; }
-  .col-hide-tablet  { @apply hidden md:table-cell; }
+  /* ─────────────────────────── TABLES ────────────────────────────────────── */
+  /* Wrapper bắt buộc — dùng cho mọi <table> trên mobile */
+  .table-wrap {
+    @apply w-full overflow-x-auto -mx-0;
+    /* Smooth scroll ngang trên iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Ẩn scrollbar nhưng vẫn scroll được */
+    scrollbar-width: thin;
+  }
+  .table-wrap table {
+    /* Không wrap chữ trong cell — buộc scroll ngang */
+    @apply w-full whitespace-nowrap;
+    min-width: 600px; /* fallback minimum */
+  }
+  /* Cell padding đủ lớn để tap */
+  .table-wrap th,
+  .table-wrap td {
+    @apply px-4 py-3 text-sm;
+  }
+  /* Ẩn cột phụ trên màn nhỏ */
+  .col-hide-mobile { @apply hidden sm:table-cell; }
+  .col-hide-tablet { @apply hidden md:table-cell; }
+
+  /* ─────────────────────────── SAFE AREA HELPERS ─────────────────────────── */
+  .safe-top    { padding-top:    env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-left   { padding-left:   env(safe-area-inset-left); }
+  .safe-right  { padding-right:  env(safe-area-inset-right); }
 }

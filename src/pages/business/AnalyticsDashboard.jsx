@@ -194,12 +194,12 @@ export default function AnalyticsDashboard() {
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-[#e6edf3]">📊 Bộ Não Điều Hành</h2>
+          <h2 className="text-lg font-black text-[#1e293b]">📊 Bộ Não Điều Hành</h2>
           <p className="text-xs text-slate-500 mt-0.5">Analytics & P&L Real-time · {monthLabel}</p>
         </div>
         <button
           onClick={() => window.location.reload()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs hover:text-[#e6edf3] hover:border-slate-500 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs hover:text-[#1e293b] hover:border-slate-500 transition-colors"
         >
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
             <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -273,7 +273,7 @@ export default function AnalyticsDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* 30-day profit trend */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <div className="text-sm font-bold text-[#e6edf3] mb-1">📉 Lợi Nhuận Theo Ngày — 30 Ngày</div>
+          <div className="text-sm font-bold text-[#1e293b] mb-1">📉 Lợi Nhuận Theo Ngày — 30 Ngày</div>
           <div className="text-[11px] text-slate-500 mb-4">Doanh thu & lợi nhuận hàng ngày</div>
           <div className="h-52">
             <Line data={lineData} options={chartOpts} />
@@ -282,7 +282,7 @@ export default function AnalyticsDashboard() {
 
         {/* Pie: revenue by product */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <div className="text-sm font-bold text-[#e6edf3] mb-1">🥧 Tỷ Trọng Doanh Thu Theo Sản Phẩm</div>
+          <div className="text-sm font-bold text-[#1e293b] mb-1">🥧 Tỷ Trọng Doanh Thu Theo Sản Phẩm</div>
           <div className="text-[11px] text-slate-500 mb-4">Top sản phẩm đóng góp doanh thu</div>
           <div className="h-52 flex items-center justify-center">
             {topProducts.length > 0 ? (
@@ -302,7 +302,7 @@ export default function AnalyticsDashboard() {
 
       {/* ── Charts row 2: bar P&L ─────────────────────────── */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-        <div className="text-sm font-bold text-[#e6edf3] mb-1">📊 P&L 6 Tháng Gần Nhất</div>
+        <div className="text-sm font-bold text-[#1e293b] mb-1">📊 P&L 6 Tháng Gần Nhất</div>
         <div className="text-[11px] text-slate-500 mb-4">Doanh thu · Chi phí · Lãi ròng</div>
         <div className="h-52">
           <Bar data={barData} options={chartOpts} />
@@ -315,7 +315,7 @@ export default function AnalyticsDashboard() {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">{cashflow.warning ? '🚨' : '💰'}</span>
             <div>
-              <div className="text-sm font-bold text-[#e6edf3]">Dự Báo Dòng Tiền — Nợ Nhà Cung Cấp</div>
+              <div className="text-sm font-bold text-[#1e293b]">Dự Báo Dòng Tiền — Nợ Nhà Cung Cấp</div>
               <div className="text-[11px] text-slate-500">Phân tích khả năng thanh toán dựa trên doanh thu 7 ngày</div>
             </div>
           </div>
@@ -384,7 +384,7 @@ export default function AnalyticsDashboard() {
           <div className="px-5 py-3 border-b border-slate-800 flex items-center gap-2">
             <span className="text-base">🧠</span>
             <div className="flex-1">
-              <div className="text-sm font-bold text-[#e6edf3]">Phân Tích Tồn Kho Thông Minh</div>
+              <div className="text-sm font-bold text-[#1e293b]">Phân Tích Tồn Kho Thông Minh</div>
               <div className="text-[10px] text-slate-500">Dựa trên tốc độ bán ra 30 ngày qua</div>
             </div>
           </div>
@@ -404,10 +404,10 @@ export default function AnalyticsDashboard() {
                 {inventory.map(p => (
                   <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-4 py-2.5">
-                      <div className="font-semibold text-[#e6edf3] truncate max-w-[160px]">{p.name}</div>
+                      <div className="font-semibold text-[#1e293b] truncate max-w-[160px]">{p.name}</div>
                       <div className="text-[10px] text-slate-600 font-mono">{p.sku}</div>
                     </td>
-                    <td className="px-3 py-2.5 text-center font-bold tabular-nums text-[#e6edf3]">{p.stock.toLocaleString('vi-VN')}</td>
+                    <td className="px-3 py-2.5 text-center font-bold tabular-nums text-[#1e293b]">{p.stock.toLocaleString('vi-VN')}</td>
                     <td className="px-3 py-2.5 text-center tabular-nums text-cblue font-semibold">{p.qty30.toLocaleString('vi-VN')}</td>
                     <td className="px-3 py-2.5 text-center tabular-nums text-slate-400">{p.avgDaily}</td>
                     <td className="px-3 py-2.5 text-center">
@@ -439,7 +439,7 @@ export default function AnalyticsDashboard() {
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
             <span className="text-base">🏆</span>
-            <span className="text-sm font-bold text-[#e6edf3]">Top Bán Chạy</span>
+            <span className="text-sm font-bold text-[#1e293b]">Top Bán Chạy</span>
             <span className="text-[10px] text-slate-500 ml-auto">Theo số lượng</span>
           </div>
           <div className="divide-y divide-slate-800/60">
@@ -453,7 +453,7 @@ export default function AnalyticsDashboard() {
                   #{i + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold text-[#e6edf3] truncate">{p.name}</div>
+                  <div className="text-xs font-semibold text-[#1e293b] truncate">{p.name}</div>
                   <div className="text-[10px] text-slate-500 font-mono">{p.sku}</div>
                 </div>
                 <div className="text-right shrink-0">
@@ -469,7 +469,7 @@ export default function AnalyticsDashboard() {
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
             <span className="text-base">💸</span>
-            <span className="text-sm font-bold text-[#e6edf3]">Khách Nợ Nhiều</span>
+            <span className="text-sm font-bold text-[#1e293b]">Khách Nợ Nhiều</span>
             <span className="text-[10px] text-slate-500 ml-auto">Top {debtors.length}</span>
           </div>
           <div className="divide-y divide-slate-800/60">
@@ -479,7 +479,7 @@ export default function AnalyticsDashboard() {
             {debtors.map((c, i) => (
               <div key={c.id} className="px-4 py-2.5 flex items-center gap-2">
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold text-[#e6edf3] truncate">{c.fullName}</div>
+                  <div className="text-xs font-semibold text-[#1e293b] truncate">{c.fullName}</div>
                   <div className="text-[10px] text-slate-500 font-mono">{fmtPhone(c.phone)}</div>
                 </div>
                 <div className="text-right shrink-0">
@@ -516,7 +516,7 @@ export default function AnalyticsDashboard() {
             {lowStock.map(p => (
               <div key={p.id} className="px-4 py-2.5 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold text-[#e6edf3] truncate">{p.name}</div>
+                  <div className="text-xs font-semibold text-[#1e293b] truncate">{p.name}</div>
                   <div className="text-[10px] text-slate-500 font-mono">{p.sku}</div>
                 </div>
                 <div className="text-right shrink-0">

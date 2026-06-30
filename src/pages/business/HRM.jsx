@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+﻿import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { fmtVNDFull } from '../../lib/formatters'
 import { toast } from 'sonner'
@@ -81,14 +81,14 @@ function StaffModal({ staff, onClose, onSaved }) {
     onClose()
   }
 
-  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-[#e6edf3] outline-none focus:border-cblue placeholder:text-slate-600'
+  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-base text-[#1e293b] outline-none focus:border-cblue placeholder:text-slate-600 min-h-[52px] rounded-xl'
   const lCls = 'text-xs text-slate-400 font-semibold mb-1'
 
   return (
     <ModalOverlay onClose={onClose} className="bg-black/80">
-      <div className="bg-[#161b22] border border-slate-700 rounded-2xl w-full max-w-md mx-4 shadow-2xl">
+      <div className="bg-[#ffffff] border border-slate-700 rounded-2xl w-full max-w-md mx-4 shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-          <h2 className="font-bold text-[#e6edf3]">{isEdit ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên mới'}</h2>
+          <h2 className="font-bold text-[#1e293b]">{isEdit ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên mới'}</h2>
           <button onClick={onClose} className="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-cred transition-colors text-lg">×</button>
         </div>
         <div className="p-5 flex flex-col gap-4">
@@ -151,13 +151,13 @@ function AdvanceModal({ staffList, onClose, onSaved }) {
     onSaved(); onClose()
   }
 
-  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-[#e6edf3] outline-none focus:border-cblue'
+  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-base text-[#1e293b] outline-none focus:border-cblue min-h-[52px] rounded-xl'
 
   return (
     <ModalOverlay onClose={onClose} className="bg-black/80">
-      <div className="bg-[#161b22] border border-slate-700 rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+      <div className="bg-[#ffffff] border border-slate-700 rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-          <h2 className="font-bold text-[#e6edf3]">Tạo phiếu ứng tiền</h2>
+          <h2 className="font-bold text-[#1e293b]">Tạo phiếu ứng tiền</h2>
           <button onClick={onClose} className="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-cred text-lg">×</button>
         </div>
         <div className="p-5 flex flex-col gap-3">
@@ -181,7 +181,7 @@ function AdvanceModal({ staffList, onClose, onSaved }) {
         </div>
         <div className="px-5 pb-5 flex gap-3 justify-end">
           <button onClick={onClose} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-400 text-sm hover:bg-slate-800">Hủy</button>
-          <button onClick={handleSave} disabled={saving} className="px-6 py-2 rounded-xl bg-cyellow text-[#0d1117] text-sm font-black hover:brightness-110 disabled:opacity-50">
+          <button onClick={handleSave} disabled={saving} className="px-6 py-2 rounded-xl bg-cyellow text-[#ffffff] text-sm font-black hover:brightness-110 disabled:opacity-50">
             {saving ? 'Đang tạo…' : 'Tạo phiếu'}
           </button>
         </div>
@@ -206,7 +206,7 @@ function TabOverview({ staffList, attendanceToday, pendingAdvances, onGoTab }) {
           { label: 'Đã về',       value: checkedOut.length,                        icon: '🏠', color: 'text-slate-300',border: 'border-slate-700' },
           { label: 'Ứng tiền chờ',value: pendingAdvances.length,                  icon: '⏳', color: 'text-cyellow', border: 'border-cyellow/25'},
         ].map(m => (
-          <div key={m.label} className={`bg-[#0d1117] border ${m.border} rounded-xl px-4 py-3 flex items-center gap-3`}>
+          <div key={m.label} className={`bg-[#ffffff] border ${m.border} rounded-xl px-4 py-3 flex items-center gap-3`}>
             <span className="text-xl">{m.icon}</span>
             <div>
               <div className={`text-2xl font-black tabular-nums ${m.color}`}>{m.value}</div>
@@ -218,7 +218,7 @@ function TabOverview({ staffList, attendanceToday, pendingAdvances, onGoTab }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Đang làm việc hôm nay */}
-        <div className="bg-[#0d1117] border border-slate-800 rounded-2xl overflow-hidden">
+        <div className="bg-[#ffffff] border border-slate-800 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
             <span className="font-semibold text-sm text-slate-200">🟢 Đang làm việc hôm nay</span>
             <button onClick={() => onGoTab('attendance')} className="text-xs text-cblue hover:underline">Xem tất cả</button>
@@ -230,7 +230,7 @@ function TabOverview({ staffList, attendanceToday, pendingAdvances, onGoTab }) {
               {checkedIn.map(a => (
                 <div key={a.id} className="flex items-center justify-between px-4 py-3">
                   <div>
-                    <div className="text-sm font-semibold text-[#e6edf3]">{a.staff?.name}</div>
+                    <div className="text-sm font-semibold text-[#1e293b]">{a.staff?.name}</div>
                     <div className="text-xs text-slate-500">{a.staff?.position || '—'}</div>
                   </div>
                   <div className="text-right">
@@ -243,7 +243,7 @@ function TabOverview({ staffList, attendanceToday, pendingAdvances, onGoTab }) {
         </div>
 
         {/* Ứng tiền chờ duyệt */}
-        <div className="bg-[#0d1117] border border-slate-800 rounded-2xl overflow-hidden">
+        <div className="bg-[#ffffff] border border-slate-800 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
             <span className="font-semibold text-sm text-slate-200">⏳ Ứng tiền chờ duyệt</span>
             <button onClick={() => onGoTab('advances')} className="text-xs text-cblue hover:underline">Xem tất cả</button>
@@ -255,7 +255,7 @@ function TabOverview({ staffList, attendanceToday, pendingAdvances, onGoTab }) {
               {pendingAdvances.slice(0,5).map(a => (
                 <div key={a.id} className="flex items-center justify-between px-4 py-3">
                   <div>
-                    <div className="text-sm font-semibold text-[#e6edf3]">{a.staff?.name}</div>
+                    <div className="text-sm font-semibold text-[#1e293b]">{a.staff?.name}</div>
                     <div className="text-xs text-slate-500">{a.reason || '—'}</div>
                   </div>
                   <div className="text-right">
@@ -295,7 +295,7 @@ function TabStaff({ staffList, onReload }) {
         </button>
       </div>
 
-      <div className="bg-[#0d1117] border border-slate-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#ffffff] border border-slate-800 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[600px]">
             <thead>
@@ -311,7 +311,7 @@ function TabStaff({ staffList, onReload }) {
               ) : staffList.map(s => (
                 <tr key={s.id} className={`border-b border-slate-800/60 last:border-0 hover:bg-slate-800/30 transition-colors ${!s.is_active ? 'opacity-50' : ''}`}>
                   <td className="px-4 py-3">
-                    <div className="font-semibold text-sm text-[#e6edf3]">{s.name}</div>
+                    <div className="font-semibold text-sm text-[#1e293b]">{s.name}</div>
                     <div className="text-[10px] text-slate-500 font-mono">{s.id.slice(-8).toUpperCase()}</div>
                   </td>
                   <td className="px-4 py-3 text-sm text-slate-400">{s.phone || '—'}</td>
@@ -390,7 +390,7 @@ function TabAttendance({ staffList }) {
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400 font-semibold">Ngày</span>
           <input type="date" value={date} onChange={e => setDate(e.target.value)}
-            className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-cblue" />
+            className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue" />
         </div>
         <button onClick={() => setDate(todayDate())} className="px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-400 hover:border-cblue hover:text-cblue transition-all">Hôm nay</button>
         <div className="flex gap-2 ml-auto text-xs text-slate-500">
@@ -402,7 +402,7 @@ function TabAttendance({ staffList }) {
 
       {/* Quick check-in panel cho ngày hôm nay */}
       {date === todayDate() && (
-        <div className="bg-[#0d1117] border border-slate-800 rounded-2xl p-4">
+        <div className="bg-[#ffffff] border border-slate-800 rounded-2xl p-4">
           <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-3">Check-in / Check-out nhanh</div>
           <div className="flex flex-wrap gap-2">
             {activeStaff.map(s => {
@@ -429,7 +429,7 @@ function TabAttendance({ staffList }) {
       )}
 
       {/* Bảng chấm công */}
-      <div className="bg-[#0d1117] border border-slate-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#ffffff] border border-slate-800 rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
           <span className="font-semibold text-sm text-slate-200">Bảng chấm công ngày {new Date(date).toLocaleDateString('vi-VN')}</span>
           {loading && <span className="text-xs text-slate-500">Đang tải…</span>}
@@ -448,7 +448,7 @@ function TabAttendance({ staffList }) {
                 <tr><td colSpan={6} className="py-12 text-center text-slate-500 text-sm">Chưa có dữ liệu chấm công ngày này</td></tr>
               ) : attendance.map(a => (
                 <tr key={a.id} className="border-b border-slate-800/60 last:border-0 hover:bg-slate-800/30 transition-colors">
-                  <td className="px-4 py-3 text-sm font-semibold text-[#e6edf3]">{a.staff?.name}</td>
+                  <td className="px-4 py-3 text-sm font-semibold text-[#1e293b]">{a.staff?.name}</td>
                   <td className="px-4 py-3 text-sm text-slate-400">{a.staff?.position || '—'}</td>
                   <td className="px-4 py-3 text-sm font-mono text-cgreen">{a.check_in ? new Date(a.check_in).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}) : '—'}</td>
                   <td className="px-4 py-3 text-sm font-mono text-slate-400">{a.check_out ? new Date(a.check_out).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}) : <span className="text-cyellow text-xs">Chưa ra</span>}</td>
@@ -509,13 +509,13 @@ function TabAdvances({ staffList, pendingAdvances, onReload }) {
           ))}
         </div>
         <button onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyellow text-[#0d1117] text-sm font-black hover:brightness-110 transition-all">
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyellow text-[#ffffff] text-sm font-black hover:brightness-110 transition-all">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
           Tạo phiếu ứng
         </button>
       </div>
 
-      <div className="bg-[#0d1117] border border-slate-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#ffffff] border border-slate-800 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px]">
             <thead>
@@ -533,7 +533,7 @@ function TabAdvances({ staffList, pendingAdvances, onReload }) {
               ) : advances.map(a => (
                 <tr key={a.id} className="border-b border-slate-800/60 last:border-0 hover:bg-slate-800/30 transition-colors">
                   <td className="px-4 py-3">
-                    <div className="text-sm font-semibold text-[#e6edf3]">{a.staff?.name}</div>
+                    <div className="text-sm font-semibold text-[#1e293b]">{a.staff?.name}</div>
                     <div className="text-xs text-slate-500">{a.staff?.position || '—'}</div>
                   </td>
                   <td className="px-4 py-3 text-sm font-black text-cyellow tabular-nums">{fmtN(a.amount)} ₫</td>
@@ -627,7 +627,7 @@ function TabPayroll({ staffList }) {
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400 font-semibold">Tháng</span>
           <input type="month" value={month} onChange={e => setMonth(e.target.value)}
-            className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-cblue" />
+            className="rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue" />
         </div>
         <button onClick={handleCalculate} disabled={calcing}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cpurple/20 border border-cpurple/40 text-cpurple text-sm font-bold hover:bg-cpurple/30 transition-all disabled:opacity-50">
@@ -638,7 +638,7 @@ function TabPayroll({ staffList }) {
 
       {/* Preview kết quả tính lương mới */}
       {results.length > 0 && (
-        <div className="bg-[#0d1117] border border-cpurple/30 rounded-2xl overflow-hidden">
+        <div className="bg-[#ffffff] border border-cpurple/30 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-cpurple/20 bg-cpurple/5">
             <span className="font-semibold text-sm text-cpurple">✨ Kết quả tính lương tháng {month}</span>
           </div>
@@ -655,7 +655,7 @@ function TabPayroll({ staffList }) {
                 {results.map(r => (
                   <tr key={r.staff_id} className="border-b border-slate-800/60 last:border-0">
                     <td className="px-4 py-3">
-                      <div className="text-sm font-semibold text-[#e6edf3]">{r.staff_name}</div>
+                      <div className="text-sm font-semibold text-[#1e293b]">{r.staff_name}</div>
                       <div className="text-xs text-slate-500">{r.position || '—'}</div>
                     </td>
                     <td className="px-4 py-3 text-sm font-mono text-slate-300 tabular-nums">{fmtN(r.base_salary)} ₫</td>
@@ -683,7 +683,7 @@ function TabPayroll({ staffList }) {
       )}
 
       {/* Bảng lương đã xác nhận */}
-      <div className="bg-[#0d1117] border border-slate-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#ffffff] border border-slate-800 rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-800">
           <span className="font-semibold text-sm text-slate-200">Bảng lương đã xác nhận — tháng {month}</span>
         </div>
@@ -705,7 +705,7 @@ function TabPayroll({ staffList }) {
                 {displayData.map(rec => (
                   <tr key={rec.id} className="border-b border-slate-800/60 last:border-0 hover:bg-slate-800/30 transition-colors">
                     <td className="px-4 py-3">
-                      <div className="text-sm font-semibold text-[#e6edf3]">{rec.staff?.name}</div>
+                      <div className="text-sm font-semibold text-[#1e293b]">{rec.staff?.name}</div>
                       <div className="text-xs text-slate-500">{rec.staff?.position || '—'}</div>
                     </td>
                     <td className="px-4 py-3 text-sm font-mono text-slate-300 tabular-nums">{fmtN(rec.base_salary)} ₫</td>
@@ -802,7 +802,7 @@ export default function HRM() {
 
       {/* Header */}
       <div>
-        <h1 className="text-xl font-black text-[#e6edf3]">👔 Quản lý Nhân sự</h1>
+        <h1 className="text-xl font-black text-[#1e293b]">👔 Quản lý Nhân sự</h1>
         <p className="text-xs text-slate-500 mt-0.5">Chấm công · Ứng tiền · Tính lương tự động</p>
       </div>
 
@@ -812,13 +812,13 @@ export default function HRM() {
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all relative ${
               tab === t.id
-                ? 'bg-[#0d1117] border border-slate-700 text-[#e6edf3] shadow-sm'
+                ? 'bg-[#ffffff] border border-slate-700 text-[#1e293b] shadow-sm'
                 : 'text-slate-500 hover:text-slate-300'
             }`}>
             <span>{t.icon}</span>
             <span>{t.label}</span>
             {t.id === 'advances' && pendingCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-cyellow text-[#0d1117] text-[9px] font-black flex items-center justify-center px-1">
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-cyellow text-[#ffffff] text-[9px] font-black flex items-center justify-center px-1">
                 {pendingCount}
               </span>
             )}

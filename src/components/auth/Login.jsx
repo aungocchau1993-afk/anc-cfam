@@ -5,7 +5,7 @@ import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 // ── Shared input class ────────────────────────────────────────────────────
 const iCls = `
   w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm
-  text-[#e6edf3] placeholder:text-slate-600 outline-none
+  text-[#1e293b] placeholder:text-slate-600 outline-none
   focus:border-cblue focus:ring-2 focus:ring-cblue/15 transition-all
 `
 
@@ -16,7 +16,7 @@ function Brand() {
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cblue/30 to-cpurple/30 border border-cblue/25 mb-4 shadow-lg shadow-cblue/10">
         <span className="text-3xl">💼</span>
       </div>
-      <h1 className="text-2xl font-black text-[#e6edf3] tracking-tight">ANC - CFAM</h1>
+      <h1 className="text-2xl font-black text-[#1e293b] tracking-tight">ANC - CFAM</h1>
       <p className="text-xs text-slate-500 mt-1">Cash Flow & Asset Management · Business OS</p>
     </div>
   )
@@ -165,7 +165,7 @@ function RegisterView({ onGoLogin }) {
           <div className="font-black text-lg text-cgreen">Kiểm tra hộp thư!</div>
           <p className="text-sm text-slate-400 mt-2 leading-relaxed">
             Chúng tôi đã gửi link xác nhận đến<br/>
-            <strong className="text-[#e6edf3]">{email}</strong>
+            <strong className="text-[#1e293b]">{email}</strong>
           </p>
           <p className="text-xs text-slate-500 mt-3">Kiểm tra cả thư mục Spam nếu không thấy.</p>
         </div>
@@ -284,7 +284,7 @@ function ForgotView({ onGoLogin }) {
         <div className="text-4xl">✉️</div>
         <div>
           <div className="font-black text-lg text-cblue">Đã gửi link đặt lại!</div>
-          <p className="text-sm text-slate-400 mt-2">Kiểm tra hộp thư <strong className="text-[#e6edf3]">{email}</strong></p>
+          <p className="text-sm text-slate-400 mt-2">Kiểm tra hộp thư <strong className="text-[#1e293b]">{email}</strong></p>
         </div>
         <button onClick={onGoLogin}
           className="mt-2 px-6 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors">
@@ -332,7 +332,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080b10] flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center px-4 py-10">
       {/* Background glow */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-cblue/5 rounded-full blur-3xl" />
@@ -341,12 +341,12 @@ export default function Login() {
 
       <div className="relative w-full max-w-md">
         {/* Card */}
-        <div className="bg-[#0d1117] border border-slate-800 rounded-2xl shadow-2xl shadow-black/50 p-8">
+        <div className="bg-[#ffffff] border border-slate-800 rounded-2xl shadow-2xl shadow-black/50 p-8">
           <Brand />
 
           {/* View title */}
           <div className="mb-6">
-            <h2 className="text-lg font-black text-[#e6edf3]">{TITLE[view]}</h2>
+            <h2 className="text-lg font-black text-[#1e293b]">{TITLE[view]}</h2>
             <div className="h-0.5 w-8 bg-cblue rounded-full mt-2" />
           </div>
 

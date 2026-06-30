@@ -91,7 +91,7 @@ export default function DateFilterBar({
           className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all whitespace-nowrap ${
             preset === p.id
               ? 'bg-cblue/20 border-cblue text-cblue'
-              : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-[#e6edf3]'
+              : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-[#1e293b]'
           }`}
         >
           {p.label}
@@ -105,14 +105,14 @@ export default function DateFilterBar({
             type="date"
             value={customFrom}
             onChange={e => setCustomFrom(e.target.value)}
-            className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-cblue transition-all cursor-pointer"
+            className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all cursor-pointer"
           />
           <span className="text-muted text-sm">→</span>
           <input
             type="date"
             value={customTo}
             onChange={e => setCustomTo(e.target.value)}
-            className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-cblue transition-all cursor-pointer"
+            className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all cursor-pointer"
           />
         </div>
       )}

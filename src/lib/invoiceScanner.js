@@ -304,3 +304,76 @@ export async function scanInvoice(file, type = 'SALE') {
     throw new Error('AI trả về dữ liệu không hợp lệ, vui lòng thử lại.')
   }
 }
+
+// ── Credit Card Statement Scanner ───────────────────────────────────────────
+export async function scanStatement(file) {
+  if (!GEMINI_KEY) throw new Error('Chưa cấu hình VITE_GEMINI_API_KEY trong .env.local')
+
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload  = () => resolve(reader.result.split(',')[1])
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+
+  const prompt = `Bạn là trợ lý AI đọc bản sao kê thẻ tín dụng (credit card statement) tại Việt Nam.
+Hãy phân tích hình ảnh/tài liệu sao kê này và trích xuất thông tin dưới dạng JSON thuần (KHÔNG dùng markdown, KHÔNG có \`\`\`):
+
+{
+  "bank_name": "tên ngân hàng nếu có, null nếu không rõ",
+  "statement_date": "ngày sao kê YYYY-MM-DD hoặc null",
+  "due_date": "ngày đến hạn thanh toán YYYY-MM-DD hoặc null",
+  "amount_due": số tiền cần thanh toán số nguyên VND (hoặc dư nợ sao kê/dư nợ cuối kỳ),
+  "card_holder": "tên chủ thẻ nếu có, null nếu không rõ",
+  "card_number_last4": "4 số cuối thẻ nếu có, null nếu không rõ"
+}
+
+Quy tắc:
+- "amount_due" là số tiền cần thanh toán (dư nợ cuối kỳ / tổng số tiền cần thanh toán), phải là số nguyên (ví dụ: 152433000).
+- "due_date" là ngày đến hạn thanh toán.
+- Chỉ trả về JSON, không giải thích gì thêm.`
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType: file.type, data: base64 } },
+          ]
+        }],
+        generationConfig: {
+          temperature:    0.1,
+          maxOutputTokens: 2048,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      }),
+    }
+  )
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err?.error?.message || `Gemini lỗi HTTP ${res.status}`)
+  }
+
+  const data = await res.json()
+  const parts = data.candidates?.[0]?.content?.parts ?? []
+  const raw   = parts.map(p => p.text ?? '').join('')
+  let clean   = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+  const start = clean.indexOf('{')
+  const end   = clean.lastIndexOf('}')
+  if (start !== -1 && end !== -1 && end > start) {
+    clean = clean.slice(start, end + 1)
+  }
+
+  try {
+    return JSON.parse(clean)
+  } catch {
+    console.error('Gemini raw response:', raw)
+    throw new Error('AI trả về dữ liệu sao kê không hợp lệ, vui lòng thử lại.')
+  }
+}
+

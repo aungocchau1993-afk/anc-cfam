@@ -365,14 +365,14 @@ export default function OcrInvoiceModal({
 
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col w-full max-h-[92vh]"
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col w-full max-h-[92vh]"
         style={{ maxWidth: stage === 'review' ? '900px' : '520px' }}>
 
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#e6edf3]">{title}</span>
+              <span className="font-bold text-[#1e293b]">{title}</span>
               {queue.length > 1 && (
                 <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-cblue/20 text-cblue border border-cblue/30">
                   {queueIdx + 1} / {queue.length}
@@ -484,7 +484,7 @@ export default function OcrInvoiceModal({
               ].filter(f => f.value).map(f => (
                 <div key={f.label} className="bg-slate-800/60 border border-slate-700 rounded-xl px-3 py-2 flex flex-col gap-0.5">
                   <span className="text-[10px] text-slate-500 uppercase tracking-wide">{f.label}</span>
-                  <span className="font-bold text-[#e6edf3] font-mono text-[11px]">{f.value}</span>
+                  <span className="font-bold text-[#1e293b] font-mono text-[11px]">{f.value}</span>
                 </div>
               ))}
             </div>
@@ -615,7 +615,7 @@ export default function OcrInvoiceModal({
                           {supplierMatch ? (
                             <>
                               <ScoreBadge score={supplierMatch.score} />
-                              <span className="flex-1 text-[#e6edf3] font-semibold truncate">{supplierMatch.item.name}</span>
+                              <span className="flex-1 text-[#1e293b] font-semibold truncate">{supplierMatch.item.name}</span>
                             </>
                           ) : (
                             <span className="flex-1 text-slate-500 text-xs">
@@ -630,18 +630,18 @@ export default function OcrInvoiceModal({
                           </button>
                         </div>
                         {supplierPicker && (
-                          <div className="absolute left-0 right-0 top-full mt-1 bg-[#0d1117] border border-cblue/40 rounded-xl z-20 shadow-xl overflow-hidden">
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-[#ffffff] border border-cblue/40 rounded-xl z-20 shadow-xl overflow-hidden">
                             <div className="p-2 border-b border-slate-800">
                               <input autoFocus value={supSearch} onChange={e => setSupSearch(e.target.value)}
                                 placeholder="Tìm nhà cung cấp…"
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#e6edf3] outline-none focus:border-cblue placeholder:text-slate-600"
+                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] outline-none focus:border-cblue placeholder:text-slate-600"
                               />
                             </div>
                             <div className="max-h-36 overflow-y-auto">
                               {filteredSuppliers.map(s => (
                                 <button key={s.id}
                                   onClick={() => { setSupplierMatch({ item: s, score: 100 }); setSupplierPicker(false); setSupSearch('') }}
-                                  className="w-full px-3 py-2 text-left text-xs hover:bg-cblue/10 transition-colors text-[#e6edf3]"
+                                  className="w-full px-3 py-2 text-left text-xs hover:bg-cblue/10 transition-colors text-[#1e293b]"
                                 >
                                   {s.name}
                                 </button>
@@ -660,13 +660,13 @@ export default function OcrInvoiceModal({
                       <div className="flex flex-col gap-1">
                         <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Ngày đáo hạn TT</label>
                         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-                          className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#e6edf3] outline-none focus:border-cteal"
+                          className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] outline-none focus:border-cteal"
                         />
                       </div>
                       <div className="flex flex-col gap-1">
                         <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Đã trả trước (đ)</label>
                         <input type="number" min="0" value={paidAmount} onChange={e => setPaidAmount(e.target.value)}
-                          className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#e6edf3] font-mono outline-none focus:border-cteal"
+                          className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-mono outline-none focus:border-cteal"
                         />
                       </div>
                     </div>
@@ -675,7 +675,7 @@ export default function OcrInvoiceModal({
                       <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Ghi chú</label>
                       <input value={orderNote} onChange={e => setOrderNote(e.target.value)}
                         placeholder="Ghi chú thêm cho đơn nhập…"
-                        className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#e6edf3] outline-none focus:border-cteal placeholder:text-slate-600"
+                        className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] outline-none focus:border-cteal placeholder:text-slate-600"
                       />
                     </div>
                   </div>
@@ -685,7 +685,7 @@ export default function OcrInvoiceModal({
                 {isSale && aiData?.customer_name && (
                   <div className="px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/40 text-xs">
                     <span className="text-slate-500">Khách hàng: </span>
-                    <span className="font-semibold text-[#e6edf3]">{aiData.customer_name}</span>
+                    <span className="font-semibold text-[#1e293b]">{aiData.customer_name}</span>
                   </div>
                 )}
 
@@ -723,7 +723,7 @@ export default function OcrInvoiceModal({
 
                         {/* Names */}
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-semibold text-[#e6edf3] truncate">{row.item.name}</div>
+                          <div className="text-xs font-semibold text-[#1e293b] truncate">{row.item.name}</div>
                           {row.product ? (
                             <div className="flex items-center gap-1 mt-0.5">
                               <ScoreBadge score={row.score} />
@@ -740,7 +740,7 @@ export default function OcrInvoiceModal({
                         <input type="number" min="1" value={row.qty}
                           onClick={e => e.stopPropagation()}
                           onChange={e => updateQty(i, e.target.value)}
-                          className="w-11 bg-slate-800 border border-slate-700 rounded-lg px-1 py-1 text-center text-xs text-[#e6edf3] outline-none focus:border-cblue shrink-0"
+                          className="w-11 bg-slate-800 border border-slate-700 rounded-lg px-1 py-1 text-center text-xs text-[#1e293b] outline-none focus:border-cblue shrink-0"
                         />
 
                         {/* Price editable */}
@@ -777,11 +777,11 @@ export default function OcrInvoiceModal({
 
                       {/* Manual picker dropdown */}
                       {pickerIdx === i && (
-                        <div className="ml-6 bg-[#0d1117] border border-cblue/40 rounded-xl overflow-hidden shadow-xl z-10 mt-0.5">
+                        <div className="ml-6 bg-[#ffffff] border border-cblue/40 rounded-xl overflow-hidden shadow-xl z-10 mt-0.5">
                           <div className="p-1.5 border-b border-slate-800">
                             <input autoFocus value={pickerSearch} onChange={e => setPickerSearch(e.target.value)}
                               placeholder="Tìm sản phẩm…"
-                              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-[#e6edf3] placeholder:text-slate-600 outline-none focus:border-cblue"
+                              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue"
                             />
                           </div>
                           <div className="max-h-32 overflow-y-auto">
@@ -789,7 +789,7 @@ export default function OcrInvoiceModal({
                               <button key={p.id} onClick={() => pickProduct(i, p)}
                                 className="w-full px-3 py-1.5 text-left hover:bg-cblue/10 transition-colors flex items-center justify-between gap-2">
                                 <div className="min-w-0">
-                                  <div className="text-xs font-semibold text-[#e6edf3] truncate">{p.name}</div>
+                                  <div className="text-xs font-semibold text-[#1e293b] truncate">{p.name}</div>
                                   <div className="text-[10px] text-slate-500 font-mono">{p.sku}</div>
                                 </div>
                                 <div className="text-[10px] font-bold text-cblue shrink-0">
@@ -815,7 +815,7 @@ export default function OcrInvoiceModal({
         <div className="shrink-0 px-5 py-4 border-t border-slate-800 flex gap-2.5">
           {stage === 'qr-result' ? (
             <>
-              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#e6edf3] transition-colors">
+              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors">
                 Đóng
               </button>
               <button
@@ -827,7 +827,7 @@ export default function OcrInvoiceModal({
             </>
           ) : stage !== 'review' ? (
             <>
-              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#e6edf3] transition-colors">
+              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors">
                 Huỷ
               </button>
               <button
@@ -851,7 +851,7 @@ export default function OcrInvoiceModal({
             </>
           ) : (
             <>
-              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#e6edf3] transition-colors">
+              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors">
                 Huỷ
               </button>
               <button

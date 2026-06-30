@@ -43,14 +43,14 @@ function EditRow({ cat, onSave, onDelete }) {
       {editing ? (
         <input
           autoFocus
-          className="flex-1 bg-surface2 border border-cblue rounded-md px-2.5 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-cblue"
+          className="flex-1 bg-surface2 border border-cblue rounded-md px-2.5 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue"
           value={name}
           onChange={e => setName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false) }}
           disabled={loading}
         />
       ) : (
-        <span className="flex-1 text-sm text-[#e6edf3]">{cat.name}</span>
+        <span className="flex-1 text-sm text-[#1e293b]">{cat.name}</span>
       )}
 
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -65,7 +65,7 @@ function EditRow({ cat, onSave, onDelete }) {
             </button>
             <button
               onClick={() => { setEditing(false); setName(cat.name) }}
-              className="px-2.5 py-1 rounded-md bg-surface2 border border-border text-muted text-xs hover:text-[#e6edf3] transition-colors"
+              className="px-2.5 py-1 rounded-md bg-surface2 border border-border text-muted text-xs hover:text-[#1e293b] transition-colors"
             >
               Huỷ
             </button>
@@ -161,7 +161,7 @@ export default function IncomeCategoryModal({ onClose }) {
           <div className="text-[11px] text-muted font-semibold uppercase tracking-wide mb-2">+ Thêm danh mục mới</div>
           <div className="flex gap-2">
             <input
-              className="flex-1 bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-[#e6edf3] placeholder:text-slate-600 outline-none focus:border-cblue transition-all"
+              className="flex-1 bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue transition-all"
               placeholder="VD: Lương thưởng, Cho thuê..."
               value={newName}
               onChange={e => setNewName(e.target.value)}

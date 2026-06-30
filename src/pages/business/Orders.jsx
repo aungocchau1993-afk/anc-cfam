@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+﻿import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { useReactToPrint } from 'react-to-print'
 import { loadOrdersFiltered, cancelOrderRollback, loadOrderDetail, cancelOrderFull, partialReturnItem } from '../../lib/supabase'
@@ -65,11 +65,11 @@ function ConfirmCancelModal({ order, onConfirm, onClose }) {
 
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4">
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4">
         <div className="text-lg font-bold text-cred">⚠️ Hủy đơn hàng?</div>
         <div className="text-sm text-slate-400 leading-relaxed">
-          Đơn <span className="font-mono text-[#e6edf3]">#{(order.order_code || order.id.slice(-8)).toUpperCase()}</span>
-          {partner && <> · <span className="text-[#e6edf3]">{partner}</span></>}
+          Đơn <span className="font-mono text-[#1e293b]">#{(order.order_code || order.id.slice(-8)).toUpperCase()}</span>
+          {partner && <> · <span className="text-[#1e293b]">{partner}</span></>}
           <br/>
           <span className="text-cyellow">
             Hệ thống sẽ tự động{' '}
@@ -82,7 +82,7 @@ function ConfirmCancelModal({ order, onConfirm, onClose }) {
           <span className="text-slate-500 text-xs mt-1 block">Hành động này không thể hoàn tác.</span>
         </div>
         <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="btn-ghost px-4 py-2 text-sm">Huỷ bỏ</button>
+          <button onClick={onClose} className="btn-ghost px-4 py-3 text-base">Huỷ bỏ</button>
           <button onClick={handle} disabled={loading}
             className="px-4 py-2 rounded-lg bg-cred/20 border border-cred/40 text-cred text-sm font-bold hover:bg-cred/30 transition-colors disabled:opacity-60">
             {loading ? 'Đang xử lý…' : 'Xác nhận hủy'}
@@ -126,7 +126,7 @@ function ReturnQtyInput({ item, onConfirm, onCancel, loading }) {
         <input
           type="number" min="1" max={maxReturn}
           value={qty} onChange={e => setQty(Math.min(maxReturn, Math.max(1, parseInt(e.target.value)||1)))}
-          className="w-20 rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-sm text-center font-mono text-[#e6edf3] outline-none focus:border-[#bc8cff] transition-all"
+          className="w-20 rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-sm text-center font-mono text-[#1e293b] outline-none focus:border-[#bc8cff] transition-all"
           autoFocus
         />
         <span className="text-xs text-slate-400">sp · Hoàn tiền:</span>
@@ -134,7 +134,7 @@ function ReturnQtyInput({ item, onConfirm, onCancel, loading }) {
       </div>
       <div className="flex gap-2 justify-end">
         <button type="button" onClick={onCancel}
-          className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-[#e6edf3] transition-colors">
+          className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-[#1e293b] transition-colors">
           Huỷ
         </button>
         <button type="button" onClick={() => onConfirm(qty)} disabled={loading}
@@ -246,12 +246,12 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
 
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl w-full max-w-sm md:max-w-lg mx-4 shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-md md:max-w-2xl mx-4 shadow-2xl flex flex-col max-h-[90vh]">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
           <div>
-            <div className="font-bold text-base text-[#e6edf3] flex items-center gap-2">
+            <div className="font-bold text-base text-[#1e293b] flex items-center gap-2">
               Chi tiết đơn #{code}
               {fetching && <svg className="w-3.5 h-3.5 animate-spin text-slate-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>}
             </div>
@@ -302,7 +302,7 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
         )}
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
+        <div className="p-5 flex flex-col gap-4">
 
           {/* Info grid */}
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -314,11 +314,11 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[11px] text-slate-500 uppercase tracking-wide">Đối tác</span>
-              <span className="text-[#e6edf3] font-semibold truncate">{partner || '—'}</span>
+              <span className="text-[#1e293b] font-semibold truncate">{partner || '—'}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[11px] text-slate-500 uppercase tracking-wide">Tổng tiền còn lại</span>
-              <span className="font-black text-[#e6edf3] tabular-nums">{fmtVNDFull(order.total_amount)}</span>
+              <span className="font-black text-[#1e293b] tabular-nums">{fmtVNDFull(order.total_amount)}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[11px] text-slate-500 uppercase tracking-wide">Trạng thái</span>
@@ -338,7 +338,7 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
               <div className="px-4 py-2.5 bg-slate-800/60 text-[11px] text-slate-400 font-bold uppercase tracking-wide">
                 Chi tiết sản phẩm ({items.length} dòng)
               </div>
-              <div className="divide-y divide-slate-800">
+              <div className="divide-y divide-slate-800 overflow-y-auto max-h-[48vh]">
                 {items.map((item, i) => {
                   const returned    = item.returned_quantity || 0
                   const remaining   = (item.quantity || 0) - returned
@@ -351,7 +351,7 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
                       <div className="flex items-start justify-between gap-3">
                         {/* Tên + SKU */}
                         <div className="min-w-0 flex-1">
-                          <div className={`text-sm truncate ${fullyRet ? 'line-through text-slate-500' : 'text-[#e6edf3]'}`}>
+                          <div className={`text-sm truncate ${fullyRet ? 'line-through text-slate-500' : 'text-[#1e293b]'}`}>
                             {item.products?.name || '—'}
                           </div>
                           <div className="text-[11px] text-slate-500 font-mono mt-0.5">{item.products?.sku}</div>
@@ -402,7 +402,7 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
                             {isImport ? 'giảm công nợ NCC.' : 'giảm chi tiêu khách hàng.'}
                           </div>
                           <div className="flex gap-2 justify-end">
-                            <button onClick={() => setCancelConfirm(false)} className="text-xs text-slate-400 hover:text-[#e6edf3] px-2 py-1 rounded transition-colors">
+                            <button onClick={() => setCancelConfirm(false)} className="text-xs text-slate-400 hover:text-[#1e293b] px-2 py-1 rounded transition-colors">
                               Thôi
                             </button>
                             <button onClick={handleCancelFull} disabled={processing}
@@ -558,7 +558,7 @@ export default function Orders() {
               className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all ${
                 preset === p.id
                   ? 'bg-cblue/20 border-cblue text-cblue'
-                  : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-[#e6edf3]'
+                  : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-[#1e293b]'
               }`}>
               {p.label}
             </button>
@@ -579,10 +579,10 @@ export default function Orders() {
           {preset === 'custom' && (
             <div className="flex items-center gap-2">
               <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-                className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-cblue transition-all" />
+                className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all" />
               <span className="text-muted text-sm">→</span>
               <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-                className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-cblue transition-all" />
+                className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all" />
             </div>
           )}
 
@@ -598,7 +598,7 @@ export default function Orders() {
                 className={`px-3 py-1.5 text-sm font-semibold transition-colors border-l border-border first:border-l-0 ${
                   typeFilter === t.id
                     ? 'bg-cblue/20 text-cblue'
-                    : 'bg-surface text-muted hover:bg-surface2 hover:text-[#e6edf3]'
+                    : 'bg-surface text-muted hover:bg-surface2 hover:text-[#1e293b]'
                 }`}>
                 {t.label}
               </button>
@@ -616,7 +616,7 @@ export default function Orders() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors border-l border-border first:border-l-0 ${
                     viewMode === v.id
                       ? typeFilter === 'export' ? 'bg-cblue/20 text-cblue' : 'bg-cyellow/20 text-cyellow'
-                      : 'bg-surface text-muted hover:bg-surface2 hover:text-[#e6edf3]'
+                      : 'bg-surface text-muted hover:bg-surface2 hover:text-[#1e293b]'
                   }`}>
                   <span>{v.icon}</span>
                   <span className="hidden sm:inline">{v.label}</span>
@@ -661,85 +661,131 @@ export default function Orders() {
               <div className="font-semibold">Không có đơn hàng trong khoảng thời gian này</div>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto whitespace-nowrap">
-              <table className="w-full min-w-0 text-xs md:text-sm">
-                <thead>
-                  <tr className="bg-[#0a0e14] border-b border-border">
-                    <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Mã đơn</th>
-                    <th className="col-hide-mobile px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thời gian</th>
-                    <th className="col-hide-tablet px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Loại</th>
-                    <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Đối tác</th>
-                    <th className="px-3 sm:px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Tổng tiền</th>
-                    <th className="col-hide-mobile px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Lợi nhuận</th>
-                    <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Trạng thái</th>
-                    <th className="px-3 sm:px-4 py-3 text-center text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map(ord => {
-                    const isImport    = ord.type === 'import'
-                    const isCancelled = ord.status === 'cancelled'
-                    const partner     = isImport ? ord.suppliers?.name : ord.customers?.full_name
-                    const code        = (ord.order_code || ord.id.slice(-8)).toUpperCase()
-
-                    return (
-                      <tr key={ord.id}
-                        className={`border-b border-border/40 last:border-0 transition-colors group ${isCancelled ? 'opacity-45' : 'hover:bg-slate-800/30 cursor-pointer'}`}
-                        onClick={() => !isCancelled && setDetailTarget(ord)}>
-
-                        <td className="px-3 sm:px-4 py-3 sm:py-3.5">
-                          <div className="font-mono text-xs bg-surface2 border border-border px-2 py-0.5 rounded text-muted inline-block">#{code}</div>
-                          {/* Thời gian hiện ngay dưới mã đơn trên mobile */}
-                          <div className="sm:hidden text-[10px] text-muted mt-0.5">{fmtDatetime(ord.created_at)}</div>
-                        </td>
-                        <td className="col-hide-mobile px-4 py-3.5 text-xs text-muted whitespace-nowrap">{fmtDatetime(ord.created_at)}</td>
-                        <td className="col-hide-tablet px-4 py-3.5">
-                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${isImport ? 'bg-cyellow/15 text-cyellow border-cyellow/30' : 'bg-cblue/15 text-cblue border-cblue/30'}`}>
+            <>
+              {/* ── Mobile: Card list (< sm) ── */}
+              <div className="sm:hidden flex flex-col gap-2 p-3">
+                {orders.map(ord => {
+                  const isImport    = ord.type === 'import'
+                  const isCancelled = ord.status === 'cancelled'
+                  const partner     = isImport ? ord.suppliers?.name : ord.customers?.full_name
+                  const code        = (ord.order_code || ord.id.slice(-8)).toUpperCase()
+                  return (
+                    <div key={ord.id}
+                      onClick={() => !isCancelled && setDetailTarget(ord)}
+                      className={`bg-[#ffffff] border border-slate-800 rounded-xl p-3.5 ${isCancelled ? 'opacity-40' : 'active:bg-slate-800/40 cursor-pointer'}`}>
+                      <div className="flex items-start justify-between gap-2 mb-2.5">
+                        <div>
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold mb-1 ${isImport ? 'bg-cyellow/15 text-cyellow border-cyellow/30' : 'bg-cblue/15 text-cblue border-cblue/30'}`}>
                             {isImport ? '⬇️ Nhập' : '⬆️ Xuất'}
                           </span>
-                        </td>
-                        <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-sm max-w-[120px] sm:max-w-none">
-                          {partner
-                            ? <span className={`truncate block ${isImport ? 'text-cyellow font-semibold' : 'text-cpurple font-semibold'}`}>{partner}</span>
-                            : <span className="text-muted italic">Khách lẻ</span>}
-                        </td>
-                        <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-right font-mono text-xs sm:text-sm font-semibold text-[#e6edf3] tabular-nums whitespace-nowrap">
-                          {fmtVNDFull(ord.total_amount)}
-                        </td>
-                        <td className="col-hide-mobile px-4 py-3.5 text-right whitespace-nowrap">
-                          {isImport ? <span className="text-muted text-xs">—</span>
-                            : <span className={`font-mono text-sm font-bold tabular-nums ${(ord.profit||0) >= 0 ? 'text-cgreen' : 'text-cred'}`}>{fmtVNDFull(ord.profit)}</span>}
-                        </td>
-                        <td className="px-3 sm:px-4 py-3 sm:py-3.5"><StatusBadge status={ord.status} /></td>
-                        <td className="px-3 sm:px-4 py-3 sm:py-3.5" onClick={e => e.stopPropagation()}>
-                          <div className="flex items-center justify-center gap-1.5">
-                            <button onClick={() => setDetailTarget(ord)} title="Xem chi tiết"
-                              className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
-                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.8"/></svg>
+                          <div className="font-mono text-[11px] text-slate-500">#{code}</div>
+                          <div className="text-[10px] text-slate-600 mt-0.5">{fmtDatetime(ord.created_at)}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-mono font-bold text-sm text-slate-100">{fmtVNDFull(ord.total_amount)}</div>
+                          {!isImport && <div className={`text-xs font-mono font-semibold ${(ord.profit||0) >= 0 ? 'text-cgreen' : 'text-cred'}`}>{fmtVNDFull(ord.profit)}</div>}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        {partner
+                          ? <span className={`text-sm font-semibold truncate ${isImport ? 'text-cyellow' : 'text-cpurple'}`}>{partner}</span>
+                          : <span className="text-slate-500 italic text-sm">Khách lẻ</span>}
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2" onClick={e => e.stopPropagation()}>
+                          <StatusBadge status={ord.status} />
+                          <button onClick={() => setDetailTarget(ord)}
+                            className="h-8 px-3 rounded-lg border border-slate-700 text-slate-400 text-xs hover:border-cblue hover:text-cblue active:scale-95 transition-all">
+                            Chi tiết
+                          </button>
+                          {ord.status === 'completed' && (
+                            <button onClick={() => setCancelTarget(ord)}
+                              className="h-8 w-8 rounded-lg border border-slate-700 text-slate-500 hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
                             </button>
-                            {ord.status !== 'cancelled' && (
-                              <button onClick={() => reprintOrder(ord)} title="In lại hóa đơn"
-                                className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center">
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                                  <path d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                                  <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.8"/>
-                                </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* ── Desktop: Table (≥ sm) ── */}
+              <div className="hidden sm:block w-full overflow-x-auto whitespace-nowrap">
+                <table className="w-full min-w-0 text-xs md:text-sm">
+                  <thead>
+                    <tr className="bg-[#f1f5f9] border-b border-border">
+                      <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Mã đơn</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thời gian</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Loại</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Đối tác</th>
+                      <th className="px-3 sm:px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Tổng tiền</th>
+                      <th className="px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Lợi nhuận</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Trạng thái</th>
+                      <th className="px-3 sm:px-4 py-3 text-center text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map(ord => {
+                      const isImport    = ord.type === 'import'
+                      const isCancelled = ord.status === 'cancelled'
+                      const partner     = isImport ? ord.suppliers?.name : ord.customers?.full_name
+                      const code        = (ord.order_code || ord.id.slice(-8)).toUpperCase()
+                      return (
+                        <tr key={ord.id}
+                          className={`border-b border-border/40 last:border-0 transition-colors group ${isCancelled ? 'opacity-45' : 'hover:bg-slate-800/30 cursor-pointer'}`}
+                          onClick={() => !isCancelled && setDetailTarget(ord)}>
+                          <td className="px-3 sm:px-4 py-3 sm:py-3.5">
+                            <div className="font-mono text-xs bg-surface2 border border-border px-2 py-0.5 rounded text-muted inline-block">#{code}</div>
+                          </td>
+                          <td className="px-4 py-3.5 text-xs text-muted whitespace-nowrap">{fmtDatetime(ord.created_at)}</td>
+                          <td className="px-4 py-3.5">
+                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${isImport ? 'bg-cyellow/15 text-cyellow border-cyellow/30' : 'bg-cblue/15 text-cblue border-cblue/30'}`}>
+                              {isImport ? '⬇️ Nhập' : '⬆️ Xuất'}
+                            </span>
+                          </td>
+                          <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-sm">
+                            {partner
+                              ? <span className={`${isImport ? 'text-cyellow font-semibold' : 'text-cpurple font-semibold'}`}>{partner}</span>
+                              : <span className="text-muted italic">Khách lẻ</span>}
+                          </td>
+                          <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-right font-mono text-xs sm:text-sm font-semibold text-[#1e293b] tabular-nums whitespace-nowrap">
+                            {fmtVNDFull(ord.total_amount)}
+                          </td>
+                          <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                            {isImport ? <span className="text-muted text-xs">—</span>
+                              : <span className={`font-mono text-sm font-bold tabular-nums ${(ord.profit||0) >= 0 ? 'text-cgreen' : 'text-cred'}`}>{fmtVNDFull(ord.profit)}</span>}
+                          </td>
+                          <td className="px-3 sm:px-4 py-3 sm:py-3.5"><StatusBadge status={ord.status} /></td>
+                          <td className="px-3 sm:px-4 py-3 sm:py-3.5" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button onClick={() => setDetailTarget(ord)} title="Xem chi tiết"
+                                className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 active:scale-90 transition-all flex items-center justify-center">
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.8"/></svg>
                               </button>
-                            )}
-                            {ord.status === 'completed' && (
-                              <button onClick={() => setCancelTarget(ord)} title="Hủy đơn & hoàn kho"
-                                className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors flex items-center justify-center">
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                              {ord.status !== 'cancelled' && (
+                                <button onClick={() => reprintOrder(ord)} title="In lại hóa đơn"
+                                  className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center">
+                                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                                    <path d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                                    <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.8"/>
+                                  </svg>
+                                </button>
+                              )}
+                              {ord.status === 'completed' && (
+                                <button onClick={() => setCancelTarget(ord)} title="Hủy đơn & hoàn kho"
+                                  className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors flex items-center justify-center">
+                                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -772,7 +818,7 @@ export default function Orders() {
             <div className="w-full overflow-x-auto whitespace-nowrap">
               <table className="w-full min-w-[640px] text-xs md:text-sm">
                 <thead>
-                  <tr className="bg-[#0a0e14] border-b border-border">
+                  <tr className="bg-[#f1f5f9] border-b border-border">
                     <th className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider w-10">#</th>
                     <th className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider">Sản phẩm</th>
                     <th className="px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Số đơn</th>
@@ -807,7 +853,7 @@ export default function Orders() {
 
                         {/* Tên + SKU + bar */}
                         <td className="px-4 py-3 min-w-[220px]">
-                          <div className="font-semibold text-sm text-[#e6edf3] truncate max-w-[260px]">{p.name}</div>
+                          <div className="font-semibold text-sm text-[#1e293b] truncate max-w-[260px]">{p.name}</div>
                           <div className="text-[10px] text-muted font-mono mt-0.5">{p.sku}</div>
                           {/* Mini progress bar */}
                           <div className="mt-1.5 h-1 bg-slate-800 rounded-full overflow-hidden w-full max-w-[200px]">
@@ -832,7 +878,7 @@ export default function Orders() {
                         </td>
 
                         {/* Doanh thu / tiền nhập */}
-                        <td className="px-4 py-3.5 text-right font-mono text-sm font-semibold text-[#e6edf3] tabular-nums whitespace-nowrap">
+                        <td className="px-4 py-3.5 text-right font-mono text-sm font-semibold text-[#1e293b] tabular-nums whitespace-nowrap">
                           {fmtVNDFull(p.totalRevenue)}
                         </td>
 
@@ -876,7 +922,7 @@ export default function Orders() {
                       </span>
                       <span className="text-[10px] text-muted ml-1">sp</span>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono font-black text-sm text-[#e6edf3] tabular-nums whitespace-nowrap">
+                    <td className="px-4 py-3 text-right font-mono font-black text-sm text-[#1e293b] tabular-nums whitespace-nowrap">
                       {fmtVNDFull(productStats.reduce((s,p) => s + p.totalRevenue, 0))}
                     </td>
                     {typeFilter === 'export' && (

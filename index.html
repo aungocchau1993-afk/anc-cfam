@@ -1,13 +1,66 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- viewport-fit=cover: webview lấp đầy kể cả Dynamic Island -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- PWA / iOS home screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ANC-CFAM" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="msapplication-TileColor" content="#ffffff" />
+
   <title>ANC - CFAM</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
+
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="mask-icon" href="/icon.svg" color="#3fb950" />
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,400&family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Safe Area CSS Variables ── */
+    :root {
+      --sat: env(safe-area-inset-top);
+      --sar: env(safe-area-inset-right);
+      --sab: env(safe-area-inset-bottom);
+      --sal: env(safe-area-inset-left);
+    }
+
+    /* ── Prevent iOS overscroll bounce ── */
+    html, body {
+      overscroll-behavior: none;
+      height: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Prevent iOS text-size-adjust khi xoay màn hình ── */
+    body {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    /* ── Tắt iOS callout khi long-press (copy link...) ── */
+    * { -webkit-touch-callout: none; }
+    input, textarea, select, a { -webkit-touch-callout: default; }
+
+    /* ── Loading skeleton trước khi React mount ── */
+    #root:empty::before {
+      content: '';
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: #f4f6fb;
+    }
+  </style>
 </head>
 <body class="bg-bg text-text">
   <div id="root"></div>

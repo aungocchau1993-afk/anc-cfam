@@ -73,10 +73,10 @@ function DiffModal({ log, onClose }) {
 
   return (
     <ModalOverlay onClose={onClose} className="bg-black/80">
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[85vh] flex flex-col">
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
           <div>
-            <div className="font-bold text-[#e6edf3] flex items-center gap-2">
+            <div className="font-bold text-[#1e293b] flex items-center gap-2">
               Chi tiết thay đổi
               <span className={`text-xs px-2 py-0.5 rounded-full border ${ac.border} ${ac.text}`}>{ac.label}</span>
             </div>
@@ -117,7 +117,7 @@ function DiffModal({ log, onClose }) {
           )}
         </div>
         <div className="px-5 py-3 border-t border-slate-800 shrink-0 flex justify-end">
-          <button onClick={onClose} className="px-4 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs hover:text-[#e6edf3] transition-colors">Đóng</button>
+          <button onClick={onClose} className="px-4 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs hover:text-[#1e293b] transition-colors">Đóng</button>
         </div>
       </div>
     </ModalOverlay>
@@ -228,7 +228,7 @@ export default function ActivityLog() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-black text-[#e6edf3]">🕒 Nhật ký hoạt động</h1>
+          <h1 className="text-xl font-black text-[#1e293b]">🕒 Nhật ký hoạt động</h1>
           <p className="text-xs text-slate-500 mt-0.5">Theo dõi toàn bộ thay đổi trên hệ thống</p>
         </div>
         <button
@@ -252,7 +252,7 @@ export default function ActivityLog() {
           { label: 'Chỉnh sửa', value: countByAction('UPDATE'), icon: '✎',  color: 'text-cblue',    border: 'border-cblue/25'  },
           { label: 'Xóa',       value: countByAction('DELETE'), icon: '✕',  color: 'text-cred',     border: 'border-cred/25'   },
         ].map(s => (
-          <div key={s.label} className={`bg-[#0d1117] border ${s.border} rounded-xl px-4 py-3 flex items-center gap-3`}>
+          <div key={s.label} className={`bg-[#ffffff] border ${s.border} rounded-xl px-4 py-3 flex items-center gap-3`}>
             <span className="text-lg leading-none">{s.icon}</span>
             <div>
               <div className={`text-xl font-black tabular-nums leading-tight ${s.color}`}>{s.value.toLocaleString()}</div>
@@ -263,7 +263,7 @@ export default function ActivityLog() {
       </div>
 
       {/* ── Filters card ───────────────────────────────────────────────────── */}
-      <div className="bg-[#0d1117] border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+      <div className="bg-[#ffffff] border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
 
         {/* Dòng 1: Thời gian + Loại hành động */}
         <div className="flex flex-wrap items-center gap-2">
@@ -277,10 +277,10 @@ export default function ActivityLog() {
           {preset === 'custom' && (
             <div className="flex items-center gap-2">
               <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}
-                className="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-[#e6edf3] outline-none focus:border-cblue" />
+                className="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-[#1e293b] outline-none focus:border-cblue" />
               <span className="text-slate-600 text-xs">→</span>
               <input type="date" value={toDate} onChange={e => setToDate(e.target.value)}
-                className="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-[#e6edf3] outline-none focus:border-cblue" />
+                className="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-[#1e293b] outline-none focus:border-cblue" />
             </div>
           )}
           {/* Divider */}
@@ -317,14 +317,14 @@ export default function ActivityLog() {
               placeholder="Tìm tên hàng, mã SKU, mã đơn…"
               value={searchInp}
               onChange={e => handleSearchChange(e.target.value)}
-              className="w-full rounded-lg bg-slate-900 border border-slate-700 pl-9 pr-3 py-1.5 text-xs text-[#e6edf3] outline-none focus:border-cblue placeholder:text-slate-600"
+              className="w-full rounded-lg bg-slate-900 border border-slate-700 pl-9 pr-3 py-1.5 text-xs text-[#1e293b] outline-none focus:border-cblue placeholder:text-slate-600"
             />
           </div>
         </div>
       </div>
 
       {/* ── Table card ─────────────────────────────────────────────────────── */}
-      <div className="bg-[#0d1117] border border-slate-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#ffffff] border border-slate-800 rounded-2xl overflow-hidden">
 
         {/* Table header */}
         <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between">
@@ -375,7 +375,7 @@ export default function ActivityLog() {
                     </span>
                     <div className="text-[9px] text-slate-600 mt-0.5">{TABLE_LABELS[log.table_name] || log.table_name}</div>
                   </div>
-                  <div className="text-xs text-[#e6edf3] font-medium leading-snug pt-0.5 break-words">{getRecordLabel(log)}</div>
+                  <div className="text-xs text-[#1e293b] font-medium leading-snug pt-0.5 break-words">{getRecordLabel(log)}</div>
                   <div className="text-xs text-slate-400 leading-snug pt-0.5 min-w-0">{getChangeSummary(log)}</div>
                   <div className="flex justify-center pt-0.5">
                     <button
@@ -394,7 +394,7 @@ export default function ActivityLog() {
         {!loading && totalPages > 1 && (
           <div className="flex items-center justify-between px-5 py-3 border-t border-slate-800">
             <button disabled={page === 0} onClick={() => fetch(page-1)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-400 hover:text-[#e6edf3] hover:border-cblue disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-400 hover:text-[#1e293b] hover:border-cblue disabled:opacity-30 disabled:cursor-not-allowed transition-all">
               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
               Trước
             </button>
@@ -414,7 +414,7 @@ export default function ActivityLog() {
               })}
             </div>
             <button disabled={page >= totalPages-1} onClick={() => fetch(page+1)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-400 hover:text-[#e6edf3] hover:border-cblue disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-400 hover:text-[#1e293b] hover:border-cblue disabled:opacity-30 disabled:cursor-not-allowed transition-all">
               Tiếp
               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
             </button>

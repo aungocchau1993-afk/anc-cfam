@@ -348,7 +348,7 @@ export async function adjustStock(id, delta) {
 
 // ── Orders / POS ──────────────────────────────────────────────────────────
 
-export async function createOrder({ customerId, items, note, discount = 0, paidAmount }) {
+export async function createOrder({ customerId, items, note, discount = 0, paidAmount, channelId = 'POS' }) {
   if (!supabase) throw new Error('Supabase chưa cấu hình')
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -373,6 +373,7 @@ export async function createOrder({ customerId, items, note, discount = 0, paidA
     debt_amount:  debt,
     profit,
     note:         note || null,
+    channel_id:   channelId || 'POS',
   }
 
   const { data: rpcResult, error: rpcErr } = await supabase.rpc('create_order_atomic', { payload })
@@ -385,7 +386,7 @@ export async function createOrder({ customerId, items, note, discount = 0, paidA
   // ── Fallback: RPC chưa được tạo trên DB → dùng luồng cũ (multi-query)
   if (rpcErr?.code === 'PGRST202' || rpcErr?.message?.includes('create_order_atomic')) {
     console.warn('[createOrder] RPC create_order_atomic chưa được tạo — dùng fallback. Hãy chạy migration SQL.')
-    return _createOrderFallback({ user, customerId, items, note, totalAmount, paid, debt, profit })
+    return _createOrderFallback({ user, customerId, items, note, totalAmount, paid, debt, profit, channelId })
   }
 
   // Lỗi thực sự từ RPC (ví dụ: không đủ kho) → throw để hiện toast lỗi
@@ -393,7 +394,7 @@ export async function createOrder({ customerId, items, note, discount = 0, paidA
 }
 
 // Fallback multi-query (dùng khi RPC chưa được deploy lên DB)
-async function _createOrderFallback({ user, customerId, items, note, totalAmount, paid, debt, profit }) {
+async function _createOrderFallback({ user, customerId, items, note, totalAmount, paid, debt, profit, channelId = 'POS' }) {
   let order
   const basePayload = {
     user_id:      user.id,
@@ -402,6 +403,7 @@ async function _createOrderFallback({ user, customerId, items, note, totalAmount
     profit,
     note:         note || null,
     status:       'completed',
+    channel_id:   channelId,
   }
 
   const { data: orderFull, error: errFull } = await supabase
@@ -1104,15 +1106,18 @@ export async function deleteIncomeCategory(id) {
 // ── Credit Cards ───────────────────────────────────────────────────────────
 
 function ccToSnake(card) {
-  return {
-    bank_name:          card.bankName,
-    card_holder:        card.cardHolder,
-    card_number_last4:  card.cardNumberLast4,
-    credit_limit:       card.creditLimit ?? 0,
-    used_amount:        card.usedAmount ?? 0,
-    statement_date:     card.statementDate,
-    due_date:           card.dueDate,
-  }
+  const res = {}
+  if (card.bankName !== undefined) res.bank_name = card.bankName
+  if (card.cardHolder !== undefined) res.card_holder = card.cardHolder
+  if (card.cardNumberLast4 !== undefined) res.card_number_last4 = card.cardNumberLast4
+  if (card.cardNumberFull !== undefined) res.card_number_full = card.cardNumberFull || null
+  if (card.creditLimit !== undefined) res.credit_limit = card.creditLimit
+  if (card.usedAmount !== undefined) res.used_amount = card.usedAmount
+  if (card.statementAmount !== undefined) res.statement_amount = card.statementAmount
+  if (card.statementDate !== undefined) res.statement_date = card.statementDate
+  if (card.dueDate !== undefined) res.due_date = card.dueDate
+  if (card.hasStatement !== undefined) res.has_statement = card.hasStatement
+  return res
 }
 
 function ccToCamel(row) {
@@ -1123,10 +1128,13 @@ function ccToCamel(row) {
     bankName:         row.bank_name,
     cardHolder:       row.card_holder,
     cardNumberLast4:  row.card_number_last4,
+    cardNumberFull:   row.card_number_full ?? null,
     creditLimit:      row.credit_limit,
     usedAmount:       row.used_amount,
+    statementAmount:  row.statement_amount ?? 0,
     statementDate:    row.statement_date,
     dueDate:          row.due_date,
+    hasStatement:     row.has_statement ?? false,
     createdAt:        row.created_at,
     updatedAt:        row.updated_at,
   }

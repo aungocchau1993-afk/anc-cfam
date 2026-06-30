@@ -206,7 +206,7 @@ export default function ProfitReport() {
             className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all ${
               preset === p.id
                 ? 'bg-cblue/20 border-cblue text-cblue'
-                : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-[#e6edf3]'
+                : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-[#1e293b]'
             }`}>
             {p.label}
           </button>
@@ -215,10 +215,10 @@ export default function ProfitReport() {
         {preset === 'custom' && (
           <div className="flex items-center gap-2 ml-1">
             <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-              className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-cblue transition-all" />
+              className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all" />
             <span className="text-muted text-sm">→</span>
             <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-              className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-cblue transition-all" />
+              className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all" />
           </div>
         )}
 
@@ -308,7 +308,7 @@ export default function ProfitReport() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px]">
               <thead>
-                <tr className="bg-[#0a0e14] border-b border-border">
+                <tr className="bg-[#f1f5f9] border-b border-border">
                   {['Mã đơn', 'Thời gian', 'Khách hàng', 'Sản phẩm', 'Doanh thu', 'Giá vốn', 'Lợi nhuận', 'Trạng thái'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
@@ -346,7 +346,7 @@ export default function ProfitReport() {
                           {preview || '—'}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 text-right font-mono text-sm font-semibold text-[#e6edf3] tabular-nums whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-right font-mono text-sm font-semibold text-[#1e293b] tabular-nums whitespace-nowrap">
                         {fmtVNDFull(ord.total_amount)}
                       </td>
                       <td className="px-4 py-3.5 text-right font-mono text-sm text-muted tabular-nums whitespace-nowrap">

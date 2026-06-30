@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { getShopConfig, saveShopConfig } from '../../lib/dataService'
@@ -34,14 +34,14 @@ function ShopInfoForm() {
     }
   }
 
-  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2.5 text-sm text-[#e6edf3] placeholder:text-slate-500 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/20 transition-all'
+  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-500 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/20 transition-all min-h-[52px] rounded-xl'
 
   return (
     <form onSubmit={handleSave} className="mb-8 rounded-2xl border border-cblue/25 bg-cblue/5 overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4 border-b border-cblue/15">
         <span className="text-xl">🏪</span>
         <div>
-          <div className="font-black text-sm text-[#e6edf3]">Thông tin cửa hàng</div>
+          <div className="font-black text-sm text-[#1e293b]">Thông tin cửa hàng</div>
           <div className="text-[11px] text-slate-400 mt-0.5">Hiển thị trên tất cả hóa đơn & phiếu nhập</div>
         </div>
       </div>
@@ -230,7 +230,7 @@ function ConfirmModal({ selected, onYes, onNo, loading }) {
   const modules = MODULES.filter(m => selected.includes(m.id))
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#0d1117] border border-cred/40 rounded-2xl w-full max-w-md shadow-2xl shadow-cred/10 overflow-hidden">
+      <div className="bg-[#ffffff] border border-cred/40 rounded-2xl w-full max-w-md shadow-2xl shadow-cred/10 overflow-hidden">
 
         {/* Header */}
         <div className="bg-cred/10 px-6 pt-6 pb-4 border-b border-cred/20 flex items-start gap-4">
@@ -256,7 +256,7 @@ function ConfirmModal({ selected, onYes, onNo, loading }) {
             <div key={m.id} className="flex items-center gap-3 rounded-lg bg-cred/8 border border-cred/20 px-3 py-2.5">
               <span className="text-lg shrink-0">{m.icon}</span>
               <div className="min-w-0">
-                <div className="text-sm font-bold text-[#e6edf3]">{m.label}</div>
+                <div className="text-sm font-bold text-[#1e293b]">{m.label}</div>
                 <div className="text-[11px] text-slate-500 truncate">{m.desc}</div>
               </div>
             </div>
@@ -358,7 +358,7 @@ export default function DataManagement() {
           🗑️
         </div>
         <div>
-          <h2 className="text-xl font-black text-[#e6edf3]">Quản Trị Dữ Liệu</h2>
+          <h2 className="text-xl font-black text-[#1e293b]">Quản Trị Dữ Liệu</h2>
           <p className="text-sm text-slate-400 mt-1 leading-relaxed">
             Xóa dữ liệu theo từng module. Chỉ những mục được chọn mới bị xóa.
             <br/>
@@ -376,7 +376,7 @@ export default function DataManagement() {
             onChange={toggleAll}
             className="w-4 h-4 rounded accent-cred cursor-pointer"
           />
-          <span className="text-sm font-semibold text-slate-300 group-hover:text-[#e6edf3] transition-colors">
+          <span className="text-sm font-semibold text-slate-300 group-hover:text-[#1e293b] transition-colors">
             {allChecked ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
           </span>
         </label>
@@ -421,7 +421,7 @@ export default function DataManagement() {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`font-bold text-sm ${isChecked ? 'text-[#e6edf3]' : 'text-slate-300'}`}>
+                  <span className={`font-bold text-sm ${isChecked ? 'text-[#1e293b]' : 'text-slate-300'}`}>
                     {m.label}
                   </span>
                   {isDone && (

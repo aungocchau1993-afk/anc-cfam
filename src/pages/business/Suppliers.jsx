@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+﻿import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
 import {
@@ -73,7 +73,7 @@ function SupplierModal({ initial, onSave, onClose }) {
     }
   }
 
-  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2.5 text-sm text-[#e6edf3] placeholder:text-slate-600 outline-none focus:border-cteal focus:ring-1 focus:ring-cteal/30 transition-all'
+  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cteal focus:ring-1 focus:ring-cteal/30 transition-all min-h-[52px] rounded-xl'
   const mCls = iCls + ' text-right font-mono text-cteal'
 
   return (
@@ -81,12 +81,12 @@ function SupplierModal({ initial, onSave, onClose }) {
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl w-full max-w-sm md:max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-sm md:max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
           <div>
-            <div className="font-bold text-base text-[#e6edf3]">
+            <div className="font-bold text-base text-[#1e293b]">
               {isEdit ? '✏️ Sửa nhà cung cấp' : '➕ Thêm nhà cung cấp'}
             </div>
             <div className="text-xs text-slate-500 mt-0.5">Thông tin cơ bản và công nợ</div>
@@ -157,7 +157,7 @@ function SupplierModal({ initial, onSave, onClose }) {
           </div>
 
           <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={onClose} className="btn-ghost px-4 py-2 text-sm">Huỷ</button>
+            <button type="button" onClick={onClose} className="btn-ghost px-4 py-3 text-base">Huỷ</button>
             <button type="submit" disabled={saving} className="btn-primary px-5 py-2 text-sm disabled:opacity-60">
               {saving
                 ? <span className="flex items-center gap-2">
@@ -187,14 +187,14 @@ function ConfirmDelete({ supplier, onConfirm, onClose }) {
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4">
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4">
         <div className="text-lg font-bold text-cred">Xoá nhà cung cấp?</div>
         <div className="text-sm text-slate-400">
-          <span className="font-semibold text-[#e6edf3]">{supplier.name}</span><br/>
+          <span className="font-semibold text-[#1e293b]">{supplier.name}</span><br/>
           Hành động này không thể hoàn tác.
         </div>
         <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="btn-ghost px-4 py-2 text-sm">Huỷ</button>
+          <button onClick={onClose} className="btn-ghost px-4 py-3 text-base">Huỷ</button>
           <button
             onClick={handle}
             disabled={loading}
@@ -228,13 +228,13 @@ function ReturnInput({ item, onConfirm, onCancel, loading }) {
       <div className="flex items-center gap-2">
         <input type="number" min="1" max={maxReturn} autoFocus
           value={qty} onChange={e => setQty(Math.min(maxReturn, Math.max(1, parseInt(e.target.value)||1)))}
-          className="w-20 rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-sm text-center font-mono text-[#e6edf3] outline-none focus:border-[#bc8cff]"
+          className="w-20 rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-sm text-center font-mono text-[#1e293b] outline-none focus:border-[#bc8cff]"
         />
         <span className="text-xs text-slate-400">sp · Hoàn tiền:</span>
         <span className="text-xs font-bold font-mono text-cgreen">{fmtVNDFull(qty * (item.price || 0))}</span>
       </div>
       <div className="flex gap-2 justify-end">
-        <button onClick={onCancel} className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-[#e6edf3]">Huỷ</button>
+        <button onClick={onCancel} className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-[#1e293b]">Huỷ</button>
         <button onClick={() => onConfirm(qty)} disabled={loading}
           className="px-3 py-1.5 rounded-lg bg-[#bc8cff]/20 border border-[#bc8cff]/40 text-[#bc8cff] text-xs font-bold hover:bg-[#bc8cff]/30 disabled:opacity-60">
           {loading ? 'Đang xử lý…' : 'Xác nhận trả'}
@@ -348,7 +348,7 @@ function SupplierOrderDrawer({ supplier, onClose, onSupplierUpdated }) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="relative w-full max-w-xl bg-[#0d1117] border-l border-slate-800 flex flex-col shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-xl bg-[#ffffff] border-l border-slate-800 flex flex-col shadow-2xl overflow-hidden">
 
         {/* Header */}
         <div className="flex items-start justify-between px-5 py-5 border-b border-slate-800 shrink-0">
@@ -357,7 +357,7 @@ function SupplierOrderDrawer({ supplier, onClose, onSupplierUpdated }) {
               {supplier.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div className="font-black text-base text-[#e6edf3]">{supplier.name}</div>
+              <div className="font-black text-base text-[#1e293b]">{supplier.name}</div>
               {supplier.phone && <div className="text-xs text-slate-500 font-mono mt-0.5">{supplier.phone}</div>}
             </div>
           </div>
@@ -455,7 +455,7 @@ function SupplierOrderDrawer({ supplier, onClose, onSupplierUpdated }) {
                         )}
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-sm font-black text-[#e6edf3] tabular-nums">{fmtVNDFull(order.total_amount)}</div>
+                        <div className="text-sm font-black text-[#1e293b] tabular-nums">{fmtVNDFull(order.total_amount)}</div>
                         {(order.debt_amount ?? 0) > 0 && (
                           <div className="text-[10px] text-cred tabular-nums">nợ {fmtVNDFull(order.debt_amount)}</div>
                         )}
@@ -490,7 +490,7 @@ function SupplierOrderDrawer({ supplier, onClose, onSupplierUpdated }) {
                                 return (
                                   <div key={item.id} className="contents">
                                     <tr className="hover:bg-slate-800/30">
-                                      <td className="px-3 py-2 text-[#e6edf3]">
+                                      <td className="px-3 py-2 text-[#1e293b]">
                                         <div className="truncate max-w-[150px]">{item.products?.name || '—'}</div>
                                         <div className="text-[10px] text-slate-500 font-mono">{item.products?.sku}</div>
                                       </td>
@@ -959,7 +959,7 @@ export default function Suppliers() {
 
         <button
           onClick={() => setShowAdd(true)}
-          className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"
+          className="btn-primary flex items-center gap-2 px-4 py-3 text-base"
         >
           <span className="text-base leading-none">＋</span> Thêm NCC
         </button>
@@ -985,29 +985,67 @@ export default function Suppliers() {
             )}
           </div>
         ) : (
-          <div className="w-full overflow-x-auto whitespace-nowrap">
-            <table className="w-full min-w-[700px] text-xs md:text-sm">
-              <thead>
-                <tr className="bg-[#0a0e14] border-b border-border">
-                  {['Nhà cung cấp', 'Số điện thoại', 'Địa chỉ', 'Công nợ', 'Ghi chú', 'Ngày tạo', 'Thao tác'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {displayedSuppliers.map(s => (
-                  <tr
-                    key={s.id}
-                    onClick={() => setViewTarget(s)}
-                    className="border-b border-border/40 last:border-0 hover:bg-slate-800/40 transition-colors group cursor-pointer"
-                  >
+          <>
+            {/* ── Mobile: Card list (< sm) ── */}
+            <div className="sm:hidden flex flex-col gap-2 p-3">
+              {displayedSuppliers.map(s => (
+                <div key={s.id} onClick={() => setViewTarget(s)}
+                  className="bg-[#ffffff] border border-slate-800 rounded-xl p-3.5 active:bg-slate-800/40 cursor-pointer">
+                  <div className="flex items-center gap-3 mb-2.5">
+                    <div className="w-11 h-11 rounded-xl bg-cteal/15 border border-cteal/20 flex items-center justify-center text-base font-black text-cteal shrink-0">
+                      {s.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-slate-100 truncate">{s.name}</div>
+                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">{fmtPhone(s.phone)}</div>
+                      {s.address && <div className="text-[11px] text-slate-600 truncate mt-0.5">{s.address}</div>}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className={`font-mono text-sm font-bold tabular-nums ${s.debt > 0 ? 'text-cred' : s.debt < 0 ? 'text-cgreen' : 'text-slate-500'}`}>
+                        {s.debt !== 0 ? fmtVNDFull(s.debt) : '✓ Đã TT'}
+                      </div>
+                      <div className="text-[10px] text-slate-600">Công nợ</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => setViewTarget(s)} className="flex-1 h-9 rounded-lg border border-slate-700 text-slate-400 text-xs hover:border-cblue hover:text-cblue active:scale-95 transition-all">
+                      👁 Chi tiết
+                    </button>
+                    <button onClick={() => setEditTarget(s)} className="flex-1 h-9 rounded-lg border border-slate-700 text-slate-400 text-xs hover:border-cteal hover:text-cteal active:scale-95 transition-all">
+                      ✏️ Sửa
+                    </button>
+                    <button onClick={() => setDeleteTarget(s)} className="h-9 w-9 rounded-lg border border-slate-700 text-slate-500 hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Desktop: Table (≥ sm) ── */}
+            <div className="hidden sm:block w-full overflow-x-auto whitespace-nowrap">
+              <table className="w-full min-w-[700px] text-xs md:text-sm">
+                <thead>
+                  <tr className="bg-[#f1f5f9] border-b border-border">
+                    {['Nhà cung cấp', 'Số điện thoại', 'Địa chỉ', 'Công nợ', 'Ghi chú', 'Ngày tạo', 'Thao tác'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayedSuppliers.map(s => (
+                    <tr
+                      key={s.id}
+                      onClick={() => setViewTarget(s)}
+                      className="border-b border-border/40 last:border-0 hover:bg-slate-800/40 transition-colors group cursor-pointer"
+                    >
                     {/* Tên */}
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-cteal/15 border border-cteal/20 flex items-center justify-center text-sm font-black text-cteal shrink-0">
                           {s.name.charAt(0).toUpperCase()}
                         </div>
-                        <div className="font-semibold text-sm text-[#e6edf3] truncate max-w-[180px]">
+                        <div className="font-semibold text-sm text-[#1e293b] truncate max-w-[180px]">
                           {s.name}
                         </div>
                       </div>
@@ -1083,9 +1121,10 @@ export default function Suppliers() {
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

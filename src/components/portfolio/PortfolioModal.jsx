@@ -81,7 +81,7 @@ export default function PortfolioModal({ categoryKey, onClose }) {
                       value={form[f.key] || ''}
                       onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                       placeholder={f.placeholder}
-                      className="w-full rounded-lg bg-slate-900/50 border border-slate-700 px-3 py-2 text-sm text-[#e6edf3] placeholder:text-slate-600 outline-none transition-all focus:border-cpurple focus:ring-2 focus:ring-purple-500/50"
+                      className="w-full rounded-lg bg-slate-900/50 border border-slate-700 px-3 py-2 text-sm text-[#1e293b] placeholder:text-slate-600 outline-none transition-all focus:border-cpurple focus:ring-2 focus:ring-purple-500/50"
                     />
                 }
               </div>
@@ -120,7 +120,7 @@ export default function PortfolioModal({ categoryKey, onClose }) {
                         {cfg.icon}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-bold text-sm text-[#e6edf3] truncate">{h.name || '—'}</div>
+                        <div className="font-bold text-sm text-[#1e293b] truncate">{h.name || '—'}</div>
                         <div className="md:hidden text-xs text-slate-500 mt-0.5">{getMetric(h)}</div>
                       </div>
                     </div>

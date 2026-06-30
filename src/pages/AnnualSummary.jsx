@@ -15,7 +15,7 @@ function SummaryCard({ label, value, sub, tone = 'blue' }) {
   return (
     <div className={`rounded-xl border p-4 ${tones[tone]}`}>
       <div className="text-[11px] font-semibold uppercase tracking-wider text-white/55">{label}</div>
-      <div className="mt-2 text-2xl font-black tabular-nums text-[#e6edf3]">{value}</div>
+      <div className="mt-2 text-2xl font-black tabular-nums text-[#1e293b]">{value}</div>
       {sub && <div className="mt-1 text-[11px] text-slate-500">{sub}</div>}
     </div>
   )
@@ -61,7 +61,7 @@ export default function AnnualSummary() {
 
       <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden shadow-2xl shadow-black/20">
         <div className="px-5 py-4 border-b border-slate-800 bg-slate-950/40">
-          <div className="text-sm font-bold text-[#e6edf3]">Bảng Tổng Hợp Theo Năm</div>
+          <div className="text-sm font-bold text-[#1e293b]">Bảng Tổng Hợp Theo Năm</div>
           <div className="text-xs text-slate-500 mt-0.5">So sánh thu nhập, chi phí, thặng dư, đầu tư và tài sản cuối năm</div>
         </div>
 

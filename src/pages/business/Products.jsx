@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+﻿import { useState, useEffect, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
 import { loadProducts, insertProduct, updateProduct, deleteProduct, uploadProductImage, deleteProductImage, upsertProducts, uploadProductImageBlob, loadSuppliers, createImportOrder } from '../../lib/supabase'
@@ -6,8 +6,10 @@ import { buildReceiptHtml, printViaIframe } from '../../lib/printReceipt'
 import ModalOverlay from '../../components/ui/ModalOverlay'
 import OcrInvoiceModal from '../../components/business/OcrInvoiceModal'
 import AuditLogModal from '../../components/business/AuditLogModal'
+import { ImportMethodModal, ImportBestExpressModal } from './ImportBestExpress'
 import useDebounce from '../../hooks/useDebounce'
 import { formatMoneyLive, parseVNDInput, fmtVNDFull, removeVietnameseTones } from '../../lib/formatters'
+const fmtVND = v => v >= 1e6 ? `${(v/1e6).toFixed(1)}tr` : v >= 1e3 ? `${(v/1e3).toFixed(0)}k` : (v||0).toString()
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -20,6 +22,14 @@ function stockBadge(qty) {
   if (qty <= 0)  return { label: 'Hết hàng', cls: 'bg-cred/15 text-cred border-cred/30' }
   if (qty <= 10) return { label: 'Sắp hết',  cls: 'bg-cyellow/15 text-cyellow border-cyellow/30' }
   return { label: 'Còn hàng', cls: 'bg-cgreen/15 text-cgreen border-cgreen/30' }
+}
+
+// Sinh danh sách số trang có dấu "…"
+function pageList(cur, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  if (cur <= 4)        return [1, 2, 3, 4, 5, '…', total]
+  if (cur >= total - 3) return [1, '…', total - 4, total - 3, total - 2, total - 1, total]
+  return [1, '…', cur - 1, cur, cur + 1, '…', total]
 }
 
 // ── Product Form Modal ─────────────────────────────────────────────────────
@@ -94,24 +104,24 @@ function AddProductModal({ initial, onSave, onClose }) {
     }
   }
 
-  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2.5 text-sm text-[#e6edf3] placeholder:text-slate-600 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/30 transition-all'
+  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/30 transition-all min-h-[52px] rounded-xl'
   const mCls = iCls + ' text-right font-mono text-cblue'
 
   return (
     <ModalOverlay onClose={onClose} className="bg-black/75">
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl w-full max-w-lg md:max-w-2xl mx-4 shadow-2xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0">
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-lg md:max-w-2xl mx-4 shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-800 shrink-0">
           <div>
-            <div className="font-bold text-base text-[#e6edf3]">{isEdit ? '✏️ Sửa hàng hóa' : '➕ Thêm hàng mới'}</div>
+            <div className="font-bold text-base text-[#1e293b]">{isEdit ? '✏️ Sửa hàng hóa' : '➕ Thêm hàng mới'}</div>
             <div className="text-xs text-slate-500 mt-0.5">{isEdit ? 'Chỉnh sửa thông tin sản phẩm' : 'Tạo mã hàng mới chưa từng có trong hệ thống'}</div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg leading-none">×</button>
+          <button onClick={onClose} className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-xl leading-none">×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
           <div className="flex flex-col md:flex-row gap-0">
             {/* Ảnh */}
-            <div className="md:w-56 shrink-0 flex flex-col items-center gap-3 p-6 border-b md:border-b-0 md:border-r border-slate-800">
+            <div className="md:w-52 shrink-0 flex flex-col items-center gap-3 p-4 border-b md:border-b-0 md:border-r border-slate-800">
               <div className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider self-start">Hình ảnh</div>
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
               <label onClick={() => fileInputRef.current?.click()} className="relative w-full h-48 rounded-xl overflow-hidden cursor-pointer group block">
@@ -137,8 +147,8 @@ function AddProductModal({ initial, onSave, onClose }) {
             </div>
 
             {/* Fields */}
-            <div className="flex-1 p-6 flex flex-col gap-4">
-              <div className="grid grid-cols-[110px_1fr] gap-3">
+            <div className="flex-1 p-4 flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] gap-3">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">SKU *</label>
                   <input className={iCls + ' uppercase font-mono'} placeholder="SP001" value={form.sku}
@@ -213,9 +223,9 @@ function AddProductModal({ initial, onSave, onClose }) {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 mt-auto">
-                <button type="button" onClick={onClose} className="btn-ghost px-4 py-2 text-sm">Huỷ</button>
-                <button type="submit" disabled={saving} className="btn-primary px-6 py-2 text-sm disabled:opacity-60">
+              <div className="flex gap-2 pt-2 mt-auto">
+                <button type="button" onClick={onClose} className="btn-ghost flex-1">Huỷ</button>
+                <button type="submit" disabled={saving} className="btn-primary flex-1 disabled:opacity-60">
                   {saving
                     ? <span className="flex items-center gap-2"><svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>{imageFile ? 'Đang upload ảnh…' : 'Đang lưu…'}</span>
                     : isEdit ? 'Cập nhật' : 'Thêm hàng mới'
@@ -246,7 +256,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
   const searchRef = useRef(null)
   const wrapRef   = useRef(null)
 
-  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-[#e6edf3] placeholder:text-slate-600 outline-none focus:border-cgreen focus:ring-1 focus:ring-cgreen/20 transition-all'
+  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cgreen focus:ring-1 focus:ring-cgreen/20 transition-all min-h-[52px] rounded-xl'
 
   useEffect(() => {
     loadSuppliers('').then(setSuppliersList).catch(() => {})
@@ -417,7 +427,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
     const showSurplus = debtDelta < 0
     return (
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-[#0d1117] border border-cgreen/30 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+        <div className="bg-[#ffffff] border border-cgreen/30 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="bg-cgreen/10 px-5 py-5 text-center border-b border-cgreen/20">
             <div className="text-4xl mb-1.5">✅</div>
@@ -440,7 +450,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
             </div>
             <div className="flex justify-between text-sm border-t border-slate-800 pt-2 mt-1">
               <span className="text-slate-400">Tổng tiền nhập</span>
-              <span className="font-bold text-[#e6edf3] tabular-nums">{fmtVNDFull(total)}</span>
+              <span className="font-bold text-[#1e293b] tabular-nums">{fmtVNDFull(total)}</span>
             </div>
             {paidAmount !== total && (
               <div className="flex justify-between text-sm">
@@ -486,16 +496,16 @@ function ImportStockModal({ products = [], onImported, onClose }) {
     {/* Step 1 — Xác nhận nhập */}
     {showConfirm && (
       <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
-        <div className="bg-[#0d1117] border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+        <div className="bg-[#ffffff] border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
           <div className="px-6 pt-6 pb-4 text-center">
             <div className="text-3xl mb-3">📦</div>
-            <div className="text-base font-black text-[#e6edf3]">Xác nhận nhập kho</div>
+            <div className="text-base font-black text-[#1e293b]">Xác nhận nhập kho</div>
             <div className="text-xs text-slate-400 mt-1.5">Bạn có chắc muốn thực hiện phiếu nhập này không?</div>
           </div>
           <div className="mx-5 mb-4 rounded-xl bg-slate-800/60 border border-slate-700 px-4 py-3 flex flex-col gap-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-400">Số sản phẩm</span>
-              <span className="font-semibold text-[#e6edf3]">{cart.length} loại · {cart.reduce((s,i)=>s+i.qty,0)} sp</span>
+              <span className="font-semibold text-[#1e293b]">{cart.length} loại · {cart.reduce((s,i)=>s+i.qty,0)} sp</span>
             </div>
             {selectedSupplier && (
               <div className="flex justify-between">
@@ -529,12 +539,12 @@ function ImportStockModal({ products = [], onImported, onClose }) {
     )}
 
     <ModalOverlay onClose={onClose} className="bg-black/75">
-      <div className="bg-[#0d1117] border border-slate-700/80 rounded-2xl w-full max-w-3xl mx-4 shadow-2xl max-h-[90vh] flex flex-col">
+      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-3xl mx-4 shadow-2xl max-h-[90vh] flex flex-col">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0">
           <div>
-            <div className="font-bold text-base text-[#e6edf3]">📦 Nhập Kho</div>
+            <div className="font-bold text-base text-[#1e293b]">📦 Nhập Kho</div>
             <div className="text-xs text-slate-500 mt-0.5">Thêm nhiều sản phẩm cùng lúc → xác nhận 1 lần</div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg leading-none">×</button>
@@ -568,7 +578,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
                         : <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-500 text-[10px] font-bold shrink-0">{p.sku?.slice(0,2)}</div>
                       }
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm text-[#e6edf3] truncate">{p.name}</div>
+                        <div className="text-sm text-[#1e293b] truncate">{p.name}</div>
                         <div className="text-[11px] text-slate-500 font-mono">{p.sku} · Tồn: <span className={p.stockQuantity > 0 ? 'text-cgreen' : 'text-cred'}>{p.stockQuantity}</span></div>
                       </div>
                       <span className="text-xs font-mono text-cgreen shrink-0">+ Thêm</span>
@@ -610,7 +620,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
                               : <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 text-[10px] font-bold shrink-0">{item.sku?.slice(0,2)}</div>
                             }
                             <div className="min-w-0">
-                              <div className="text-xs font-semibold text-[#e6edf3] truncate max-w-[160px]">{item.name}</div>
+                              <div className="text-xs font-semibold text-[#1e293b] truncate max-w-[160px]">{item.name}</div>
                               <div className="text-[10px] text-slate-500 font-mono">{item.sku}</div>
                             </div>
                           </div>
@@ -645,7 +655,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
                             className="w-28 rounded-lg bg-slate-800 border border-slate-700 text-cblue text-sm text-right font-mono outline-none focus:border-cblue px-2 py-1 transition-all"
                           />
                         </td>
-                        <td className="px-4 py-2.5 text-right tabular-nums font-mono text-sm font-bold text-[#e6edf3] whitespace-nowrap">
+                        <td className="px-4 py-2.5 text-right tabular-nums font-mono text-sm font-bold text-[#1e293b] whitespace-nowrap">
                           {lineAmt > 0 ? fmtVNDFull(lineAmt) : '—'}
                         </td>
                         <td className="px-4 py-2.5 text-center">
@@ -688,7 +698,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
               {/* Tổng tiền nhập */}
               <div className="flex justify-between items-center text-sm">
                 <span className="text-slate-400">Tổng tiền nhập</span>
-                <span className="font-black text-base tabular-nums text-[#e6edf3]">{fmtVNDFull(grandTotal)}</span>
+                <span className="font-black text-base tabular-nums text-[#1e293b]">{fmtVNDFull(grandTotal)}</span>
               </div>
 
               {/* Input: Số tiền TT */}
@@ -707,7 +717,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
                   onBlur={() => {
                     if (!paidInput || parseVNDInput(paidInput) >= grandTotal) setPaidInput('')
                   }}
-                  className="flex-1 min-w-0 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-right font-mono font-bold text-[#e6edf3] placeholder:text-slate-600 outline-none focus:border-cgreen focus:ring-1 focus:ring-cgreen/20 transition-all"
+                  className="flex-1 min-w-0 bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-base text-right font-mono font-bold text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cgreen focus:ring-1 focus:ring-cgreen/20 transition-all"
                 />
               </div>
 
@@ -752,7 +762,7 @@ function ImportStockModal({ products = [], onImported, onClose }) {
                 <span className="text-cgreen font-bold">{cart.length}</span> sản phẩm
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-sm hover:text-[#e6edf3] transition-colors">Huỷ</button>
+                <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors">Huỷ</button>
                 <button
                   onClick={handleConfirmClick}
                   disabled={cart.length === 0}
@@ -818,9 +828,9 @@ function AdjustStockModal({ product, onSave, onClose }) {
           <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors">×</button>
         </div>
         <div className="p-5 flex flex-col gap-4">
-          <div className="text-sm text-[#e6edf3]">
+          <div className="text-sm text-[#1e293b]">
             <span className="font-bold text-cblue">{product.name}</span>
-            <span className="text-muted ml-2">· Tồn hiện tại: <strong className="text-[#e6edf3]">{fmtQty(product.stockQuantity)}</strong></span>
+            <span className="text-muted ml-2">· Tồn hiện tại: <strong className="text-[#1e293b]">{fmtQty(product.stockQuantity)}</strong></span>
           </div>
 
           {/* Mode selector */}
@@ -836,7 +846,7 @@ function AdjustStockModal({ product, onSave, onClose }) {
           <input
             autoFocus type="number" min="0" placeholder="Số lượng"
             value={delta} onChange={e => setDelta(e.target.value)}
-            className="w-full rounded-lg bg-slate-900/60 border border-slate-700 px-3 py-2 text-sm text-[#e6edf3] outline-none focus:border-cblue transition-all text-center font-mono text-lg"
+            className="w-full rounded-lg bg-slate-900/60 border border-slate-700 px-4 py-3 text-base text-[#1e293b] outline-none focus:border-cblue transition-all text-center font-mono text-lg"
           />
 
           <div className="flex items-center justify-between rounded-lg bg-surface2 border border-border px-3 py-2 text-xs">
@@ -847,7 +857,7 @@ function AdjustStockModal({ product, onSave, onClose }) {
           </div>
 
           <div className="flex justify-end gap-2">
-            <button onClick={onClose} className="btn-ghost px-4 py-2 text-sm">Huỷ</button>
+            <button onClick={onClose} className="btn-ghost px-4 py-3 text-base">Huỷ</button>
             <button onClick={handleSave} disabled={saving} className="btn-primary px-5 py-2 text-sm disabled:opacity-60">
               {saving ? 'Đang lưu…' : 'Xác nhận'}
             </button>
@@ -864,8 +874,15 @@ export default function Products() {
   const [products, setProducts]   = useState([])
   const [loading, setLoading]     = useState(true)
   const [search, setSearch]       = useState('')
+  const [stockFilter, setStockFilter] = useState('all') // 'all' | 'in' | 'low' | 'out'
+  const [page, setPage]         = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [rowMenu, setRowMenu]   = useState(null) // { p, top, left }
   const [isAddOpen,      setIsAddOpen]      = useState(false)
   const [isImportOpen,   setIsImportOpen]   = useState(false)
+  const [isImportExcelOpen, setIsImportExcelOpen] = useState(false)
+  const [showImportMethod, setShowImportMethod]   = useState(false)
+  const [isBestImportOpen, setIsBestImportOpen]   = useState(false)
   const [showOcrPurchase,setShowOcrPurchase]= useState(false)
   const [showLowStock,   setShowLowStock]   = useState(false)
   const [editTarget,   setEditTarget]   = useState(null)
@@ -889,11 +906,17 @@ export default function Products() {
 
   // Client-side filter — hỗ trợ gõ không dấu tiếng Việt
   const displayedProducts = useMemo(() => {
-    const safeList  = Array.isArray(products) ? products : []
+    let list = Array.isArray(products) ? products : []
+
+    // Filter theo trạng thái tồn kho
+    if (stockFilter === 'out') list = list.filter(p => (p.stockQuantity ?? 0) <= 0)
+    else if (stockFilter === 'low') list = list.filter(p => (p.stockQuantity ?? 0) > 0 && (p.stockQuantity ?? 0) <= 10)
+    else if (stockFilter === 'in')  list = list.filter(p => (p.stockQuantity ?? 0) > 10)
+
     const safeQuery = removeVietnameseTones(search || '')
     const words     = safeQuery.split(' ').filter(Boolean)
-    if (!words.length) return safeList
-    return safeList.filter(p => {
+    if (!words.length) return list
+    return list.filter(p => {
       const name = removeVietnameseTones(p?.name)
       const sku  = removeVietnameseTones(p?.sku)
       return words.every(w => name.includes(w) || sku.includes(w))
@@ -910,7 +933,18 @@ export default function Products() {
       if (!aExact && bExact) return 1
       return 0
     })
-  }, [products, search])
+  }, [products, search, stockFilter])
+
+  // ── Pagination ──────────────────────────────────────────
+  const totalPages = Math.max(1, Math.ceil(displayedProducts.length / pageSize))
+  useEffect(() => { setPage(1) }, [search, stockFilter, pageSize])
+  useEffect(() => { if (page > totalPages) setPage(totalPages) }, [page, totalPages])
+  const pagedProducts = useMemo(
+    () => displayedProducts.slice((page - 1) * pageSize, page * pageSize),
+    [displayedProducts, page, pageSize]
+  )
+  const pageStart = displayedProducts.length === 0 ? 0 : (page - 1) * pageSize + 1
+  const pageEnd   = Math.min(page * pageSize, displayedProducts.length)
 
   // ── Low-stock alerts ────────────────────────────────────
   const lowStockItems = useMemo(() =>
@@ -1189,7 +1223,7 @@ export default function Products() {
                       >
                         {/* Tên + SKU */}
                         <div className="min-w-0">
-                          <div className="text-xs font-semibold text-[#e6edf3] truncate group-hover:text-cyellow transition-colors">
+                          <div className="text-xs font-semibold text-[#1e293b] truncate group-hover:text-cyellow transition-colors">
                             {p.name}
                           </div>
                           <div className="text-[10px] font-mono text-slate-500 mt-0.5">{p.sku}</div>
@@ -1224,12 +1258,39 @@ export default function Products() {
               {/* Footer */}
               <div className="px-4 py-2.5 border-t border-cyellow/15 flex items-center justify-between bg-cyellow/5">
                 <span className="text-[10px] text-cyellow/60">Click vào dòng để chỉnh sửa sản phẩm</span>
-                <button
-                  onClick={() => setShowLowStock(false)}
-                  className="text-[10px] text-cyellow/60 hover:text-cyellow transition-colors"
-                >
-                  Thu gọn ▲
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      const rows = lowStockItems
+                        .sort((a, b) => (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0))
+                        .map(p => ({
+                          'Tên sản phẩm': p.name,
+                          'SKU':          p.sku || '',
+                          'Tồn kho':      p.stockQuantity ?? 0,
+                          'Tối thiểu':    p.minStock ?? 5,
+                          'Còn thiếu':    (p.minStock ?? 5) - (p.stockQuantity ?? 0),
+                          'Trạng thái':   (p.stockQuantity ?? 0) <= 0 ? 'Hết hàng' : 'Sắp hết',
+                        }))
+                      const ws = XLSX.utils.json_to_sheet(rows)
+                      ws['!cols'] = [{ wch: 40 }, { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 12 }]
+                      const wb = XLSX.utils.book_new()
+                      XLSX.utils.book_append_sheet(wb, ws, 'Tồn Kho Thấp')
+                      XLSX.writeFile(wb, `Canh_Bao_Ton_Kho_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`)
+                    }}
+                    className="flex items-center gap-1 text-[10px] font-semibold text-cgreen/80 hover:text-cgreen border border-cgreen/20 hover:border-cgreen/50 bg-cgreen/5 hover:bg-cgreen/10 px-2.5 py-1 rounded-lg transition-all"
+                  >
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Xuất Excel
+                  </button>
+                  <button
+                    onClick={() => setShowLowStock(false)}
+                    className="text-[10px] text-cyellow/60 hover:text-cyellow transition-colors"
+                  >
+                    Thu gọn ▲
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1239,11 +1300,11 @@ export default function Products() {
       {/* KPI row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         {[
-          { label: 'Tổng SKU',       value: kpis.totalSkus,              unit: 'sản phẩm', color: 'text-cblue',   icon: '📦' },
-          { label: 'Tổng tồn kho',   value: fmtQty(kpis.totalStock),     unit: 'sản phẩm', color: 'text-cgreen',  icon: '🏭' },
-          { label: 'Giá trị vốn',    value: fmtVNDFull(kpis.stockValue), unit: '',         color: 'text-cyellow', icon: '💰' },
-          { label: 'Doanh thu tiềm năng', value: fmtVNDFull(kpis.potentialRev), unit: '', color: 'text-cteal',  icon: '📈' },
-          { label: 'Hết hàng',       value: kpis.outOfStock,             unit: 'mặt hàng', color: kpis.outOfStock > 0 ? 'text-cred' : 'text-cgreen', icon: '⚠️' },
+          { label: 'Tổng SKU',            value: kpis.totalSkus,              unit: 'sản phẩm', color: 'text-cblue',   icon: '📦' },
+          { label: 'Tổng tồn kho',        value: fmtQty(kpis.totalStock),     unit: 'sản phẩm', color: 'text-cgreen',  icon: '🏭' },
+          { label: 'Giá trị vốn',         value: fmtVNDFull(kpis.stockValue), unit: '',          color: 'text-cyellow', icon: '💰' },
+          { label: 'Doanh thu tiềm năng', value: fmtVNDFull(kpis.potentialRev), unit: '',        color: 'text-cteal',  icon: '📈' },
+          { label: 'Hết hàng',            value: kpis.outOfStock,             unit: 'mặt hàng',  color: kpis.outOfStock > 0 ? 'text-cred' : 'text-cgreen', icon: '⚠️' },
         ].map(k => (
           <div key={k.label} className="card p-4 relative overflow-hidden">
             <div className="absolute top-3 right-3 text-2xl opacity-20">{k.icon}</div>
@@ -1255,62 +1316,55 @@ export default function Products() {
       </div>
 
       {/* Toolbar */}
-      {/* Toolbar — responsive: search full-width trên mobile, nút phụ ẩn text */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
-        <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
+        <div className="relative w-full sm:flex-1 sm:min-w-[220px]">
           {isSearching
-            ? <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cblue animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
-            : <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.8"/><path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+            ? <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-cblue animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
+            : <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.8"/><path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
           }
           <input
-            className="input-base pl-9 text-sm"
-            placeholder="Tìm tên hoặc SKU…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+            className="w-full h-11 pl-10 pr-4 rounded-xl bg-white border border-slate-700 text-sm text-[#1e293b] placeholder:text-slate-500 outline-none focus:border-cblue focus:ring-2 focus:ring-cblue/15 transition-all"
+            placeholder="Tìm tên hoặc SKU sản phẩm..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
 
-        {/* Nút phụ — icon-only trên mobile, có text trên tablet+ */}
         <button onClick={handleExportExcel} title="Xuất Excel"
-          className="h-10 sm:h-auto flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white active:scale-95 touch-manipulation transition-all whitespace-nowrap">
-          <span>📤</span><span className="hidden sm:inline">Xuất Excel</span>
+          className="h-11 flex items-center gap-2 px-3.5 rounded-xl bg-white border border-slate-700 text-[#1e293b] text-sm font-semibold hover:bg-surface2 hover:border-slate-600 active:scale-95 touch-manipulation transition-all whitespace-nowrap shadow-sm">
+          <span className="text-emerald-600 text-base">⤓</span><span className="hidden sm:inline">Xuất Excel</span>
         </button>
 
         <button onClick={() => importRef.current?.click()} disabled={importing} title="Nhập Excel"
-          className="h-10 sm:h-auto flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white active:scale-95 touch-manipulation transition-all disabled:opacity-50 whitespace-nowrap">
-          {importing
-            ? <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
-            : <span>📥</span>
-          }
+          className="h-11 flex items-center gap-2 px-3.5 rounded-xl bg-white border border-slate-700 text-[#1e293b] text-sm font-semibold hover:bg-surface2 hover:border-slate-600 active:scale-95 touch-manipulation transition-all disabled:opacity-50 whitespace-nowrap shadow-sm">
+          {importing ? <svg className="w-4 h-4 animate-spin text-cblue" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg> : <span className="text-blue-600 text-base">⤒</span>}
           <span className="hidden sm:inline">{importing ? (importProgress || 'Đang nhập…') : 'Nhập Excel'}</span>
         </button>
         <input ref={importRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportExcel} />
 
-        <button onClick={() => setIsImportOpen(true)} title="Nhập kho"
-          className="h-10 sm:h-auto flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-cgreen/15 border border-cgreen/40 text-cgreen text-sm font-semibold hover:bg-cgreen/25 active:scale-95 touch-manipulation transition-all whitespace-nowrap">
-          <span>📦</span><span className="hidden sm:inline">Nhập kho</span>
+        <button onClick={() => setShowImportMethod(true)} title="Nhập kho"
+          className="h-11 flex items-center gap-2 px-3.5 rounded-xl bg-white border border-slate-700 text-[#1e293b] text-sm font-semibold hover:bg-surface2 hover:border-slate-600 active:scale-95 touch-manipulation transition-all whitespace-nowrap shadow-sm">
+          <span className="text-base">📦</span><span className="hidden sm:inline">Nhập kho</span>
         </button>
 
         <button onClick={() => setShowOcrPurchase(true)} title="Quét HĐ nhập"
-          className="h-10 sm:h-auto flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-cteal/10 border border-cteal/40 text-cteal text-sm font-medium hover:bg-cteal/20 active:scale-95 touch-manipulation transition-all whitespace-nowrap">
-          <span>🤖</span><span className="hidden sm:inline">Quét HĐ nhập</span>
+          className="h-11 flex items-center gap-2 px-3.5 rounded-xl bg-white border border-slate-700 text-[#1e293b] text-sm font-semibold hover:bg-surface2 hover:border-slate-600 active:scale-95 touch-manipulation transition-all whitespace-nowrap shadow-sm">
+          <span className="text-base">🧾</span><span className="hidden sm:inline">Quét HĐ nhập</span>
         </button>
 
         <button onClick={() => setIsAddOpen(true)}
-          className="btn-primary flex items-center gap-2 px-4 py-2 text-sm ml-auto sm:ml-0">
-          <span className="text-base leading-none">＋</span>
-          <span className="hidden xs:inline">Thêm hàng mới</span>
-          <span className="xs:hidden">Thêm</span>
+          className="h-11 flex items-center gap-2 px-4 rounded-xl bg-cblue text-white text-sm font-semibold hover:opacity-90 active:scale-95 touch-manipulation transition-all whitespace-nowrap shadow-sm ml-auto sm:ml-0">
+          <span className="text-base leading-none">＋</span><span>Thêm sản phẩm</span>
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-slate-900 rounded-xl border border-slate-700 shadow-md overflow-hidden text-xs md:text-sm text-slate-200">
+      <div className="bg-white rounded-2xl border border-slate-800 shadow-sm overflow-hidden text-xs md:text-sm">
 
         {/* Table header bar */}
-        <div className="px-5 py-3 border-b border-slate-700 bg-slate-800/80 flex items-center justify-between">
-          <span className="font-semibold text-slate-100">Danh sách hàng hóa</span>
-          <span className="text-xs font-medium text-slate-400 bg-slate-700/60 border border-slate-600 px-2.5 py-1 rounded-full">
+        <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="w-7 h-7 rounded-lg bg-cblue/10 text-cblue flex items-center justify-center text-sm">📋</span>
+            <span className="font-bold text-[15px] text-[#1e293b]">Danh sách hàng hóa</span>
+          </div>
+          <span className="text-xs font-semibold text-slate-500 bg-surface2 border border-slate-800 px-3 py-1 rounded-full">
             {search ? `${displayedProducts.length} / ${products.length} mặt hàng · "${search}"` : `${products.length} mặt hàng`}
           </span>
         </div>
@@ -1321,162 +1375,223 @@ export default function Products() {
           <div className="text-center py-16 text-slate-500">
             <div className="text-4xl mb-3">📦</div>
             <div className="font-semibold mb-1">{search ? 'Không tìm thấy kết quả' : 'Chưa có hàng hóa'}</div>
-            {!search && (
-              <button onClick={() => setIsAddOpen(true)} className="btn-primary mt-3 px-5 py-2 text-sm">
-                ＋ Thêm hàng đầu tiên
-              </button>
-            )}
+            {!search && <button onClick={() => setIsAddOpen(true)} className="btn-primary mt-3 px-5 py-2 text-sm">＋ Thêm hàng đầu tiên</button>}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-0">
-              <thead>
-                <tr className="bg-slate-800 border-b border-slate-700">
-                  <th className="sticky top-0 z-10 bg-slate-800 px-3 sm:px-4 py-3 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
-                    Sản phẩm
-                  </th>
-                  <th className="col-hide-mobile sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                    Giá vốn
-                  </th>
-                  <th className="col-hide-tablet sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                    Giá bán
-                  </th>
-                  <th className="col-hide-mobile sticky top-0 z-10 bg-slate-800 px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                    Lợi nhuận
-                  </th>
-                  <th className="col-hide-tablet sticky top-0 z-10 bg-slate-800 px-4 py-3 text-center text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                    ĐVT
-                  </th>
-                  <th className="sticky top-0 z-10 bg-slate-800 px-3 sm:px-4 py-3 text-right text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                    Tồn kho
-                  </th>
-                  <th className="col-hide-tablet sticky top-0 z-10 bg-slate-800 px-4 py-3 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                    Trạng thái
-                  </th>
-                  <th className="sticky top-0 z-10 bg-slate-800 px-3 sm:px-4 py-3 text-center text-[11px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {displayedProducts.map(p => {
-                  const profit = (p.sellPrice || 0) - (p.importPrice || 0)
-                  const margin = p.importPrice > 0 ? (profit / p.importPrice * 100).toFixed(0) : 0
-                  const badge  = stockBadge(p.stockQuantity)
-                  return (
-                    <tr key={p.id} onClick={() => setEditTarget(p)} className="hover:bg-slate-800/80 transition-colors group cursor-pointer">
-
-                      {/* Ảnh + Tên + SKU */}
-                      <td className="px-4 py-2.5">
-                        <div className="flex items-center gap-3">
-                          {p.imageUrl ? (
-                            <img src={p.imageUrl} alt={p.name}
-                              className="w-9 h-9 rounded-lg object-cover border border-slate-700 shrink-0" />
-                          ) : (
-                            <div className="w-9 h-9 rounded-lg border border-slate-700 bg-slate-800 flex items-center justify-center shrink-0 text-slate-600">
-                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                                <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
-                                <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <div className="font-medium text-slate-100 whitespace-nowrap">{p.name}</div>
-                            <div className="text-[11px] text-slate-400 font-mono mt-0.5">{p.sku}</div>
-                          </div>
+          <>
+            {/* ── Mobile: Card list (< sm) ── */}
+            <div className="sm:hidden flex flex-col gap-2 p-3">
+              {pagedProducts.map(p => {
+                const profit = (p.sellPrice || 0) - (p.importPrice || 0)
+                const badge  = stockBadge(p.stockQuantity)
+                return (
+                  <div key={p.id} onClick={() => setEditTarget(p)}
+                    className="bg-[#ffffff] border border-slate-800 rounded-xl p-3.5 active:bg-slate-800/40 cursor-pointer">
+                    <div className="flex items-center gap-3 mb-3">
+                      {p.imageUrl ? (
+                        <img src={p.imageUrl} alt={p.name} className="w-12 h-12 rounded-xl object-cover border border-slate-700 shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl border border-slate-700 bg-slate-800 flex items-center justify-center shrink-0 text-slate-600">
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </div>
-                      </td>
-
-                      {/* Giá vốn — ẩn trên mobile */}
-                      <td className="col-hide-mobile px-4 py-2.5 text-right tabular-nums whitespace-nowrap text-slate-400 font-mono">
-                        {fmtVNDFull(p.importPrice)}
-                      </td>
-
-                      {/* Giá bán — ẩn trên mobile nhỏ */}
-                      <td className="col-hide-tablet px-4 py-2.5 text-right tabular-nums whitespace-nowrap font-semibold text-slate-100 font-mono">
-                        {fmtVNDFull(p.sellPrice)}
-                      </td>
-
-                      {/* Lợi nhuận — ẩn trên mobile */}
-                      <td className="col-hide-mobile px-4 py-2.5 text-right whitespace-nowrap">
-                        <div className={`tabular-nums font-semibold font-mono ${profit >= 0 ? 'text-cgreen' : 'text-cred'}`}>
-                          {fmtVNDFull(profit)}
-                        </div>
-                        <div className="text-[10px] text-slate-500">{margin}%</div>
-                      </td>
-
-                      {/* ĐVT — ẩn trên mobile */}
-                      <td className="col-hide-tablet px-4 py-2.5 text-center whitespace-nowrap">
-                        {p.unit ? (
-                          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-cblue/10 border border-cblue/25 text-cblue">
-                            {p.unit}
-                          </span>
-                        ) : (
-                          <span className="text-slate-600 text-[11px]">—</span>
-                        )}
-                      </td>
-
-                      {/* Tồn kho — luôn hiện */}
-                      <td className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                        <button
-                          onClick={() => setStockTarget(p)}
-                          title="Điều chỉnh tồn kho"
-                          className={`tabular-nums font-bold font-mono transition-colors hover:opacity-75 ${
-                            p.stockQuantity <= 0  ? 'text-cred' :
-                            p.stockQuantity <= 10 ? 'text-cyellow' : 'text-slate-100'
-                          }`}
-                        >
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-slate-100 truncate">{p.name}</div>
+                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">{p.sku}</div>
+                      </div>
+                      <span className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${badge.cls}`}>{badge.label}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center mb-3">
+                      <div className="bg-slate-800/60 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 mb-0.5">Giá vốn</div>
+                        <div className="text-xs font-mono text-slate-300">{fmtVND(p.importPrice)}</div>
+                      </div>
+                      <div className="bg-slate-800/60 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 mb-0.5">Giá bán</div>
+                        <div className="text-xs font-mono font-semibold text-slate-100">{fmtVND(p.sellPrice)}</div>
+                      </div>
+                      <div className="bg-slate-800/60 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 mb-0.5">Tồn kho</div>
+                        <button onClick={e => { e.stopPropagation(); setStockTarget(p) }}
+                          className={`text-xs font-bold font-mono ${p.stockQuantity <= 0 ? 'text-cred' : p.stockQuantity <= 10 ? 'text-cyellow' : 'text-cgreen'}`}>
                           {fmtQty(p.stockQuantity)}
                         </button>
-                      </td>
+                      </div>
+                    </div>
+                    <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => setStockTarget(p)}
+                        className="flex-1 h-9 rounded-lg border border-slate-700 text-slate-400 text-xs font-medium hover:border-cyellow hover:text-cyellow active:scale-95 transition-all">
+                        📦 Kho
+                      </button>
+                      <button onClick={() => setEditTarget(p)}
+                        className="flex-1 h-9 rounded-lg border border-slate-700 text-slate-400 text-xs font-medium hover:border-cblue hover:text-cblue active:scale-95 transition-all">
+                        ✏️ Sửa
+                      </button>
+                      <button onClick={() => setAuditTarget(p)}
+                        className="flex-1 h-9 rounded-lg border border-slate-700 text-slate-400 text-xs font-medium hover:border-cpurple hover:text-cpurple active:scale-95 transition-all">
+                        🕒 Lịch sử
+                      </button>
+                      <button onClick={() => setDeleteTarget(p)}
+                        className="h-9 w-9 rounded-lg border border-slate-700 text-slate-500 hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
 
-                      {/* Trạng thái — ẩn trên mobile nhỏ */}
-                      <td className="col-hide-tablet px-4 py-2.5">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${
-                          p.stockQuantity <= 0
-                            ? 'bg-cred/10 text-cred border-cred/30'
-                            : p.stockQuantity <= 10
-                            ? 'bg-cyellow/10 text-cyellow border-cyellow/30'
-                            : 'bg-cgreen/10 text-cgreen border-cgreen/30'
-                        }`}>
-                          {badge.label}
-                        </span>
-                      </td>
+            {/* ── Desktop: Table (≥ sm) ── */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full min-w-0">
+                <thead>
+                  <tr className="bg-surface2 border-b border-slate-800">
+                    <th className="sticky top-0 z-10 bg-surface2 px-3 sm:px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">Sản phẩm</th>
+                    <th className="sticky top-0 z-10 bg-surface2 px-4 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Giá vốn</th>
+                    <th className="sticky top-0 z-10 bg-surface2 px-4 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Giá bán</th>
+                    <th className="sticky top-0 z-10 bg-surface2 px-4 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Lợi nhuận</th>
+                    <th className="sticky top-0 z-10 bg-surface2 px-4 py-3 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">ĐVT</th>
+                    <th className="sticky top-0 z-10 bg-surface2 px-3 sm:px-4 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Tồn kho</th>
+                    <th className="sticky top-0 z-10 bg-surface2 px-4 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                      <select value={stockFilter} onChange={e => setStockFilter(e.target.value)} onClick={e => e.stopPropagation()}
+                        className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider bg-transparent border-none outline-none cursor-pointer hover:text-[#1e293b] transition-colors">
+                        <option value="all">Trạng thái ▾</option>
+                        <option value="in">✅ Còn hàng</option>
+                        <option value="low">⚠️ Sắp hết</option>
+                        <option value="out">❌ Hết hàng</option>
+                      </select>
+                    </th>
+                    <th className="sticky top-0 z-10 bg-surface2 px-3 sm:px-4 py-3 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {pagedProducts.map(p => {
+                    const profit = (p.sellPrice || 0) - (p.importPrice || 0)
+                    const margin = p.importPrice > 0 ? (profit / p.importPrice * 100).toFixed(0) : 0
+                    const badge  = stockBadge(p.stockQuantity)
+                    return (
+                      <tr key={p.id} onClick={() => setEditTarget(p)} className="hover:bg-surface2 transition-colors group cursor-pointer">
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-3">
+                            {p.imageUrl ? (
+                              <img src={p.imageUrl} alt={p.name} className="w-9 h-9 rounded-lg object-cover border border-slate-800 shrink-0" />
+                            ) : (
+                              <div className="w-9 h-9 rounded-lg border border-slate-800 bg-surface2 flex items-center justify-center shrink-0 text-slate-500">
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <div className="font-semibold text-[#1e293b] whitespace-nowrap group-hover:text-cblue transition-colors">{p.name}</div>
+                              <div className="text-[11px] text-slate-500 font-mono mt-0.5">{p.sku}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap text-[#1e293b] font-mono">{fmtVNDFull(p.importPrice)}</td>
+                        <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap text-[#1e293b] font-mono">{fmtVNDFull(p.sellPrice)}</td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          <div className={`tabular-nums font-bold font-mono ${profit >= 0 ? 'text-cgreen' : 'text-cred'}`}>{fmtVNDFull(profit)}</div>
+                          <div className="text-[10px] text-slate-500">{margin}%</div>
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          {p.unit
+                            ? <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-600">{p.unit}</span>
+                            : <span className="text-slate-500 text-[11px]">—</span>}
+                        </td>
+                        <td className="px-3 sm:px-4 py-3 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                          <button onClick={() => setStockTarget(p)} title="Điều chỉnh tồn kho"
+                            className={`tabular-nums font-bold font-mono transition-colors hover:opacity-75 ${p.stockQuantity <= 0 ? 'text-cred' : p.stockQuantity <= 10 ? 'text-cyellow' : 'text-[#1e293b]'}`}>
+                            {fmtQty(p.stockQuantity)}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${badge.cls}`}>{badge.label}</span>
+                        </td>
+                        <td className="px-3 sm:px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
+                          <button
+                            title="Thao tác"
+                            onClick={e => {
+                              const r = e.currentTarget.getBoundingClientRect()
+                              setRowMenu({ p, top: r.bottom + 4, left: Math.max(8, r.right - 184) })
+                            }}
+                            className="w-8 h-8 rounded-lg text-slate-400 hover:text-[#1e293b] hover:bg-surface2 transition-colors flex items-center justify-center mx-auto"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
 
-                      {/* Thao tác */}
-                      <td className="px-3 sm:px-4 py-2.5" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-1.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => setStockTarget(p)} title="Điều chỉnh kho"
-                            className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cyellow hover:text-cyellow hover:bg-cyellow/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" stroke="currentColor" strokeWidth="1.8"/><path d="M12 11v2m0 0v2m0-2h2m-2 0H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                          </button>
-                          <button onClick={() => setEditTarget(p)} title="Sửa"
-                            className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cblue hover:text-cblue hover:bg-cblue/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          </button>
-                          <button onClick={() => setAuditTarget(p)} title="Lịch sử chỉnh sửa"
-                            className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cpurple hover:text-cpurple hover:bg-cpurple/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                          </button>
-                          <button onClick={() => setDeleteTarget(p)} title="Xoá"
-                            className="w-8 h-8 sm:w-7 sm:h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cred hover:text-cred hover:bg-cred/10 active:scale-90 transition-all touch-manipulation flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+        {/* Pagination */}
+        {!loading && displayedProducts.length > 0 && (
+          <div className="px-5 py-3.5 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-slate-500 order-2 sm:order-1">
+              Hiển thị <span className="font-semibold text-[#1e293b]">{pageStart}-{pageEnd}</span> / {displayedProducts.length} sản phẩm
+            </div>
+            <div className="flex items-center gap-1 order-1 sm:order-2">
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
+                className="w-8 h-8 rounded-lg border border-slate-800 text-slate-500 hover:bg-surface2 hover:text-[#1e293b] disabled:opacity-40 disabled:hover:bg-transparent transition-colors flex items-center justify-center">‹</button>
+              {pageList(page, totalPages).map((n, i) => n === '…'
+                ? <span key={'e' + i} className="w-8 h-8 flex items-center justify-center text-slate-500 text-xs">…</span>
+                : <button key={n} onClick={() => setPage(n)}
+                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center ${
+                      n === page ? 'bg-cblue text-white shadow-sm' : 'border border-slate-800 text-slate-500 hover:bg-surface2 hover:text-[#1e293b]'
+                    }`}>{n}</button>
+              )}
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                className="w-8 h-8 rounded-lg border border-slate-800 text-slate-500 hover:bg-surface2 hover:text-[#1e293b] disabled:opacity-40 disabled:hover:bg-transparent transition-colors flex items-center justify-center">›</button>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-500 order-3">
+              Hiển thị
+              <select value={pageSize} onChange={e => setPageSize(Number(e.target.value))}
+                className="bg-white border border-slate-800 rounded-lg pl-2 pr-1 py-1 text-[#1e293b] font-semibold outline-none focus:border-cblue cursor-pointer">
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              sản phẩm / trang
+            </div>
           </div>
         )}
       </div>
 
+      {/* Row action menu (kebab) */}
+      {rowMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setRowMenu(null)} />
+          <div className="fixed z-50 w-44 bg-white border border-slate-800 rounded-xl shadow-xl py-1"
+            style={{ top: rowMenu.top, left: rowMenu.left }}>
+            <button onClick={() => { setEditTarget(rowMenu.p); setRowMenu(null) }}
+              className="w-full text-left px-3 py-2 text-xs font-medium text-[#1e293b] hover:bg-surface2 transition-colors flex items-center gap-2">✏️ Sửa thông tin</button>
+            <button onClick={() => { setStockTarget(rowMenu.p); setRowMenu(null) }}
+              className="w-full text-left px-3 py-2 text-xs font-medium text-[#1e293b] hover:bg-surface2 transition-colors flex items-center gap-2">📦 Điều chỉnh kho</button>
+            <button onClick={() => { setAuditTarget(rowMenu.p); setRowMenu(null) }}
+              className="w-full text-left px-3 py-2 text-xs font-medium text-[#1e293b] hover:bg-surface2 transition-colors flex items-center gap-2">🕒 Lịch sử thay đổi</button>
+            <div className="h-px bg-slate-800 my-1" />
+            <button onClick={() => { setDeleteTarget(rowMenu.p); setRowMenu(null) }}
+              className="w-full text-left px-3 py-2 text-xs font-semibold text-cred hover:bg-cred/10 transition-colors flex items-center gap-2">🗑️ Xoá sản phẩm</button>
+          </div>
+        </>
+      )}
+
       {/* Modals */}
       {isAddOpen    && <AddProductModal onSave={handleAdd} onClose={() => setIsAddOpen(false)} />}
+      {showImportMethod && (
+        <ImportMethodModal
+          onManual={() => { setShowImportMethod(false); setIsImportOpen(true) }}
+          onExcel={() =>  { setShowImportMethod(false); setIsImportExcelOpen(true) }}
+          onBest={() =>   { setShowImportMethod(false); setIsBestImportOpen(true) }}
+          onClose={() =>  setShowImportMethod(false)}
+        />
+      )}
       {isImportOpen && <ImportStockModal products={products} onImported={handleImported} onClose={() => setIsImportOpen(false)} />}
+      {isBestImportOpen && <ImportBestExpressModal products={products} onImported={handleImported} onClose={() => setIsBestImportOpen(false)} />}
       {showOcrPurchase && (
         <OcrInvoiceModal
           type="PURCHASE"
@@ -1511,11 +1626,11 @@ export default function Products() {
           <div className="bg-surface border border-border rounded-2xl w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4">
             <div className="text-lg font-bold text-cred">Xoá hàng hóa?</div>
             <div className="text-sm text-muted">
-              <span className="font-semibold text-[#e6edf3]">[{deleteTarget.sku}] {deleteTarget.name}</span><br/>
+              <span className="font-semibold text-[#1e293b]">[{deleteTarget.sku}] {deleteTarget.name}</span><br/>
               Hành động này không thể hoàn tác. Các đơn hàng đã có sẽ không bị ảnh hưởng.
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setDeleteTarget(null)} className="btn-ghost px-4 py-2 text-sm">Huỷ</button>
+              <button onClick={() => setDeleteTarget(null)} className="btn-ghost px-4 py-3 text-base">Huỷ</button>
               <button onClick={handleDelete} disabled={deleting}
                 className="px-4 py-2 rounded-lg bg-cred/20 border border-cred/40 text-cred text-sm font-bold hover:bg-cred/30 transition-colors disabled:opacity-60">
                 {deleting ? 'Đang xoá…' : 'Xoá'}

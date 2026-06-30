@@ -22,7 +22,7 @@ export default function ShopSettings() {
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
       <div>
-        <h2 className="text-xl font-black text-[#e6edf3]">⚙️ Cài đặt cửa hàng</h2>
+        <h2 className="text-xl font-black text-[#1e293b]">⚙️ Cài đặt cửa hàng</h2>
         <p className="text-sm text-muted mt-1">Thông tin xuất hiện trên hóa đơn in</p>
       </div>
 
@@ -62,7 +62,7 @@ export default function ShopSettings() {
           ) : (
             <>
               <span className="text-3xl">🖼️</span>
-              <span className="text-sm font-bold text-[#e6edf3]">Click để tải logo lên</span>
+              <span className="text-sm font-bold text-[#1e293b]">Click để tải logo lên</span>
               <span className="text-xs text-muted">PNG, JPG, SVG, WEBP — khuyến nghị nền trong suốt</span>
             </>
           )}
@@ -126,7 +126,7 @@ export default function ShopSettings() {
             ) : (
               <>
                 <span className="text-2xl">📱</span>
-                <span className="text-sm font-bold text-[#e6edf3]">Upload ảnh QR từ máy</span>
+                <span className="text-sm font-bold text-[#1e293b]">Upload ảnh QR từ máy</span>
                 <span className="text-xs text-muted">Nếu không upload, hệ thống tự tạo QR từ số TK</span>
               </>
             )}
@@ -160,7 +160,7 @@ export default function ShopSettings() {
           <button
             onClick={() => set('printMode', 'thermal')}
             className={`flex-1 py-3 text-sm font-bold transition-colors flex flex-col items-center gap-0.5
-              ${cfg.printMode === 'thermal' ? 'bg-cblue text-white' : 'bg-surface2 text-muted hover:text-[#e6edf3]'}`}
+              ${cfg.printMode === 'thermal' ? 'bg-cblue text-white' : 'bg-surface2 text-muted hover:text-[#1e293b]'}`}
           >
             <span className="text-lg">🖨️</span>
             <span>Nhiệt 80mm</span>
@@ -169,7 +169,7 @@ export default function ShopSettings() {
           <button
             onClick={() => set('printMode', 'a4')}
             className={`flex-1 py-3 text-sm font-bold transition-colors flex flex-col items-center gap-0.5
-              ${cfg.printMode === 'a4' ? 'bg-cblue text-white' : 'bg-surface2 text-muted hover:text-[#e6edf3]'}`}
+              ${cfg.printMode === 'a4' ? 'bg-cblue text-white' : 'bg-surface2 text-muted hover:text-[#1e293b]'}`}
           >
             <span className="text-lg">📄</span>
             <span>A5 / PDF</span>
@@ -179,12 +179,12 @@ export default function ShopSettings() {
 
         {cfg.printMode === 'thermal' && (
           <div className="bg-surface2 rounded-xl p-4 text-xs text-muted space-y-2 border border-border">
-            <div className="font-bold text-[#e6edf3] text-sm mb-1">📋 Hướng dẫn cài máy in nhiệt 80mm</div>
+            <div className="font-bold text-[#1e293b] text-sm mb-1">📋 Hướng dẫn cài máy in nhiệt 80mm</div>
             <ol className="list-decimal list-inside space-y-1.5 leading-relaxed">
-              <li>Vào <strong className="text-[#e6edf3]">Settings → Bluetooth & devices → Printers & scanners</strong> → chọn máy in nhiệt</li>
-              <li>Nhấn <strong className="text-[#e6edf3]">Printing preferences</strong> → đổi Paper Size thành <strong className="text-[#e6edf3]">80 x 200mm</strong> (hoặc "Receipt" tùy hãng)</li>
-              <li>Khi hộp thoại in xuất hiện → chọn đúng máy in → <strong className="text-[#e6edf3]">không cần chỉnh gì thêm</strong></li>
-              <li>Để in tự động không hiện hộp thoại: dùng trình duyệt <strong className="text-[#e6edf3]">Chrome</strong> → vào <code className="bg-black/30 px-1 rounded">chrome://settings/content/pdfDocuments</code> → bật <em>Download PDFs</em> và dùng extension như <em>PrintFriendly</em></li>
+              <li>Vào <strong className="text-[#1e293b]">Settings → Bluetooth & devices → Printers & scanners</strong> → chọn máy in nhiệt</li>
+              <li>Nhấn <strong className="text-[#1e293b]">Printing preferences</strong> → đổi Paper Size thành <strong className="text-[#1e293b]">80 x 200mm</strong> (hoặc "Receipt" tùy hãng)</li>
+              <li>Khi hộp thoại in xuất hiện → chọn đúng máy in → <strong className="text-[#1e293b]">không cần chỉnh gì thêm</strong></li>
+              <li>Để in tự động không hiện hộp thoại: dùng trình duyệt <strong className="text-[#1e293b]">Chrome</strong> → vào <code className="bg-black/30 px-1 rounded">chrome://settings/content/pdfDocuments</code> → bật <em>Download PDFs</em> và dùng extension như <em>PrintFriendly</em></li>
             </ol>
             <div className="mt-2 bg-cyellow/10 border border-cyellow/20 rounded px-3 py-2 text-cyellow text-[11px]">
               💡 Mẹo: Đặt máy in nhiệt làm <strong>máy in mặc định</strong> trong Windows để bấm Ctrl+P là in ngay
