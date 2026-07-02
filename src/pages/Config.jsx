@@ -1,8 +1,10 @@
+import { Settings2 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { ALLOCATIONS, ALLOC_LABELS } from '../lib/constants'
+import PageHeader from '../components/ui/PageHeader'
 
 const PROFILES = ['Thận trọng','Cân bằng','Tăng trưởng','Tùy chỉnh']
-const PROFILE_COLORS = { 'Thận trọng':'#3fb950','Cân bằng':'#58a6ff','Tăng trưởng':'#f85149','Tùy chỉnh':'#bc8cff' }
+const PROFILE_COLORS = { 'Thận trọng':'#16a34a','Cân bằng':'#2563eb','Tăng trưởng':'#ef4444','Tùy chỉnh':'#7c3aed' }
 
 export default function Config() {
   const { state, actions } = useApp()
@@ -10,8 +12,15 @@ export default function Config() {
   const customTotal = Object.values(state.customAllocation).reduce((s,v)=>s+v,0)
 
   return (
+    <div className="w-full">
+      <PageHeader
+        icon={Settings2}
+        title="Cấu Hình"
+        subtitle="Khẩu vị rủi ro, tỷ trọng phân bổ và ngưỡng quản trị danh mục"
+      />
     <div className="p-6 max-w-3xl">
-      <h2 className="text-lg font-bold mb-4">Khẩu Vị Rủi Ro</h2>
+
+      <h2 className="text-section font-bold mb-4">Khẩu Vị Rủi Ro</h2>
 
       {/* Profile pills */}
       <div className="flex gap-2 flex-wrap mb-6">
@@ -29,16 +38,16 @@ export default function Config() {
       <div className="card mb-6 overflow-x-auto">
         <table className="w-full min-w-[500px]">
           <thead>
-            <tr className="border-b border-border">
-              <th className="text-left py-2 text-xs text-muted font-semibold">Kênh</th>
+            <tr className="bg-gray-50 border-b border-border">
+              <th className="text-left py-2 px-3 text-xs text-muted font-semibold">Kênh</th>
               {PROFILES.map(p => <th key={p} className="text-right py-2 text-xs text-muted font-semibold px-3">{p}</th>)}
               <th className="text-right py-2 text-xs font-semibold text-cblue px-3">Đang dùng</th>
             </tr>
           </thead>
           <tbody>
             {Object.keys(ALLOC_LABELS).map(k => (
-              <tr key={k} className="border-b border-border/40">
-                <td className="py-2.5 text-sm">{ALLOC_LABELS[k]}</td>
+              <tr key={k} className="border-b border-border/40 hover:bg-surface2">
+                <td className="py-2.5 px-3 text-sm">{ALLOC_LABELS[k]}</td>
                 {PROFILES.map(p => (
                   <td key={p} className="py-2.5 text-right px-3">
                     {p === 'Tùy chỉnh'
@@ -58,7 +67,7 @@ export default function Config() {
               </tr>
             ))}
             <tr>
-              <td className="py-2 text-xs font-bold text-muted">TỔNG</td>
+              <td className="py-2 px-3 text-xs font-bold text-muted">TỔNG</td>
               {PROFILES.map(p => {
                 const t = p==='Tùy chỉnh' ? customTotal : Object.values(ALLOCATIONS[p]||{}).reduce((s,v)=>s+v,0)
                 return <td key={p} className={`py-2 text-right px-3 text-xs font-bold ${t===100?'text-cgreen':'text-cred'}`}>{t}%</td>
@@ -70,7 +79,7 @@ export default function Config() {
       </div>
 
       {/* Thresholds */}
-      <h2 className="text-lg font-bold mb-3">Ngưỡng Quản Trị</h2>
+      <h2 className="text-section font-bold mb-3">Ngưỡng Quản Trị</h2>
       <div className="card max-w-xs">
         <div className="mb-3">
           <label className="text-xs text-muted block mb-1">Ngưỡng lệch cho phép (±%)</label>
@@ -82,6 +91,7 @@ export default function Config() {
           />
         </div>
       </div>
+    </div>
     </div>
   )
 }

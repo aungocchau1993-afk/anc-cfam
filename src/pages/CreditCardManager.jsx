@@ -1,9 +1,14 @@
 import { useMemo, useRef, useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
+import {
+  CreditCard, Pencil, Trash2, Download, Upload, ScanLine, Plus, X,
+  Eye, EyeOff, Check, FileText, AlertTriangle, Save, Loader2, Image as ImageIcon,
+} from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { formatMoneyLive, parseVNDInput, fmtVNDFull } from '../lib/formatters'
 import { scanStatement } from '../lib/invoiceScanner'
+import PageHeader from '../components/ui/PageHeader'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -137,29 +142,29 @@ function findBestMatchingCard(result, cards) {
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
-function SummaryCard({ label, value, sub, icon, tone }) {
+function SummaryCard({ label, value, sub, icon: Icon, tone }) {
   const tones = {
-    blue:   'from-[#0c2d54] to-[#1a4a7a] border-[#1a4a7a] text-cblue',
-    red:    'from-[#4a1c1c] to-[#7a2c2c] border-[#7a2c2c] text-cred',
-    green:  'from-[#0d4429] to-[#1a6b3d] border-[#2d5a3d] text-cgreen',
-    gold:   'from-[#3d2800] to-[#6b4400] border-[#6b4400] text-cyellow',
+    blue:   'border-cblue/25 bg-cblue/10 text-cblue',
+    red:    'border-cred/25 bg-cred/10 text-cred',
+    green:  'border-cgreen/25 bg-cgreen/10 text-cgreen',
+    gold:   'border-cyellow/25 bg-cyellow/10 text-cyellow',
   }
   return (
-    <div className={`relative overflow-hidden rounded-xl border bg-gradient-to-br p-5 ${tones[tone]}`}>
-      <div className="absolute right-4 top-4 text-3xl opacity-25">{icon}</div>
-      <div className="text-[11px] font-semibold text-white/60 uppercase tracking-wide mb-2">{label}</div>
-      <div className="text-xl font-black text-white tabular-nums leading-tight">{value}</div>
-      {sub && <div className="text-[11px] text-white/50 mt-1.5">{sub}</div>}
+    <div className={`relative overflow-hidden rounded-xl border p-5 ${tones[tone]}`}>
+      {Icon && <Icon size={28} strokeWidth={1.8} className="absolute right-4 top-4 opacity-25" />}
+      <div className="text-[12px] font-semibold uppercase tracking-wide mb-2 text-muted">{label}</div>
+      <div className="text-xl font-black tabular-nums leading-tight text-text">{value}</div>
+      {sub && <div className="text-[12px] text-subtle mt-1.5">{sub}</div>}
     </div>
   )
 }
 
 function StatusBadge({ status }) {
   const styles = {
-    green:  'bg-cgreen/20  text-[#3fb950]  border-cgreen/50',
-    yellow: 'bg-cyellow/20 text-[#d29922] border-cyellow/50',
-    red:    'bg-cred/20    text-[#f85149]    border-cred/50',
-    blue:   'bg-cblue/20   text-[#58a6ff]   border-cblue/50',
+    green:  'bg-cgreen/20  text-cgreen  border-cgreen/50',
+    yellow: 'bg-cyellow/20 text-cyellow border-cyellow/50',
+    red:    'bg-cred/20    text-cred    border-cred/50',
+    blue:   'bg-cblue/20   text-cblue   border-cblue/50',
   }
   return (
     <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-bold ${styles[status.tone]}`}>
@@ -226,7 +231,7 @@ function CardModal({ initial, onSave, onClose }) {
     }
   }
 
-  const inputCls = 'w-full rounded-lg bg-slate-900/60 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/40 transition-all'
+  const inputCls = 'input-base'
   const moneyCls = inputCls + ' text-right font-mono text-cblue'
 
   return (
@@ -235,24 +240,27 @@ function CardModal({ initial, onSave, onClose }) {
     >
       <div className="bg-surface border border-border rounded-2xl w-full max-w-lg shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <div className="font-bold text-base">{isEdit ? '✏️ Sửa thẻ' : '➕ Thêm thẻ mới'}</div>
+          <div className="font-bold text-base flex items-center gap-2">
+            {isEdit ? <Pencil size={16} strokeWidth={2.2} /> : <Plus size={16} strokeWidth={2.2} />}
+            {isEdit ? 'Sửa thẻ' : 'Thêm thẻ mới'}
+          </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors text-sm">×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] text-slate-400">Ngân hàng *</label>
+              <label className="text-[12px] text-muted">Ngân hàng *</label>
               <input className={inputCls} placeholder="HSBC, Techcombank…" value={form.bankName} onChange={e => set('bankName', e.target.value)} />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] text-slate-400">Chủ thẻ *</label>
+              <label className="text-[12px] text-muted">Chủ thẻ *</label>
               <input className={inputCls} placeholder="NGUYEN VAN A" value={form.cardHolder} onChange={e => set('cardHolder', e.target.value)} />
             </div>
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-slate-400">4 số cuối thẻ *</label>
+            <label className="text-[12px] text-muted">4 số cuối thẻ *</label>
             <input
               className={inputCls}
               placeholder="3626"
@@ -264,9 +272,9 @@ function CardModal({ initial, onSave, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-slate-400">
+            <label className="text-[12px] text-muted">
               Full số thẻ
-              <span className="ml-1.5 text-[10px] text-slate-600 font-normal">(tuỳ chọn — sẽ được ẩn bằng icon mắt)</span>
+              <span className="ml-1.5 text-[12px] text-subtle font-normal">(tuỳ chọn — sẽ được ẩn bằng icon mắt)</span>
             </label>
             <div className="relative">
               <input
@@ -283,15 +291,12 @@ function CardModal({ initial, onSave, onClose }) {
                   set('cardNumberFull', formatted)
                 }}
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/>
-                </svg>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle pointer-events-none">
+                <Eye size={16} strokeWidth={1.8} />
               </div>
             </div>
             {form.cardNumberFull && (
-              <div className="text-[10px] text-slate-500 mt-0.5">
+              <div className="text-[12px] text-subtle mt-0.5">
                 {form.cardNumberFull.replace(/\d(?=\d{4})/g, '*')}
               </div>
             )}
@@ -299,14 +304,14 @@ function CardModal({ initial, onSave, onClose }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] text-slate-400">Hạn mức (₫)</label>
+              <label className="text-[12px] text-muted">Hạn mức (₫)</label>
               <input className={moneyCls} placeholder="93.200.000" inputMode="numeric"
                 value={form.creditLimit}
                 onChange={e => set('creditLimit', formatMoneyLive(e.target.value))}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] text-slate-400">Dư nợ hiện tại (₫)</label>
+              <label className="text-[12px] text-muted">Dư nợ hiện tại (₫)</label>
               <input className={moneyCls} placeholder="50.000.000" inputMode="numeric"
                 value={form.usedAmount}
                 onChange={e => set('usedAmount', formatMoneyLive(e.target.value))}
@@ -315,7 +320,7 @@ function CardModal({ initial, onSave, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-slate-400">Số tiền sao kê (₫)</label>
+            <label className="text-[12px] text-muted">Số tiền sao kê (₫)</label>
             <input className={moneyCls} placeholder="0" inputMode="numeric"
               value={form.statementAmount}
               onChange={e => set('statementAmount', formatMoneyLive(e.target.value))}
@@ -324,14 +329,14 @@ function CardModal({ initial, onSave, onClose }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] text-slate-400">Ngày chốt sao kê (1–31)</label>
+              <label className="text-[12px] text-muted">Ngày chốt sao kê (1–31)</label>
               <input className={inputCls} type="number" min="1" max="31" placeholder="15"
                 value={form.statementDate}
                 onChange={e => set('statementDate', e.target.value)}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] text-slate-400">Ngày đến hạn TT (1–31)</label>
+              <label className="text-[12px] text-muted">Ngày đến hạn TT (1–31)</label>
               <input className={inputCls} type="number" min="1" max="31" placeholder="9"
                 value={form.dueDate}
                 onChange={e => set('dueDate', e.target.value)}
@@ -343,11 +348,11 @@ function CardModal({ initial, onSave, onClose }) {
             <input
               type="checkbox"
               id="modalHasStatement"
-              className="w-4 h-4 rounded border-slate-700 bg-slate-900/60 accent-cblue"
+              className="w-4 h-4 rounded border-border bg-white accent-cblue"
               checked={form.hasStatement}
               onChange={e => set('hasStatement', e.target.checked)}
             />
-            <label htmlFor="modalHasStatement" className="text-xs text-slate-300 font-semibold cursor-pointer">
+            <label htmlFor="modalHasStatement" className="text-xs text-text font-semibold cursor-pointer">
               Đã có sao kê tháng này
             </label>
           </div>
@@ -377,7 +382,7 @@ function ConfirmDeleteModal({ card, onConfirm, onClose }) {
       <div className="bg-surface border border-border rounded-2xl w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4">
         <div className="text-lg font-bold text-cred">Xoá thẻ này?</div>
         <div className="text-sm text-muted">
-          <span className="font-semibold text-[#1e293b]">{card.bankName}</span> — {maskCard(card.cardNumberLast4)}<br />
+          <span className="font-semibold text-text">{card.bankName}</span> — {maskCard(card.cardNumberLast4)}<br />
           Hành động này không thể hoàn tác.
         </div>
         <div className="flex justify-end gap-2">
@@ -431,23 +436,23 @@ function FileScanRow({ item, cards, onRemove, onChangeMatchedCard, onChangeValue
     item.result.cardHolder.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
   return (
-    <div className="border border-slate-700 bg-slate-900/50 rounded-xl p-3 flex flex-col sm:flex-row gap-3 items-start sm:items-center relative">
+    <div className="border border-border bg-surface2 rounded-xl p-3 flex flex-col sm:flex-row gap-3 items-start sm:items-center relative">
       {/* Thumbnail */}
-      <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-700 bg-slate-800 shrink-0">
+      <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-border bg-surface shrink-0">
         <img src={item.preview} alt="Sao kê" className="w-full h-full object-cover" />
       </div>
 
       {/* Matching & Inputs */}
       <div className="flex-1 min-w-0 flex flex-col gap-1.5 w-full">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[11px] font-semibold text-slate-400 truncate max-w-[200px]" title={item.file.name}>
+          <span className="text-[12px] font-semibold text-muted truncate max-w-[200px]" title={item.file.name}>
             {item.file.name}
           </span>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+          <span className={`text-[12px] font-bold px-2 py-0.5 rounded-full border ${
             item.status === 'success' ? 'bg-cgreen/10 text-cgreen border-cgreen/30' :
             item.status === 'scanning' ? 'bg-cblue/10 text-cblue border-cblue/30 animate-pulse' :
             item.status === 'failed' ? 'bg-cred/10 text-cred border-cred/30' :
-            'bg-slate-800 text-slate-450 border-slate-700'
+            'bg-surface text-muted border-border'
           }`}>
             {item.status === 'success' ? 'Đã quét' :
              item.status === 'scanning' ? 'Đang quét...' :
@@ -456,17 +461,17 @@ function FileScanRow({ item, cards, onRemove, onChangeMatchedCard, onChangeValue
         </div>
 
         {item.status === 'failed' && (
-          <div className="text-[11px] text-[#f85149] bg-cred/10 border border-cred/20 rounded px-2 py-1">
+          <div className="text-[12px] text-cred bg-cred/10 border border-cred/20 rounded px-2 py-1">
             {item.errorMessage}
           </div>
         )}
 
         {item.status === 'success' && (
-          <div className="flex flex-col gap-2 pt-1 border-t border-slate-800">
+          <div className="flex flex-col gap-2 pt-1 border-t border-border">
             {/* Warning mismatches */}
             {(bankMismatch || holderMismatch) && (
-              <div className="text-[10px] text-cyellow bg-cyellow/10 border border-cyellow/20 rounded px-2 py-1 flex flex-col">
-                <span className="font-bold">⚠️ Cảnh báo lệch sao kê:</span>
+              <div className="text-[12px] text-cyellow bg-cyellow/10 border border-cyellow/20 rounded px-2 py-1 flex flex-col">
+                <span className="font-bold flex items-center gap-1"><AlertTriangle size={11} strokeWidth={2.4} /> Cảnh báo lệch sao kê:</span>
                 {bankMismatch && <div>• Ngân hàng quét: <span className="underline">{item.result.bankName}</span></div>}
                 {holderMismatch && <div>• Chủ thẻ quét: <span className="underline">{item.result.cardHolder}</span></div>}
               </div>
@@ -475,9 +480,9 @@ function FileScanRow({ item, cards, onRemove, onChangeMatchedCard, onChangeValue
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
               {/* Card selector */}
               <div className="flex flex-col gap-0.5">
-                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Thẻ khớp</label>
+                <label className="text-[12px] text-muted uppercase tracking-wider font-semibold">Thẻ khớp</label>
                 <select
-                  className="rounded bg-slate-800 border border-slate-700 text-xs px-2 py-1.5 text-slate-200 outline-none focus:border-cblue"
+                  className="rounded bg-white border border-border text-xs px-2 py-1.5 text-text outline-none focus:border-cblue"
                   value={item.matchedCard?.id || ''}
                   onChange={e => onChangeMatchedCard(item.id, e.target.value)}
                 >
@@ -492,9 +497,9 @@ function FileScanRow({ item, cards, onRemove, onChangeMatchedCard, onChangeValue
 
               {/* Amount input */}
               <div className="flex flex-col gap-0.5">
-                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Số tiền sao kê (đ)</label>
+                <label className="text-[12px] text-muted uppercase tracking-wider font-semibold">Số tiền sao kê (đ)</label>
                 <input
-                  className="rounded bg-slate-800 border border-slate-700 text-xs px-2 py-1 font-mono text-cblue text-right outline-none focus:border-cblue"
+                  className="rounded bg-white border border-border text-xs px-2 py-1 font-mono text-cblue text-right outline-none focus:border-cblue"
                   placeholder="0"
                   value={amountStr}
                   onChange={e => handleAmountChange(e.target.value)}
@@ -503,12 +508,12 @@ function FileScanRow({ item, cards, onRemove, onChangeMatchedCard, onChangeValue
 
               {/* Due date input */}
               <div className="flex flex-col gap-0.5">
-                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Ngày thanh toán (1-31)</label>
+                <label className="text-[12px] text-muted uppercase tracking-wider font-semibold">Ngày thanh toán (1-31)</label>
                 <input
                   type="number"
                   min="1"
                   max="31"
-                  className="rounded bg-slate-800 border border-slate-700 text-xs px-2 py-1 text-center outline-none focus:border-cblue text-slate-200"
+                  className="rounded bg-white border border-border text-xs px-2 py-1 text-center outline-none focus:border-cblue text-text"
                   placeholder="Hạn"
                   value={dayStr}
                   onChange={e => handleDayChange(e.target.value)}
@@ -522,10 +527,10 @@ function FileScanRow({ item, cards, onRemove, onChangeMatchedCard, onChangeValue
       {/* Remove Button */}
       <button
         onClick={() => onRemove(item.id)}
-        className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors text-lg flex items-center justify-center shrink-0"
+        className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors flex items-center justify-center shrink-0"
         title="Xóa tệp này"
       >
-        ×
+        <X size={16} strokeWidth={2} />
       </button>
     </div>
   )
@@ -557,10 +562,11 @@ function StatementDetailModal({ card, onClose, onToggleStatus, onTriggerScan, on
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-surface border border-border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden text-[#1e293b]">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-[#f1f5f9]">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden text-text">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface2">
           <div className="font-bold text-base flex items-center gap-2">
-            <span>📋 Chi Tiết Sao Kê</span>
+            <FileText size={16} strokeWidth={2.2} />
+            <span>Chi Tiết Sao Kê</span>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors text-lg flex items-center justify-center">×</button>
         </div>
@@ -569,8 +575,8 @@ function StatementDetailModal({ card, onClose, onToggleStatus, onTriggerScan, on
           <div className="divide-y divide-border/40">
             {items.map((it, idx) => (
               <div key={idx} className="flex justify-between py-2.5 text-sm">
-                <span className="text-slate-400">{it.label}</span>
-                <span className={`text-right font-medium ${it.bold ? 'font-bold text-white' : ''} ${it.mono ? 'font-mono' : ''} ${it.color || 'text-slate-200'}`}>
+                <span className="text-muted">{it.label}</span>
+                <span className={`text-right font-medium ${it.bold ? 'font-bold text-text' : ''} ${it.mono ? 'font-mono' : ''} ${it.color || 'text-text'}`}>
                   {it.value}
                 </span>
               </div>
@@ -583,7 +589,7 @@ function StatementDetailModal({ card, onClose, onToggleStatus, onTriggerScan, on
                 onToggleStatus(card)
                 onClose()
               }}
-              className="px-3 py-2 rounded-lg border border-slate-700 hover:border-slate-500 text-xs font-semibold transition-colors"
+              className="px-3 py-2 rounded-lg border border-border hover:border-cblue text-xs font-semibold transition-colors"
             >
               {card.hasStatement ? 'Đánh dấu Chưa có' : 'Đánh dấu Có rồi'}
             </button>
@@ -594,7 +600,7 @@ function StatementDetailModal({ card, onClose, onToggleStatus, onTriggerScan, on
               }}
               className="px-3 py-2 rounded-lg bg-cblue/15 border border-cblue/30 text-cblue hover:bg-cblue/25 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
             >
-              <span>🤖</span> Quét sao kê
+              <ScanLine size={14} strokeWidth={2.2} /> Quét sao kê
             </button>
           </div>
 
@@ -604,9 +610,9 @@ function StatementDetailModal({ card, onClose, onToggleStatus, onTriggerScan, on
                 onEdit(card)
                 onClose()
               }}
-              className="btn-ghost px-4 py-2 text-xs"
+              className="btn-ghost px-4 py-2 text-xs flex items-center gap-1.5"
             >
-              ✏️ Sửa thẻ
+              <Pencil size={13} strokeWidth={2.2} /> Sửa thẻ
             </button>
             <button onClick={onClose} className="btn-primary px-5 py-2 text-xs">
               Đóng
@@ -775,21 +781,22 @@ function OcrStatementModal({ initialCard, cards, onClose, onConfirmAll }) {
 
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-surface border border-border rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden text-[#1e293b] flex flex-col max-h-[85vh]">
-        
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden text-text flex flex-col max-h-[85vh]">
+
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-[#f1f5f9] shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface2 shrink-0">
           <div className="font-bold text-base flex items-center gap-2">
-            <span>🤖 Quét & Khớp Sao Kê Hàng Loạt AI</span>
+            <ScanLine size={17} strokeWidth={2.2} />
+            <span>Quét & Khớp Sao Kê Hàng Loạt AI</span>
           </div>
           <button onClick={onClose} disabled={loading} className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors text-lg flex items-center justify-center">×</button>
         </div>
 
         {/* Content Area */}
         <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-4">
-          
-          <div className="text-xs text-slate-400">
-            Kéo thả nhiều ảnh, chọn từ máy tính, hoặc bấm <kbd className="bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-[10px] text-slate-300 font-mono">Ctrl+V</kbd> để dán ảnh. AI sẽ tự động phân tích và khớp với thẻ tương ứng dựa vào Ngân hàng, Tên chủ thẻ và 4 số cuối thẻ.
+
+          <div className="text-xs text-muted">
+            Kéo thả nhiều ảnh, chọn từ máy tính, hoặc bấm <kbd className="bg-surface2 border border-border rounded px-1.5 py-0.5 text-[12px] text-text font-mono">Ctrl+V</kbd> để dán ảnh. AI sẽ tự động phân tích và khớp với thẻ tương ứng dựa vào Ngân hàng, Tên chủ thẻ và 4 số cuối thẻ.
           </div>
 
           {/* Dropzone */}
@@ -798,14 +805,14 @@ function OcrStatementModal({ initialCard, cards, onClose, onConfirmAll }) {
             onDragOver={e => e.preventDefault()}
             onClick={() => !loading && fileInputRef.current?.click()}
             className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-colors min-h-[140px] cursor-pointer shrink-0
-              ${loading ? 'border-slate-700 cursor-default' : 'border-slate-700 hover:border-cblue/30 focus-within:border-cblue/50 group'}`}
+              ${loading ? 'border-border cursor-default' : 'border-border hover:border-cblue/30 focus-within:border-cblue/50 group'}`}
           >
-            <div className="text-3xl opacity-40 group-hover:opacity-60 transition-opacity">📸</div>
-            <div className="text-sm text-slate-500 text-center">
+            <ImageIcon size={32} strokeWidth={1.6} className="text-subtle opacity-60 group-hover:opacity-90 transition-opacity" />
+            <div className="text-sm text-muted text-center">
               Kéo thả các ảnh sao kê vào đây hoặc <span className="text-cblue font-semibold underline underline-offset-2">chọn file ảnh</span>
-              <span className="text-[11px] text-slate-600 mt-1 block">Hỗ trợ dán trực tiếp nhiều ảnh từ clipboard bằng <kbd className="bg-slate-800 border border-slate-700 rounded px-1 text-[10px] text-slate-400 font-mono">Ctrl+V</kbd></span>
+              <span className="text-[12px] text-subtle mt-1 block">Hỗ trợ dán trực tiếp nhiều ảnh từ clipboard bằng <kbd className="bg-surface2 border border-border rounded px-1 text-[12px] text-muted font-mono">Ctrl+V</kbd></span>
             </div>
-            
+
             <input
               ref={fileInputRef}
               type="file"
@@ -822,7 +829,7 @@ function OcrStatementModal({ initialCard, cards, onClose, onConfirmAll }) {
           {/* Queue List */}
           {files.length > 0 && (
             <div className="flex flex-col gap-3">
-              <div className="text-xs font-bold text-slate-300 flex justify-between items-center px-1">
+              <div className="text-xs font-bold text-text flex justify-between items-center px-1">
                 <span>Danh sách tệp ({files.length})</span>
                 {successCount > 0 && <span className="text-cgreen">Đã quét xong: {successCount}</span>}
               </div>
@@ -843,9 +850,9 @@ function OcrStatementModal({ initialCard, cards, onClose, onConfirmAll }) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center px-5 py-4 border-t border-border bg-[#f1f5f9] shrink-0">
+        <div className="flex justify-between items-center px-5 py-4 border-t border-border bg-surface2 shrink-0">
           <button onClick={onClose} disabled={loading} className="btn-ghost px-4 py-3 text-sm">Huỷ</button>
-          
+
           <div className="flex gap-2">
             {pendingCount > 0 && (
               <button
@@ -854,10 +861,10 @@ function OcrStatementModal({ initialCard, cards, onClose, onConfirmAll }) {
                 className="px-4 py-2.5 rounded-lg bg-cblue/15 border border-cblue/30 text-cblue text-xs font-black hover:bg-cblue/25 active:scale-95 transition-all flex items-center gap-2"
               >
                 {loading ? (
-                  <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
-                  </svg>
-                ) : '🤖'}
+                  <Loader2 size={14} strokeWidth={2.5} className="animate-spin" />
+                ) : (
+                  <ScanLine size={14} strokeWidth={2.2} />
+                )}
                 {loading ? 'Đang phân tích...' : `Bắt đầu quét AI (${pendingCount} tệp)`}
               </button>
             )}
@@ -868,7 +875,7 @@ function OcrStatementModal({ initialCard, cards, onClose, onConfirmAll }) {
                 disabled={loading}
                 className="btn-primary px-5 py-2.5 text-xs flex items-center gap-1.5"
               >
-                <span>💾</span> Cập nhật tất cả ({successCount} thẻ)
+                <Save size={14} strokeWidth={2.2} /> Cập nhật tất cả ({successCount} thẻ)
               </button>
             )}
           </div>
@@ -1193,43 +1200,42 @@ export default function CreditCardManager() {
   }
 
   return (
+    <div className="w-full">
+      <PageHeader
+        icon={CreditCard}
+        title="Thẻ Visa / Tín Dụng"
+        subtitle="Theo dõi hạn mức, dư nợ và ngày đến hạn thanh toán"
+        actions={
+          <>
+            <button onClick={handleExportExcel} title="Xuất Excel" className="btn-ghost px-3 py-2 text-sm">
+              <Download size={15} strokeWidth={2.2} /><span className="hidden sm:inline">Xuất Excel</span>
+            </button>
+            <button onClick={() => importRef.current?.click()} disabled={importing} title="Nhập Excel" className="btn-ghost px-3 py-2 text-sm disabled:opacity-50">
+              {importing
+                ? <Loader2 size={15} strokeWidth={2.2} className="animate-spin" />
+                : <Upload size={15} strokeWidth={2.2} />
+              }
+              <span className="hidden sm:inline">{importing ? 'Đang nhập…' : 'Nhập Excel'}</span>
+            </button>
+            <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportExcel} />
+            <button onClick={() => handleTriggerScan({ id: null })} title="Quét Sao Kê AI"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cblue/15 border border-cblue/30 text-cblue text-sm font-medium hover:bg-cblue/25 active:scale-95 transition-all">
+              <ScanLine size={15} strokeWidth={2.2} /><span className="hidden sm:inline">Quét Sao Kê AI</span>
+            </button>
+            <button onClick={() => setShowAdd(true)} className="btn-primary flex items-center gap-2 px-4 py-3 text-base">
+              <Plus size={17} strokeWidth={2.4} /> Thêm thẻ
+            </button>
+          </>
+        }
+      />
     <div className="p-6 w-full">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
-        <div>
-          <h2 className="text-lg font-bold">Quản Lý Thẻ Visa / Tín Dụng</h2>
-          <div className="text-xs text-muted mt-1">Theo dõi hạn mức, dư nợ và ngày đến hạn thanh toán</div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={handleExportExcel} title="Xuất Excel"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white active:scale-95 transition-all">
-            <span>📤</span><span className="hidden sm:inline">Xuất Excel</span>
-          </button>
-          <button onClick={() => importRef.current?.click()} disabled={importing} title="Nhập Excel"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white active:scale-95 transition-all disabled:opacity-50">
-            {importing
-              ? <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
-              : <span>📥</span>
-            }
-            <span className="hidden sm:inline">{importing ? 'Đang nhập…' : 'Nhập Excel'}</span>
-          </button>
-          <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportExcel} />
-          <button onClick={() => handleTriggerScan({ id: null })} title="Quét Sao Kê AI"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cblue/15 border border-cblue/30 text-cblue text-sm font-medium hover:bg-cblue/25 active:scale-95 transition-all">
-            <span>🤖</span><span className="hidden sm:inline">Quét Sao Kê AI</span>
-          </button>
-          <button onClick={() => setShowAdd(true)} className="btn-primary flex items-center gap-2 px-4 py-3 text-base">
-            <span className="text-base leading-none">＋</span> Thêm thẻ
-          </button>
-        </div>
-      </div>
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <SummaryCard label="Tổng Hạn Mức"    value={fmtVNDFull(totals.limit)}  sub={`${cards.length} thẻ`}                                           icon="💳" tone="blue"  />
-        <SummaryCard label="Tổng Dư Nợ"      value={fmtVNDFull(totals.used)}   sub={totals.limit ? `${Math.round(totals.used/totals.limit*100)}% hạn mức` : '—'} icon="🔥" tone="red"   />
-        <SummaryCard label="Hạn Mức Còn Lại" value={fmtVNDFull(totals.remain)} sub="Khả dụng tổng cộng"                                              icon="✅" tone="green" />
-        <SummaryCard label="Thẻ Quá Hạn"     value={String(totals.overdue)}    sub={totals.overdue ? 'Cần xử lý ngay' : 'Tất cả trong hạn'}          icon="⚠️" tone="gold"  />
+        <SummaryCard label="Tổng Hạn Mức"    value={fmtVNDFull(totals.limit)}  sub={`${cards.length} thẻ`}                                           icon={CreditCard} tone="blue"  />
+        <SummaryCard label="Tổng Dư Nợ"      value={fmtVNDFull(totals.used)}   sub={totals.limit ? `${Math.round(totals.used/totals.limit*100)}% hạn mức` : '—'} icon={AlertTriangle} tone="red"   />
+        <SummaryCard label="Hạn Mức Còn Lại" value={fmtVNDFull(totals.remain)} sub="Khả dụng tổng cộng"                                              icon={Check} tone="green" />
+        <SummaryCard label="Thẻ Quá Hạn"     value={String(totals.overdue)}    sub={totals.overdue ? 'Cần xử lý ngay' : 'Tất cả trong hạn'}          icon={AlertTriangle} tone="gold"  />
       </div>
 
       {/* Table */}
@@ -1243,7 +1249,7 @@ export default function CreditCardManager() {
           <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
             {/* Search Input */}
             <div className="relative w-full sm:w-64">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -1253,12 +1259,12 @@ export default function CreditCardManager() {
                 placeholder="Tìm ngân hàng, chủ thẻ..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-200 placeholder:text-slate-500 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/30 transition-all"
+                className="w-full pl-9 pr-8 py-2 rounded-lg bg-white border border-border text-xs text-text placeholder:text-muted outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/30 transition-all"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-500 hover:text-slate-300"
+                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted hover:text-text"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -1277,27 +1283,27 @@ export default function CreditCardManager() {
           <div className="text-center py-16 text-muted">
             <div className="text-4xl mb-3">💳</div>
             <div className="font-semibold mb-1">Chưa có thẻ nào</div>
-            <div className="text-sm text-slate-500 mb-4">Nhấn "Thêm thẻ" để bắt đầu quản lý</div>
+            <div className="text-sm text-muted mb-4">Nhấn "Thêm thẻ" để bắt đầu quản lý</div>
             <button onClick={() => setShowAdd(true)} className="btn-primary px-5 py-2 text-sm">＋ Thêm thẻ đầu tiên</button>
           </div>
         ) : (
           <div className="overflow-x-auto min-h-[240px]">
             <table className="w-full min-w-[1000px]">
               <thead>
-                <tr className="bg-[#f1f5f9] border-b border-border">
+                <tr className="bg-surface2 border-b border-border">
                   {['Ngân hàng & Chủ thẻ','Số thẻ','Hạn mức','Dư nợ / Khả dụng','Số tiền sao kê','Chu kỳ thanh toán','Sao kê','Trạng thái','Thao tác'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">
+                    <th key={h} className="px-4 py-3 text-left text-[12px] font-bold text-text uppercase tracking-wider whitespace-nowrap">
                       {h === 'Sao kê' ? (
                         <div className="relative inline-block text-left">
                           <button
                             type="button"
                             onClick={toggleStatementDropdown}
-                            className={`flex items-center gap-1 hover:text-white transition-colors cursor-pointer focus:outline-none uppercase text-[11px] font-bold tracking-wider ${
-                              filterStatement !== 'all' ? 'text-cblue' : 'text-slate-300'
+                            className={`flex items-center gap-1 hover:text-text transition-colors cursor-pointer focus:outline-none uppercase text-[12px] font-bold tracking-wider ${
+                              filterStatement !== 'all' ? 'text-cblue' : 'text-text'
                             }`}
                           >
                             <span>Sao kê</span>
-                            <svg className={`w-3 h-3 transition-transform text-slate-450 ${showFilterDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className={`w-3 h-3 transition-transform text-muted ${showFilterDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
@@ -1307,7 +1313,7 @@ export default function CreditCardManager() {
                               {/* Click-outside backdrop */}
                               <div className="fixed inset-0 z-10" onClick={() => setShowFilterDropdown(false)} />
                               
-                              <div className="absolute left-0 mt-1.5 w-28 rounded-md bg-slate-900 border border-slate-700 shadow-2xl z-20 p-1 font-sans text-xs normal-case tracking-normal flex flex-col gap-0.5">
+                              <div className="absolute left-0 mt-1.5 w-28 rounded-md bg-white border border-border shadow-2xl z-20 p-1 font-sans text-xs normal-case tracking-normal flex flex-col gap-0.5">
                                 {[
                                   { label: 'Tất cả', value: 'all' },
                                   { label: 'Có rồi', value: 'has' },
@@ -1321,7 +1327,7 @@ export default function CreditCardManager() {
                                       setShowFilterDropdown(false)
                                     }}
                                     className={`w-full text-left px-2.5 py-1.5 hover:bg-surface2 transition-colors rounded ${
-                                      filterStatement === opt.value ? 'text-cblue font-bold bg-cblue/10' : 'text-slate-300 hover:text-white'
+                                      filterStatement === opt.value ? 'text-cblue font-bold bg-cblue/10' : 'text-text hover:text-text'
                                     }`}
                                   >
                                     {opt.label}
@@ -1336,12 +1342,12 @@ export default function CreditCardManager() {
                           <button
                             type="button"
                             onClick={toggleStatusDropdown}
-                            className={`flex items-center gap-1 hover:text-white transition-colors cursor-pointer focus:outline-none uppercase text-[11px] font-bold tracking-wider ${
-                              filterStatus !== 'all' ? 'text-cblue' : 'text-slate-300'
+                            className={`flex items-center gap-1 hover:text-text transition-colors cursor-pointer focus:outline-none uppercase text-[12px] font-bold tracking-wider ${
+                              filterStatus !== 'all' ? 'text-cblue' : 'text-text'
                             }`}
                           >
                             <span>Trạng thái</span>
-                            <svg className={`w-3 h-3 transition-transform text-slate-455 ${showStatusDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className={`w-3 h-3 transition-transform text-muted ${showStatusDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
@@ -1351,7 +1357,7 @@ export default function CreditCardManager() {
                               {/* Click-outside backdrop */}
                               <div className="fixed inset-0 z-10" onClick={() => setShowStatusDropdown(false)} />
                               
-                              <div className="absolute left-0 mt-1.5 w-32 rounded-md bg-slate-900 border border-slate-700 shadow-2xl z-20 p-1 font-sans text-xs normal-case tracking-normal flex flex-col gap-0.5">
+                              <div className="absolute left-0 mt-1.5 w-32 rounded-md bg-white border border-border shadow-2xl z-20 p-1 font-sans text-xs normal-case tracking-normal flex flex-col gap-0.5">
                                 {[
                                   { label: 'Tất cả', value: 'all' },
                                   { label: 'Còn hạn', value: 'active' },
@@ -1366,7 +1372,7 @@ export default function CreditCardManager() {
                                       setShowStatusDropdown(false)
                                     }}
                                     className={`w-full text-left px-2.5 py-1.5 hover:bg-surface2 transition-colors rounded ${
-                                      filterStatus === opt.value ? 'text-cblue font-bold bg-cblue/10' : 'text-slate-300 hover:text-white'
+                                      filterStatus === opt.value ? 'text-cblue font-bold bg-cblue/10' : 'text-text hover:text-text'
                                     }`}
                                   >
                                     {opt.label}
@@ -1381,12 +1387,12 @@ export default function CreditCardManager() {
                           <button
                             type="button"
                             onClick={toggleActionDropdown}
-                            className={`flex items-center gap-1 hover:text-white transition-colors cursor-pointer focus:outline-none uppercase text-[11px] font-bold tracking-wider ${
-                              filterAction !== 'all' ? 'text-cblue' : 'text-slate-300'
+                            className={`flex items-center gap-1 hover:text-text transition-colors cursor-pointer focus:outline-none uppercase text-[12px] font-bold tracking-wider ${
+                              filterAction !== 'all' ? 'text-cblue' : 'text-text'
                             }`}
                           >
                             <span>Thao tác</span>
-                            <svg className={`w-3 h-3 transition-transform text-slate-455 ${showActionDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className={`w-3 h-3 transition-transform text-muted ${showActionDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
@@ -1396,7 +1402,7 @@ export default function CreditCardManager() {
                               {/* Click-outside backdrop */}
                               <div className="fixed inset-0 z-10" onClick={() => setShowActionDropdown(false)} />
                               
-                              <div className="absolute right-0 mt-1.5 w-28 rounded-md bg-slate-900 border border-slate-700 shadow-2xl z-20 p-1 font-sans text-xs normal-case tracking-normal flex flex-col gap-0.5">
+                              <div className="absolute right-0 mt-1.5 w-28 rounded-md bg-white border border-border shadow-2xl z-20 p-1 font-sans text-xs normal-case tracking-normal flex flex-col gap-0.5">
                                 {[
                                   { label: 'Tất cả', value: 'all' },
                                   { label: 'Có nợ', value: 'debt' },
@@ -1410,7 +1416,7 @@ export default function CreditCardManager() {
                                       setShowActionDropdown(false)
                                     }}
                                     className={`w-full text-left px-2.5 py-1.5 hover:bg-surface2 transition-colors rounded ${
-                                      filterAction === opt.value ? 'text-cblue font-bold bg-cblue/10' : 'text-slate-300 hover:text-white'
+                                      filterAction === opt.value ? 'text-cblue font-bold bg-cblue/10' : 'text-text hover:text-text'
                                     }`}
                                   >
                                     {opt.label}
@@ -1422,18 +1428,18 @@ export default function CreditCardManager() {
                         </div>
                       ) : h}
                     </th>
-                  ))}`
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredCards.map(card => {
                   const status  = getCardStatus(card)
                   const usedPct = card.creditLimit ? Math.min(100, Math.round((card.usedAmount || 0) / card.creditLimit * 100)) : 0
-                  const barColor = usedPct >= 90 ? '#f85149' : usedPct >= 70 ? '#d29922' : '#58a6ff'
+                  const barColor = usedPct >= 90 ? '#ef4444' : usedPct >= 70 ? '#f59e0b' : '#2563eb'
                   const remain   = (card.creditLimit || 0) - (card.usedAmount || 0)
 
                   return (
-                    <tr key={card.id} className="border-b border-border/40 last:border-b-0 hover:bg-slate-800/40 transition-colors">
+                    <tr key={card.id} className="border-b border-border/40 last:border-b-0 hover:bg-surface2/40 transition-colors">
 
                       {/* Bank + holder */}
                       <td className="px-4 py-4">
@@ -1442,14 +1448,14 @@ export default function CreditCardManager() {
                             {bankInitials(card.bankName)}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-black text-sm text-[#1e293b] truncate">{card.bankName}</div>
-                            <div className="text-xs text-slate-400 truncate">{card.cardHolder}</div>
+                            <div className="font-black text-sm text-text truncate">{card.bankName}</div>
+                            <div className="text-xs text-muted truncate">{card.cardHolder}</div>
                           </div>
                         </div>
                       </td>
 
                       {/* Card number */}
-                      <td className="px-4 py-4 text-sm text-slate-300 font-mono tracking-wide whitespace-nowrap">
+                      <td className="px-4 py-4 text-sm text-text font-mono tracking-wide whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <span className={`transition-all duration-300 ${revealedCards.has(card.id) ? 'tracking-widest text-cblue font-bold' : 'tracking-wide'}`}>
                             {revealedCards.has(card.id)
@@ -1465,7 +1471,7 @@ export default function CreditCardManager() {
                             className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md border transition-all duration-200 ${
                               revealedCards.has(card.id)
                                 ? 'border-cblue/50 text-cblue bg-cblue/10 hover:bg-cblue/20'
-                                : 'border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300 hover:bg-slate-700/50'
+                                : 'border-border text-muted hover:border-slate-500 hover:text-text hover:bg-surface2/50'
                             }`}
                           >
                             {revealedCards.has(card.id) ? (
@@ -1485,7 +1491,7 @@ export default function CreditCardManager() {
                       </td>
 
                       {/* Limit */}
-                      <td className="px-4 py-4 text-right font-mono text-sm text-slate-200 tabular-nums whitespace-nowrap">
+                      <td className="px-4 py-4 text-right font-mono text-sm text-text tabular-nums whitespace-nowrap">
                         {fmtVNDFull(card.creditLimit)}
                       </td>
 
@@ -1493,29 +1499,29 @@ export default function CreditCardManager() {
                       <td className="px-4 py-4 min-w-[180px]">
                         <div className="flex justify-between text-xs mb-1">
                           <span className="font-bold font-mono text-cred tabular-nums">{fmtVNDFull(card.usedAmount)}</span>
-                          <span className="text-slate-500 font-mono tabular-nums">còn {fmtVNDFull(remain < 0 ? 0 : remain)}</span>
+                          <span className="text-muted font-mono tabular-nums">còn {fmtVNDFull(remain < 0 ? 0 : remain)}</span>
                         </div>
-                        <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-surface2 rounded-full overflow-hidden">
                           <div className="h-full rounded-full transition-all" style={{ width:`${usedPct}%`, background:barColor }} />
                         </div>
-                        <div className="text-right text-[10px] text-slate-500 mt-0.5">{usedPct}%</div>
+                        <div className="text-right text-[12px] text-muted mt-0.5">{usedPct}%</div>
                       </td>
 
                       {/* Số tiền sao kê */}
-                      <td className="px-4 py-4 text-right font-mono text-sm text-slate-200 tabular-nums whitespace-nowrap">
+                      <td className="px-4 py-4 text-right font-mono text-sm text-text tabular-nums whitespace-nowrap">
                         {card.statementAmount > 0 ? (
-                          <span className={card.hasStatement ? "text-cyellow font-bold" : "text-slate-400"}>
+                          <span className={card.hasStatement ? "text-cyellow font-bold" : "text-muted"}>
                             {fmtVNDFull(card.statementAmount)}
                           </span>
                         ) : (
-                          <span className="text-slate-500">—</span>
+                          <span className="text-muted">—</span>
                         )}
                       </td>
 
                       {/* Cycle */}
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-xs text-slate-400">Sao kê: <span className="text-slate-200">{fmtDay(card.statementDate)}</span></div>
-                        <div className="text-xs text-slate-400 mt-1">Đến hạn: <span className="text-slate-200">{fmtDay(card.dueDate)}</span></div>
+                        <div className="text-xs text-muted">Sao kê: <span className="text-text">{fmtDay(card.statementDate)}</span></div>
+                        <div className="text-xs text-muted mt-1">Đến hạn: <span className="text-text">{fmtDay(card.dueDate)}</span></div>
                       </td>
 
                       {/* Sao kê */}
@@ -1523,7 +1529,7 @@ export default function CreditCardManager() {
                         <button
                           onClick={() => setDetailedCard(card)}
                           className={`text-xs font-bold flex items-center gap-1.5 hover:underline transition-colors focus:outline-none ${
-                            card.hasStatement ? 'text-cgreen' : 'text-slate-400'
+                            card.hasStatement ? 'text-cgreen' : 'text-muted'
                           }`}
                           title="Bấm để xem chi tiết sao kê dạng list"
                         >
@@ -1559,7 +1565,7 @@ export default function CreditCardManager() {
                           <button
                             onClick={() => setEditTarget(card)}
                             title="Sửa"
-                            className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors"
+                            className="flex items-center justify-center w-8 h-8 rounded-lg border border-border text-muted hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors"
                           >
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                           </button>
@@ -1568,7 +1574,7 @@ export default function CreditCardManager() {
                           <button
                             onClick={() => setDeleteTarget(card)}
                             title="Xoá"
-                            className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-700 text-slate-400 hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors"
+                            className="flex items-center justify-center w-8 h-8 rounded-lg border border-border text-muted hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors"
                           >
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                           </button>
@@ -1638,6 +1644,7 @@ export default function CreditCardManager() {
           }}
         />
       )}
+    </div>
     </div>
   )
 }

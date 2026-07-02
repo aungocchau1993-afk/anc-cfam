@@ -15,18 +15,16 @@ import { buildReceiptHtml, printViaIframe, getShopConfig } from '../../lib/print
 import OcrInvoiceModal from '../../components/business/OcrInvoiceModal'
 import useDebounce from '../../hooks/useDebounce'
 
-import PageHeader        from '../../components/pos/PageHeader'
-import OrderTabs         from '../../components/pos/OrderTabs'
-import SearchBar         from '../../components/pos/SearchBar'
-import FilterBar         from '../../components/pos/FilterBar'
-import ProductGrid       from '../../components/pos/ProductGrid'
-import CustomerPanel     from '../../components/pos/CustomerPanel'
-import CartPanel         from '../../components/pos/CartPanel'
-import CheckoutPanel     from '../../components/pos/CheckoutPanel'
+import AppPOSLayout      from '../../components/pos/AppPOSLayout'
+import AppProductArea    from '../../components/pos/AppProductArea'
+import AppBillPanel      from '../../components/pos/AppBillPanel'
 import RedeemModal       from '../../components/pos/RedeemModal'
 import OrderHistoryModal from '../../components/pos/OrderHistoryModal'
 import ConfirmOrderModal from '../../components/pos/ConfirmOrderModal'
 import PrintConfirmModal from '../../components/pos/PrintConfirmModal'
+import { newOrderDetails, composeOrderNote } from '../../components/pos/posUtils'
+
+const VIEW_MODE_KEY = 'anc_pos_view_mode'
 
 // ── Print receipt ─────────────────────────────────────────────────────────
 
@@ -55,6 +53,8 @@ function newTab(label) {
     discountValue: '',
     discountType:  'amount',
     paidInput:     '',
+    mode:          'sale',
+    orderDetails:  newOrderDetails(),
   }
 }
 
@@ -71,7 +71,7 @@ export default function PointOfSale() {
   const debouncedSearch                 = useDebounce(search, 250)
 
   // ── Multi-tab state ──────────────────────────────────────────────────────
-  const [tabs,        setTabs]       = useState([{ id: 1, label: 'Đơn 1', cart: [], customer: null, note: '', discountValue: '', discountType: 'amount', paidInput: '' }])
+  const [tabs,        setTabs]       = useState([{ id: 1, label: 'Đơn 1', cart: [], customer: null, note: '', discountValue: '', discountType: 'amount', paidInput: '', mode: 'sale', orderDetails: newOrderDetails() }])
   const [activeTabId, setActiveTabId] = useState(1)
   const activeTabIdRef = useRef(1)
   useEffect(() => { activeTabIdRef.current = activeTabId }, [activeTabId])
@@ -93,6 +93,8 @@ export default function PointOfSale() {
   const discountValue = activeTab.discountValue
   const discountType  = activeTab.discountType
   const paidInput     = activeTab.paidInput
+  const mode          = activeTab.mode || 'sale'
+  const orderDetails  = activeTab.orderDetails || newOrderDetails()
 
   const setCart          = (v) => patchTab(t => ({ cart:          typeof v === 'function' ? v(t.cart)          : v }))
   const setCustomer      = (v) => patchTab(t => ({ customer:      typeof v === 'function' ? v(t.customer)      : v }))
@@ -100,6 +102,17 @@ export default function PointOfSale() {
   const setDiscountValue = (v) => patchTab(t => ({ discountValue: typeof v === 'function' ? v(t.discountValue) : v }))
   const setDiscountType  = (v) => patchTab(t => ({ discountType:  typeof v === 'function' ? v(t.discountType)  : v }))
   const setPaidInput     = (v) => patchTab(t => ({ paidInput:     typeof v === 'function' ? v(t.paidInput)     : v }))
+  const setMode          = (v) => patchTab(t => ({ mode:          typeof v === 'function' ? v(t.mode)          : v }))
+  const setOrderDetails  = (v) => patchTab(t => ({ orderDetails:  typeof v === 'function' ? v(t.orderDetails)  : v }))
+
+  // View Mode (Grid/List/Compact) — độc lập với tab, dùng chung toàn app, nhớ qua localStorage
+  const [viewMode, setViewModeState] = useState(() => {
+    try { return localStorage.getItem(VIEW_MODE_KEY) || 'grid' } catch { return 'grid' }
+  })
+  function setViewMode(v) {
+    setViewModeState(v)
+    try { localStorage.setItem(VIEW_MODE_KEY, v) } catch { /* noop */ }
+  }
 
   function addTab() {
     const t = newTab(`Đơn ${tabs.length + 1}`)
@@ -216,7 +229,7 @@ export default function PointOfSale() {
   }, [products, debouncedSearch])
 
   useEffect(() => {
-    setDropdownOpen(dropdownResults.length > 0 && search.trim().length > 0)
+    setDropdownOpen(search.trim().length > 0)
   }, [dropdownResults, search])
 
   // ── Cart logic ──────────────────────────────────────────────────────────
@@ -264,6 +277,7 @@ export default function PointOfSale() {
   const clearCart = useCallback(() => {
     setCart([]); setCustomer(null); setNote('')
     setDiscountValue(''); setDiscountType('amount'); setPaidInput('')
+    setMode('sale'); setOrderDetails(newOrderDetails())
   }, [])
 
   // OCR: thêm các items từ modal vào giỏ
@@ -357,10 +371,10 @@ export default function PointOfSale() {
       const order = await createOrder({
         customerId:  customer?.id || null,
         items:       cart.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price, cost: i.cost, unit: i.unit ?? null })),
-        note,
+        note:        mode === 'order' ? composeOrderNote(orderDetails, note) : note,
         discount:    actualDiscount,
         paidAmount:  customerPaid,
-        channelId:   'POS',
+        channelId:   mode === 'order' ? (orderDetails.channelId || 'POS') : 'POS',
       })
       // Tồn kho được Realtime tự patch qua subscribeProducts — không cần update local thủ công.
       // Vẫn patch optimistic để UI phản hồi ngay (trước khi Realtime event đến)
@@ -416,30 +430,22 @@ export default function PointOfSale() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col md:h-[calc(100vh-148px)] md:overflow-hidden bg-bg">
-      <PageHeader />
-
-      <div className="flex-1 flex flex-col md:flex-row gap-6 px-6 pb-6 min-h-0 md:overflow-hidden">
-
-        {/* ══════════════════════════════════════════════════════════════
-            CỘT TRÁI (~65%) — Danh mục sản phẩm
-        ══════════════════════════════════════════════════════════════ */}
-        <div className="flex-1 md:basis-[65%] flex flex-col min-w-0 min-h-0 bg-white rounded-2xl border border-slate-800 shadow-sm overflow-hidden">
-
-          <OrderTabs
+    <div className="flex flex-col md:h-[calc(100vh-117px)] md:overflow-hidden bg-bg">
+      <AppPOSLayout
+        viewMode={viewMode}
+        mode={mode}
+        left={
+          <AppProductArea
             tabs={tabs}
             activeTabId={activeTabId}
-            onSelect={setActiveTabId}
-            onAdd={addTab}
-            onClose={closeTab}
-          />
-
-          <SearchBar
+            onSelectTab={setActiveTabId}
+            onAddTab={addTab}
+            onCloseTab={closeTab}
             search={search}
             onSearchChange={v => { setSearch(v); setDropdownOpen(true) }}
             searchWrapRef={searchWrapRef}
             dropdownOpen={dropdownOpen}
-            onFocus={() => dropdownResults.length > 0 && setDropdownOpen(true)}
+            onFocusSearch={() => dropdownResults.length > 0 && setDropdownOpen(true)}
             dropdownResults={dropdownResults}
             cart={cart}
             onPickResult={p => { addToCart(p); setSearch(''); setDropdownOpen(false) }}
@@ -448,70 +454,45 @@ export default function PointOfSale() {
             totalCount={products.length}
             filteredCount={filteredProducts.length}
             onClearSearch={() => setSearch('')}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            loading={loading}
+            products={filteredProducts}
+            onAdd={addToCart}
           />
-
-          <FilterBar />
-
-          <div className="overflow-y-auto px-6 pb-6 max-h-[50vh] md:max-h-none md:flex-1">
-            <ProductGrid
-              loading={loading}
-              products={filteredProducts}
-              cart={cart}
-              search={search}
-              onAdd={addToCart}
-            />
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════════
-            CỘT PHẢI (~35%) — Giỏ hàng & Thanh toán
-        ══════════════════════════════════════════════════════════════ */}
-        <div className="w-full md:basis-[35%] shrink-0 flex flex-col bg-white rounded-2xl border border-slate-800 shadow-sm md:overflow-hidden">
-
-          <CustomerPanel
+        }
+        right={
+          <AppBillPanel
+            mode={mode}
+            onModeChange={setMode}
+            orderDetails={orderDetails}
+            onOrderDetailsChange={setOrderDetails}
             customers={customers}
             customer={customer}
-            onSelect={setCustomer}
-            onAddNew={handleAddCustomerClick}
+            onSelectCustomer={setCustomer}
+            onAddCustomer={handleAddCustomerClick}
             onOpenRedeem={() => setShowRedeem(true)}
-          />
-
-          <CartPanel
             cart={cart}
             cartCount={cartCount}
             onQty={setQty}
             onRemove={removeFromCart}
             onPriceEdit={editPrice}
-            onClear={clearCart}
+            onClearCart={clearCart}
+            checkoutProps={{
+              cart, note, onNoteChange: setNote,
+              subtotal, discountValue, onDiscountValueChange: setDiscountValue,
+              discountType, onDiscountTypeChange: v => { setDiscountType(v); setDiscountValue('') },
+              actualDiscount, profit, margin, customer,
+              pointsEarned: calcPointsEarned(total),
+              total, paidInput, onPaidInputChange: setPaidInput,
+              totalStr: total.toLocaleString('vi-VN'),
+              debtAmount, changeAmount, creditBlocked, paying,
+              onHold: holdCurrentOrder,
+              onPay: () => setShowPayConfirm(true),
+            }}
           />
-
-          <CheckoutPanel
-            cart={cart}
-            note={note}
-            onNoteChange={setNote}
-            subtotal={subtotal}
-            discountValue={discountValue}
-            onDiscountValueChange={setDiscountValue}
-            discountType={discountType}
-            onDiscountTypeChange={v => { setDiscountType(v); setDiscountValue('') }}
-            actualDiscount={actualDiscount}
-            profit={profit}
-            margin={margin}
-            customer={customer}
-            pointsEarned={calcPointsEarned(total)}
-            total={total}
-            paidInput={paidInput}
-            onPaidInputChange={setPaidInput}
-            totalStr={total.toLocaleString('vi-VN')}
-            debtAmount={debtAmount}
-            changeAmount={changeAmount}
-            creditBlocked={creditBlocked}
-            paying={paying}
-            onHold={holdCurrentOrder}
-            onPay={() => setShowPayConfirm(true)}
-          />
-        </div>
-      </div>
+        }
+      />
 
       {/* ── Modals ─────────────────────────────────────────────────── */}
 

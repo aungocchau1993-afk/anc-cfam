@@ -1,12 +1,24 @@
-﻿import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
 import { useReactToPrint } from 'react-to-print'
+import {
+  Receipt, RefreshCw, Calendar, ArrowUp, ArrowDown, Printer, FileText,
+  History, X, Eye, RotateCcw, Ban, MoreVertical, ClipboardList, Package,
+  CheckCircle2, Clock, XCircle, Undo2, Globe, CalendarDays, TrendingUp,
+  AlertTriangle, Loader2, Trophy, Medal, Award, Download,
+} from 'lucide-react'
 import { loadOrdersFiltered, cancelOrderRollback, loadOrderDetail, cancelOrderFull, partialReturnItem } from '../../lib/supabase'
 import { fmtVNDFull } from '../../lib/formatters'
 import { buildReceiptHtml, printViaIframe, getShopConfig } from '../../lib/printReceipt'
 import ModalOverlay from '../../components/ui/ModalOverlay'
 import PrintableReceipt from '../../components/business/PrintableReceipt'
 import AuditLogModal from '../../components/business/AuditLogModal'
+import PageHeader from '../../components/ui/PageHeader'
+import { SkeletonTableBody } from '../../components/ui/Skeleton'
+import Can from '../../components/permission/Can'
+import { usePermission } from '../../hooks/usePermission'
+import { PERMISSIONS } from '../../lib/permissions/permissionConstants'
 
 // ── Date helpers ───────────────────────────────────────────────────────────
 
@@ -44,8 +56,8 @@ const PRESETS = [
   { id:'month',   label:'Tháng này' },
   { id:'quarter', label:'Quý này' },
   { id:'year',    label:'Năm này' },
-  { id:'all',     label:'🌐 Toàn thời gian' },
-  { id:'custom',  label:'📅 Tùy chọn' },
+  { id:'all',     label:'Toàn thời gian', icon: Globe },
+  { id:'custom',  label:'Tùy chọn', icon: CalendarDays },
 ]
 
 // ── Confirm Cancel Modal ───────────────────────────────────────────────────
@@ -65,11 +77,13 @@ function ConfirmCancelModal({ order, onConfirm, onClose }) {
 
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4">
-        <div className="text-lg font-bold text-cred">⚠️ Hủy đơn hàng?</div>
-        <div className="text-sm text-slate-400 leading-relaxed">
-          Đơn <span className="font-mono text-[#1e293b]">#{(order.order_code || order.id.slice(-8)).toUpperCase()}</span>
-          {partner && <> · <span className="text-[#1e293b]">{partner}</span></>}
+      <div className="card w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4 rounded-2xl">
+        <div className="flex items-center gap-2 text-lg font-bold text-cred">
+          <AlertTriangle size={20} /> Hủy đơn hàng?
+        </div>
+        <div className="text-sm text-muted leading-relaxed">
+          Đơn <span className="font-mono text-text">#{(order.order_code || order.id.slice(-8)).toUpperCase()}</span>
+          {partner && <> · <span className="text-text">{partner}</span></>}
           <br/>
           <span className="text-cyellow">
             Hệ thống sẽ tự động{' '}
@@ -79,12 +93,11 @@ function ConfirmCancelModal({ order, onConfirm, onClose }) {
             }
           </span>
           <br/>
-          <span className="text-slate-500 text-xs mt-1 block">Hành động này không thể hoàn tác.</span>
+          <span className="text-subtle text-xs mt-1 block">Hành động này không thể hoàn tác.</span>
         </div>
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="btn-ghost px-4 py-3 text-base">Huỷ bỏ</button>
-          <button onClick={handle} disabled={loading}
-            className="px-4 py-2 rounded-lg bg-cred/20 border border-cred/40 text-cred text-sm font-bold hover:bg-cred/30 transition-colors disabled:opacity-60">
+          <button onClick={handle} disabled={loading} className="btn-danger">
             {loading ? 'Đang xử lý…' : 'Xác nhận hủy'}
           </button>
         </div>
@@ -97,14 +110,16 @@ function ConfirmCancelModal({ order, onConfirm, onClose }) {
 
 function StatusBadge({ status }) {
   const map = {
-    completed:          { l:'Hoàn thành',    c:'bg-cgreen/15   text-cgreen   border-cgreen/30' },
-    cancelled:          { l:'Đã hủy',        c:'bg-cred/15     text-cred     border-cred/30' },
-    pending:            { l:'Chờ xử lý',     c:'bg-cyellow/15  text-cyellow  border-cyellow/30' },
-    partially_returned: { l:'Trả một phần',  c:'bg-[#bc8cff]/15 text-[#bc8cff] border-[#bc8cff]/30' },
+    completed:          { l:'Hoàn thành',    cls:'tag-green',  Icon: CheckCircle2 },
+    cancelled:          { l:'Đã hủy',        cls:'tag-red',    Icon: XCircle },
+    pending:            { l:'Chờ xử lý',     cls:'tag-yellow', Icon: Clock },
+    partially_returned: { l:'Trả một phần',  cls:'bg-violet-50 text-cpurple text-xs font-bold px-2.5 py-0.5 rounded-full', Icon: Undo2 },
   }
-  const s = map[status] || { l: status, c:'bg-surface2 text-muted border-border' }
+  const s = map[status] || { l: status, cls:'bg-surface2 text-muted text-xs font-bold px-2.5 py-0.5 rounded-full', Icon: null }
+  const Icon = s.Icon
   return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${s.c}`}>
+    <span className={`inline-flex items-center gap-1 ${s.cls}`}>
+      {Icon && <Icon size={12} />}
       {s.l}
     </span>
   )
@@ -118,27 +133,27 @@ function ReturnQtyInput({ item, onConfirm, onCancel, loading }) {
   const refund = qty * (item.price || 0)
 
   return (
-    <div className="bg-[#bc8cff]/8 border border-[#bc8cff]/25 rounded-lg p-3 mt-2 flex flex-col gap-2">
-      <div className="text-[11px] text-[#bc8cff] font-semibold uppercase tracking-wide">
-        ↩️ Trả hàng · Tối đa {maxReturn}
+    <div className="bg-violet-50 border border-cpurple/25 rounded-lg p-3 mt-2 flex flex-col gap-2">
+      <div className="flex items-center gap-1.5 text-[12px] text-cpurple font-semibold uppercase tracking-wide">
+        <Undo2 size={12} /> Trả hàng · Tối đa {maxReturn}
       </div>
       <div className="flex items-center gap-2">
         <input
           type="number" min="1" max={maxReturn}
           value={qty} onChange={e => setQty(Math.min(maxReturn, Math.max(1, parseInt(e.target.value)||1)))}
-          className="w-20 rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-sm text-center font-mono text-[#1e293b] outline-none focus:border-[#bc8cff] transition-all"
+          className="w-20 rounded-lg bg-white border border-border px-2.5 py-1.5 text-sm text-center font-mono text-text outline-none focus:border-cpurple transition-all"
           autoFocus
         />
-        <span className="text-xs text-slate-400">sp · Hoàn tiền:</span>
+        <span className="text-xs text-muted">sp · Hoàn tiền:</span>
         <span className="text-xs font-bold font-mono text-cgreen tabular-nums">{fmtVNDFull(refund)}</span>
       </div>
       <div className="flex gap-2 justify-end">
         <button type="button" onClick={onCancel}
-          className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-[#1e293b] transition-colors">
+          className="px-3 py-1.5 rounded-lg text-xs text-muted hover:text-text transition-colors">
           Huỷ
         </button>
         <button type="button" onClick={() => onConfirm(qty)} disabled={loading}
-          className="px-3 py-1.5 rounded-lg bg-[#bc8cff]/20 border border-[#bc8cff]/40 text-[#bc8cff] text-xs font-bold hover:bg-[#bc8cff]/30 transition-colors disabled:opacity-60">
+          className="px-3 py-1.5 rounded-lg bg-violet-100 border border-cpurple/40 text-cpurple text-xs font-bold hover:bg-violet-200 transition-colors disabled:opacity-60">
           {loading ? 'Đang xử lý…' : 'Xác nhận trả'}
         </button>
       </div>
@@ -181,7 +196,42 @@ function reprintOrder(ord) {
   printViaIframe(html)
 }
 
+// ── Order Progress Timeline (Tạo đơn → Thanh toán → Hoàn thành) ─────────────
+
+function OrderProgressTimeline({ order }) {
+  const isCancelled = order.status === 'cancelled'
+  const isCompleted  = ['completed', 'partially_returned'].includes(order.status)
+  const isPending    = order.status === 'pending'
+
+  const steps = [
+    { id:'created', label:'Tạo đơn',     done: true },
+    { id:'paid',    label:'Thanh toán',  done: isCompleted || isCancelled },
+    { id:'done',    label: isCancelled ? 'Đã hủy' : 'Hoàn thành', done: isCompleted || isCancelled, isCancel: isCancelled },
+  ]
+
+  return (
+    <div className="flex items-center w-full">
+      {steps.map((s, i) => (
+        <div key={s.id} className="flex items-center flex-1 last:flex-none">
+          <div className="flex flex-col items-center gap-1">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+              s.isCancel ? 'bg-cred text-white' : s.done ? 'bg-cgreen text-white' : isPending && i === 1 ? 'bg-cyellow text-white' : 'bg-surface2 text-subtle'
+            }`}>
+              {s.isCancel ? <XCircle size={14} /> : s.done ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+            </div>
+            <span className={`text-[12px] font-semibold whitespace-nowrap ${s.done ? 'text-text' : 'text-subtle'}`}>{s.label}</span>
+          </div>
+          {i < steps.length - 1 && (
+            <div className={`h-0.5 flex-1 mx-1.5 rounded-full ${s.done ? 'bg-cgreen' : 'bg-border'}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
+  const { can } = usePermission()
   const [order,        setOrder]        = useState(initialOrder)
   const [cancelConfirm,setCancelConfirm]= useState(false)
   const [returnItemId, setReturnItemId] = useState(null)   // item.id đang mở return input
@@ -234,7 +284,7 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
     try {
       await partialReturnItem({ orderId: order.id, item, returnQty, order })
       const refund = returnQty * (item.price || 0)
-      toast.success(`↩️ Đã trả ${returnQty} "${item.products?.name}" · Hoàn ${refund.toLocaleString('vi-VN')} ₫`)
+      toast.success(`Đã trả ${returnQty} "${item.products?.name}" · Hoàn ${refund.toLocaleString('vi-VN')} ₫`)
       setReturnItemId(null)
       await refresh()
     } catch (e) {
@@ -246,28 +296,25 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
 
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-md md:max-w-2xl mx-4 shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="card w-full max-w-md md:max-w-2xl mx-4 shadow-2xl flex flex-col max-h-[90vh] rounded-2xl p-0 overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <div>
-            <div className="font-bold text-base text-[#1e293b] flex items-center gap-2">
+            <div className="font-bold text-base text-text flex items-center gap-2">
               Chi tiết đơn #{code}
-              {fetching && <svg className="w-3.5 h-3.5 animate-spin text-slate-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>}
+              {fetching && <Loader2 className="w-3.5 h-3.5 animate-spin text-subtle" />}
             </div>
-            <div className="text-xs text-slate-500 mt-0.5">{fmtDatetime(order.created_at)}</div>
+            <div className="text-xs text-subtle mt-0.5">{fmtDatetime(order.created_at)}</div>
           </div>
           <div className="flex items-center gap-2">
             {/* In nhiệt (iframe) */}
             <button
               onClick={() => reprintOrder(order)}
               title="In hóa đơn nhiệt 80mm"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cblue/15 border border-cblue/30 text-cblue text-xs font-bold hover:bg-cblue/25 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-cblue/30 text-cblue text-xs font-bold hover:bg-blue-100 transition-colors"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.8"/>
-              </svg>
+              <Printer size={14} />
               <span className="hidden sm:inline">In</span> 80mm
             </button>
             {/* In A5 (react-to-print + PrintableReceipt) */}
@@ -275,21 +322,19 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
               <button
                 onClick={handlePrintA5}
                 title="In hóa đơn A5 (PDF)"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cpurple/15 border border-cpurple/30 text-cpurple text-xs font-bold hover:bg-cpurple/25 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 border border-cpurple/30 text-cpurple text-xs font-bold hover:bg-violet-100 transition-colors"
               >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                  <rect x="4" y="2" width="12" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8"/>
-                  <path d="M8 2v16M12 2v16M16 2v4" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 2"/>
-                  <path d="M14 6h4M14 10h4M14 14h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
+                <FileText size={14} />
                 <span className="hidden sm:inline">In</span> A5
               </button>
             )}
             <button onClick={() => setShowAudit(true)} title="Lịch sử chỉnh sửa"
-              className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cpurple hover:border-cpurple/50 transition-colors flex items-center justify-center">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+              className="w-8 h-8 rounded-lg bg-surface2 border border-border text-subtle hover:text-cpurple hover:border-cpurple/50 transition-colors flex items-center justify-center">
+              <History size={14} />
             </button>
-            <button onClick={onClose} className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg">×</button>
+            <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface2 border border-border text-subtle hover:text-cred transition-colors flex items-center justify-center">
+              <X size={16} />
+            </button>
           </div>
         </div>
         {showAudit && (
@@ -302,43 +347,49 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
         )}
 
         {/* Body */}
-        <div className="p-5 flex flex-col gap-4">
+        <div className="p-5 flex flex-col gap-4 overflow-y-auto">
+
+          {/* Progress timeline */}
+          <div className="bg-surface2 rounded-xl px-4 py-3">
+            <OrderProgressTimeline order={order} />
+          </div>
 
           {/* Info grid */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="flex flex-col gap-0.5">
-              <span className="text-[11px] text-slate-500 uppercase tracking-wide">Loại</span>
-              <span className={isImport ? 'text-cyellow font-semibold' : 'text-cblue font-semibold'}>
-                {isImport ? '⬇️ Nhập hàng' : '⬆️ Xuất hàng'}
+              <span className="text-[12px] text-subtle uppercase tracking-wide">Loại</span>
+              <span className={`flex items-center gap-1 font-semibold ${isImport ? 'text-cyellow' : 'text-cblue'}`}>
+                {isImport ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
+                {isImport ? 'Nhập hàng' : 'Xuất hàng'}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[11px] text-slate-500 uppercase tracking-wide">Đối tác</span>
-              <span className="text-[#1e293b] font-semibold truncate">{partner || '—'}</span>
+              <span className="text-[12px] text-subtle uppercase tracking-wide">Đối tác</span>
+              <span className="text-text font-semibold truncate">{partner || '—'}</span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[11px] text-slate-500 uppercase tracking-wide">Tổng tiền còn lại</span>
-              <span className="font-black text-[#1e293b] tabular-nums">{fmtVNDFull(order.total_amount)}</span>
+              <span className="text-[12px] text-subtle uppercase tracking-wide">Tổng tiền còn lại</span>
+              <span className="font-black text-text tabular-nums">{fmtVNDFull(order.total_amount)}</span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[11px] text-slate-500 uppercase tracking-wide">Trạng thái</span>
+              <span className="text-[12px] text-subtle uppercase tracking-wide">Trạng thái</span>
               <StatusBadge status={order.status} />
             </div>
             {order.note && (
               <div className="col-span-2 flex flex-col gap-0.5">
-                <span className="text-[11px] text-slate-500 uppercase tracking-wide">Ghi chú</span>
-                <span className="text-slate-300 text-sm italic">{order.note}</span>
+                <span className="text-[12px] text-subtle uppercase tracking-wide">Ghi chú</span>
+                <span className="text-muted text-sm italic">{order.note}</span>
               </div>
             )}
           </div>
 
           {/* Items list */}
           {items.length > 0 && (
-            <div className="rounded-xl border border-slate-800 overflow-hidden">
-              <div className="px-4 py-2.5 bg-slate-800/60 text-[11px] text-slate-400 font-bold uppercase tracking-wide">
+            <div className="rounded-xl border border-border overflow-hidden">
+              <div className="px-4 py-2.5 bg-surface2 text-[12px] text-muted font-bold uppercase tracking-wide">
                 Chi tiết sản phẩm ({items.length} dòng)
               </div>
-              <div className="divide-y divide-slate-800 overflow-y-auto max-h-[48vh]">
+              <div className="divide-y divide-border overflow-y-auto max-h-[48vh]">
                 {items.map((item, i) => {
                   const returned    = item.returned_quantity || 0
                   const remaining   = (item.quantity || 0) - returned
@@ -351,18 +402,18 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
                       <div className="flex items-start justify-between gap-3">
                         {/* Tên + SKU */}
                         <div className="min-w-0 flex-1">
-                          <div className={`text-sm truncate ${fullyRet ? 'line-through text-slate-500' : 'text-[#1e293b]'}`}>
+                          <div className={`text-sm truncate ${fullyRet ? 'line-through text-subtle' : 'text-text'}`}>
                             {item.products?.name || '—'}
                           </div>
-                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">{item.products?.sku}</div>
+                          <div className="text-[12px] text-subtle font-mono mt-0.5">{item.products?.sku}</div>
                         </div>
 
                         {/* Qty + giá */}
                         <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                          <div className="font-mono text-sm text-slate-200">
+                          <div className="font-mono text-sm text-muted">
                             x{item.quantity}
                             {returned > 0 && (
-                              <span className="ml-1.5 text-[11px] text-[#bc8cff]">(Đã trả {returned})</span>
+                              <span className="ml-1.5 text-[12px] text-cpurple">(Đã trả {returned})</span>
                             )}
                           </div>
                           <div className="font-mono text-cblue text-xs">{fmtVNDFull(item.price)}</div>
@@ -370,43 +421,46 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
                           {/* ── 2 nút cùng dòng ── */}
                           {!isCancelled && !fullyRet && !isActive && (
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              {canReturn && (
+                              {canReturn && can(PERMISSIONS.ORDER_RETURN) && (
                                 <button
                                   onClick={() => setReturnItemId(item.id)}
-                                  className="text-[11px] text-[#bc8cff] border border-[#bc8cff]/30 rounded-md px-2 py-0.5 hover:bg-[#bc8cff]/10 transition-colors whitespace-nowrap"
+                                  className="flex items-center gap-1 text-[12px] text-cpurple border border-cpurple/30 rounded-md px-2 py-0.5 hover:bg-violet-50 transition-colors whitespace-nowrap"
                                 >
-                                  ↩️ Trả hàng
+                                  <Undo2 size={11} /> Trả hàng
                                 </button>
                               )}
-                              {canCancel && !cancelConfirm && (
+                              {canCancel && !cancelConfirm && can(PERMISSIONS.ORDER_CANCEL) && (
                                 <button
                                   onClick={() => setCancelConfirm(true)}
-                                  className="text-[11px] text-cred border border-cred/25 rounded-md px-2 py-0.5 hover:bg-cred/10 transition-colors whitespace-nowrap"
+                                  className="flex items-center gap-1 text-[12px] text-cred border border-cred/25 rounded-md px-2 py-0.5 hover:bg-rose-50 transition-colors whitespace-nowrap"
                                 >
-                                  ✕ Hủy đơn
+                                  <X size={11} /> Hủy đơn
                                 </button>
                               )}
                             </div>
                           )}
                           {fullyRet && (
-                            <span className="text-[11px] text-cred border border-cred/20 rounded-md px-2 py-0.5">Đã trả hết</span>
+                            <span className="text-[12px] text-cred border border-cred/20 rounded-md px-2 py-0.5">Đã trả hết</span>
                           )}
                         </div>
                       </div>
 
                       {/* Confirm hủy inline */}
                       {cancelConfirm && (
-                        <div className="mt-2 rounded-lg bg-cred/8 border border-cred/20 px-3 py-2.5 flex flex-col gap-2">
-                          <div className="text-xs text-cyellow">
-                            ⚠️ Xác nhận hủy toàn bộ đơn? Hệ thống sẽ hoàn kho và{' '}
-                            {isImport ? 'giảm công nợ NCC.' : 'giảm chi tiêu khách hàng.'}
+                        <div className="mt-2 rounded-lg bg-rose-50 border border-cred/20 px-3 py-2.5 flex flex-col gap-2">
+                          <div className="flex items-start gap-1.5 text-xs text-cyellow">
+                            <AlertTriangle size={13} className="shrink-0 mt-0.5" />
+                            <span>
+                              Xác nhận hủy toàn bộ đơn? Hệ thống sẽ hoàn kho và{' '}
+                              {isImport ? 'giảm công nợ NCC.' : 'giảm chi tiêu khách hàng.'}
+                            </span>
                           </div>
                           <div className="flex gap-2 justify-end">
-                            <button onClick={() => setCancelConfirm(false)} className="text-xs text-slate-400 hover:text-[#1e293b] px-2 py-1 rounded transition-colors">
+                            <button onClick={() => setCancelConfirm(false)} className="text-xs text-muted hover:text-text px-2 py-1 rounded transition-colors">
                               Thôi
                             </button>
                             <button onClick={handleCancelFull} disabled={processing}
-                              className="px-3 py-1.5 rounded-lg bg-cred/20 border border-cred/40 text-cred text-xs font-bold hover:bg-cred/30 transition-colors disabled:opacity-60">
+                              className="px-3 py-1.5 rounded-lg bg-rose-100 border border-cred/40 text-cred text-xs font-bold hover:bg-rose-200 transition-colors disabled:opacity-60">
                               {processing ? 'Đang xử lý…' : 'Xác nhận hủy'}
                             </button>
                           </div>
@@ -454,6 +508,8 @@ function OrderDetailModal({ initialOrder, onClose, onOrderChanged }) {
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export default function Orders() {
+  const { can } = usePermission()
+  const canViewCost = can(PERMISSIONS.INVENTORY_VIEW_COST)
   const [orders,  setOrders]  = useState([])
   const [loading, setLoading] = useState(false)
 
@@ -466,6 +522,11 @@ export default function Orders() {
 
   const [cancelTarget, setCancelTarget] = useState(null)
   const [detailTarget, setDetailTarget] = useState(null)
+  const [rowMenu,      setRowMenu]      = useState(null) // { ord, top, left }
+
+  // ── Chọn nhiều dòng (UI-only) — chỉ phục vụ Xuất Excel hàng loạt, KHÔNG có
+  // bulk delete/cancel vì hủy đơn có tác động tồn kho/công nợ, nằm ngoài phạm vi này.
+  const [selectedIds, setSelectedIds] = useState(() => new Set())
 
   // ── Tính from/to từ preset ──────────────────────────
   const { from, to } = useMemo(() => {
@@ -502,6 +563,54 @@ export default function Orders() {
     toast.success(`Đã hủy đơn #${(cancelTarget.order_code || cancelTarget.id.slice(-8)).toUpperCase()} và hoàn tồn kho`)
     setCancelTarget(null)
     fetchOrders()
+  }
+
+  // ── Chọn nhiều (UI-only) ──────────────────────────────
+  function toggleSelectOne(id) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  function toggleSelectAllOnPage() {
+    setSelectedIds(prev => {
+      const pageIds = orders.map(o => o.id)
+      const allSelected = pageIds.length > 0 && pageIds.every(id => prev.has(id))
+      const next = new Set(prev)
+      pageIds.forEach(id => allSelected ? next.delete(id) : next.add(id))
+      return next
+    })
+  }
+  function clearSelection() { setSelectedIds(new Set()) }
+
+  const selectedOrders = useMemo(
+    () => orders.filter(o => selectedIds.has(o.id)),
+    [orders, selectedIds]
+  )
+
+  // Xuất Excel các đơn đã chọn — chỉ đọc dữ liệu, không đụng CRUD/API.
+  function handleBulkExportExcel() {
+    const rows = selectedOrders.map(o => {
+      const isImport = o.type === 'import'
+      const partner  = isImport ? o.suppliers?.name : o.customers?.full_name
+      const code     = (o.order_code || o.id.slice(-8)).toUpperCase()
+      return {
+        'Mã Đơn':      code,
+        'Thời gian':   fmtDatetime(o.created_at),
+        'Loại':        isImport ? 'Nhập hàng' : 'Xuất hàng',
+        'Đối tác':     partner || 'Khách lẻ',
+        'Tổng tiền':   o.total_amount ?? 0,
+        'Lợi nhuận':   isImport ? '' : (o.profit ?? 0),
+        'Trạng thái':  ({ completed: 'Hoàn thành', cancelled: 'Đã hủy', pending: 'Chờ xử lý', partially_returned: 'Trả một phần' })[o.status] || o.status,
+      }
+    })
+    const ws = XLSX.utils.json_to_sheet(rows)
+    ws['!cols'] = [{ wch: 14 }, { wch: 18 }, { wch: 12 }, { wch: 24 }, { wch: 14 }, { wch: 14 }, { wch: 14 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Đơn Hàng đã chọn')
+    XLSX.writeFile(wb, 'Don_Hang_Da_Chon.xlsx')
+    toast.success(`Đã xuất ${rows.length} đơn hàng`)
   }
 
   // ── KPIs ─────────────────────────────────────────────
@@ -547,6 +656,8 @@ export default function Orders() {
 
   // ── Render ────────────────────────────────────────────
   return (
+    <div className="w-full">
+      <PageHeader icon={Receipt} title="Đơn Hàng" subtitle="Quản lý đơn xuất/nhập, theo dõi trạng thái" />
     <div className="p-6 w-full flex flex-col gap-5">
 
       {/* ── Bộ lọc ─────────────────────────────────── */}
@@ -555,21 +666,19 @@ export default function Orders() {
         <div className="flex flex-wrap items-center gap-2">
           {PRESETS.map(p => (
             <button key={p.id} onClick={() => setPreset(p.id)}
-              className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1.5 h-11 px-4 rounded-xl border text-sm font-semibold transition-all ${
                 preset === p.id
-                  ? 'bg-cblue/20 border-cblue text-cblue'
-                  : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-[#1e293b]'
+                  ? 'bg-blue-50 border-cblue text-cblue'
+                  : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-text'
               }`}>
+              {p.icon && <p.icon size={14} />}
               {p.label}
             </button>
           ))}
 
           <button onClick={fetchOrders} disabled={loading}
-            className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted text-sm hover:border-cblue hover:text-cblue transition-colors disabled:opacity-50">
-            <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none">
-              <path d="M4 4v5h5M20 20v-5h-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M4 9a8 8 0 0114.9-2.1M20 15a8 8 0 01-14.9 2.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
+            className="ml-auto flex items-center gap-1.5 h-11 px-4 rounded-xl border border-border text-muted text-sm hover:border-cblue hover:text-cblue transition-colors disabled:opacity-50">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             {loading ? 'Đang tải…' : 'Làm mới'}
           </button>
         </div>
@@ -579,27 +688,28 @@ export default function Orders() {
           {preset === 'custom' && (
             <div className="flex items-center gap-2">
               <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-                className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all" />
+                className="input-base w-auto" />
               <span className="text-muted text-sm">→</span>
               <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-                className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all" />
+                className="input-base w-auto" />
             </div>
           )}
 
           {/* Loại phiếu */}
-          <div className="flex rounded-lg overflow-hidden border border-border shrink-0">
+          <div className="flex h-11 rounded-xl overflow-hidden border border-border shrink-0">
             {[
-              { id:'all',    label:'Tất cả' },
-              { id:'export', label:'⬆️ Xuất hàng' },
-              { id:'import', label:'⬇️ Nhập hàng' },
+              { id:'all',    label:'Tất cả', icon: null },
+              { id:'export', label:'Xuất hàng', icon: ArrowUp },
+              { id:'import', label:'Nhập hàng', icon: ArrowDown },
             ].map(t => (
               <button key={t.id}
                 onClick={() => { setTypeFilter(t.id); if (t.id === 'all') setViewMode('orders') }}
-                className={`px-3 py-1.5 text-sm font-semibold transition-colors border-l border-border first:border-l-0 ${
+                className={`flex items-center gap-1.5 px-3.5 text-sm font-semibold transition-colors border-l border-border first:border-l-0 ${
                   typeFilter === t.id
-                    ? 'bg-cblue/20 text-cblue'
-                    : 'bg-surface text-muted hover:bg-surface2 hover:text-[#1e293b]'
+                    ? 'bg-blue-50 text-cblue'
+                    : 'bg-surface text-muted hover:bg-surface2 hover:text-text'
                 }`}>
+                {t.icon && <t.icon size={14} />}
                 {t.label}
               </button>
             ))}
@@ -607,18 +717,18 @@ export default function Orders() {
 
           {/* View toggle — chỉ hiện khi lọc theo loại cụ thể */}
           {typeFilter !== 'all' && (
-            <div className="flex rounded-lg overflow-hidden border border-border shrink-0 ml-auto">
+            <div className="flex h-11 rounded-xl overflow-hidden border border-border shrink-0 ml-auto">
               {[
-                { id:'orders',   icon:'🧾', label:'Danh sách đơn' },
-                { id:'products', icon:'📊', label:'Theo sản phẩm' },
+                { id:'orders',   icon: ClipboardList, label:'Danh sách đơn' },
+                { id:'products', icon: Package,       label:'Theo sản phẩm' },
               ].map(v => (
                 <button key={v.id} onClick={() => setViewMode(v.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors border-l border-border first:border-l-0 ${
+                  className={`flex items-center gap-1.5 px-3.5 text-xs font-semibold transition-colors border-l border-border first:border-l-0 ${
                     viewMode === v.id
-                      ? typeFilter === 'export' ? 'bg-cblue/20 text-cblue' : 'bg-cyellow/20 text-cyellow'
-                      : 'bg-surface text-muted hover:bg-surface2 hover:text-[#1e293b]'
+                      ? typeFilter === 'export' ? 'bg-blue-50 text-cblue' : 'bg-amber-50 text-cyellow'
+                      : 'bg-surface text-muted hover:bg-surface2 hover:text-text'
                   }`}>
-                  <span>{v.icon}</span>
+                  <v.icon size={14} />
                   <span className="hidden sm:inline">{v.label}</span>
                 </button>
               ))}
@@ -628,16 +738,16 @@ export default function Orders() {
       </div>
 
       {/* ── KPI cards ─────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label:'Tổng đơn HT',    value: String(stats.total),          color:'text-cblue',   icon:'🧾' },
-          { label:'Doanh thu xuất', value: fmtVNDFull(stats.revenue),    color:'text-cgreen',  icon:'⬆️' },
-          { label:'Tổng nhập kho',  value: fmtVNDFull(stats.imported),   color:'text-cyellow', icon:'⬇️' },
-          { label:'Lợi nhuận',      value: fmtVNDFull(stats.profit),     color: stats.profit >= 0 ? 'text-cgreen' : 'text-cred', icon:'📈' },
+          { label:'Tổng đơn HT',    value: String(stats.total),          color:'text-cblue',   icon: ClipboardList },
+          { label:'Doanh thu xuất', value: fmtVNDFull(stats.revenue),    color:'text-cgreen',  icon: ArrowUp },
+          { label:'Tổng nhập kho',  value: fmtVNDFull(stats.imported),   color:'text-cyellow', icon: ArrowDown },
+          { label:'Lợi nhuận',      value: fmtVNDFull(stats.profit),     color: stats.profit >= 0 ? 'text-cgreen' : 'text-cred', icon: TrendingUp },
         ].map(k => (
           <div key={k.label} className="card p-4 relative overflow-hidden">
-            <div className="absolute top-3 right-3 text-2xl opacity-20">{k.icon}</div>
-            <div className="text-[10px] text-muted font-semibold uppercase tracking-wide mb-1.5">{k.label}</div>
+            <k.icon className="absolute top-3 right-3 opacity-15" size={28} />
+            <div className="text-[12px] text-muted font-semibold uppercase tracking-wide mb-1.5">{k.label}</div>
             <div className={`text-xl font-black tabular-nums leading-tight ${k.color}`}>{k.value}</div>
           </div>
         ))}
@@ -647,17 +757,56 @@ export default function Orders() {
 
       {/* View: Danh sách đơn */}
       {viewMode === 'orders' && (
-        <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-2xl shadow-black/20">
+        <>
+          {/* ══════════════════ BULK ACTION BAR — nổi phía trên Table khi có chọn ══════════════════ */}
+          {/* Chỉ Xuất Excel + Bỏ chọn — KHÔNG có hủy/xóa hàng loạt vì hủy đơn tác động tồn kho/công nợ. */}
+          {selectedIds.size > 0 && (
+            <div className="mb-4 bg-[#0f172a] rounded-2xl shadow-lg px-4 py-3 flex flex-wrap items-center gap-2.5">
+              <span className="text-sm font-semibold text-white mr-1">Đã chọn {selectedIds.size} đơn hàng</span>
+              <div className="w-px h-6 bg-white/15 hidden sm:block" />
+              <Can permission={PERMISSIONS.ORDER_EXPORT}>
+              <button onClick={handleBulkExportExcel}
+                className="h-9 flex items-center gap-1.5 px-3 rounded-lg bg-white/10 hover:bg-white/15 text-white text-[14px] font-medium transition-colors">
+                <Download size={14} strokeWidth={2} /> Xuất Excel
+              </button>
+              </Can>
+              <button onClick={clearSelection}
+                className="h-9 flex items-center gap-1.5 px-3 rounded-lg text-white/60 hover:text-white text-[14px] font-medium transition-colors ml-auto">
+                <X size={14} strokeWidth={2.2} /> Bỏ chọn
+              </button>
+            </div>
+          )}
+
+        <div className="rounded-2xl border border-border bg-surface overflow-hidden shadow-card">
           <div className="px-5 py-3.5 border-b border-border bg-surface2 flex items-center justify-between">
-            <div className="text-sm font-bold">Danh sách đơn hàng</div>
+            <div className="text-sm font-bold text-text">Danh sách đơn hàng</div>
             <span className="tag-blue">{orders.length} đơn</span>
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-muted text-sm">Đang tải…</div>
+            <div className="hidden sm:block w-full overflow-x-auto">
+              <table className="w-full min-w-0 text-xs md:text-sm">
+                <thead>
+                  <tr className="bg-[#f8fafc] border-b border-border">
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 w-10"></th>
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Mã đơn</th>
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thời gian</th>
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Loại</th>
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Đối tác</th>
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-right text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Tổng tiền</th>
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 text-right text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Lợi nhuận</th>
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Trạng thái</th>
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-center text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  <SkeletonTableBody rows={8} columns={7} hasImage={false} />
+                </tbody>
+              </table>
+            </div>
           ) : orders.length === 0 ? (
             <div className="text-center py-12 text-muted">
-              <div className="text-4xl mb-2">📋</div>
+              <ClipboardList className="mx-auto mb-2 text-subtle" size={36} />
               <div className="font-semibold">Không có đơn hàng trong khoảng thời gian này</div>
             </div>
           ) : (
@@ -672,34 +821,35 @@ export default function Orders() {
                   return (
                     <div key={ord.id}
                       onClick={() => !isCancelled && setDetailTarget(ord)}
-                      className={`bg-[#ffffff] border border-slate-800 rounded-xl p-3.5 ${isCancelled ? 'opacity-40' : 'active:bg-slate-800/40 cursor-pointer'}`}>
+                      className={`bg-surface border border-border rounded-xl p-3.5 ${isCancelled ? 'opacity-40' : 'active:bg-surface2 cursor-pointer'}`}>
                       <div className="flex items-start justify-between gap-2 mb-2.5">
                         <div>
-                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold mb-1 ${isImport ? 'bg-cyellow/15 text-cyellow border-cyellow/30' : 'bg-cblue/15 text-cblue border-cblue/30'}`}>
-                            {isImport ? '⬇️ Nhập' : '⬆️ Xuất'}
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-bold mb-1 ${isImport ? 'bg-amber-50 text-cyellow' : 'bg-blue-50 text-cblue'}`}>
+                            {isImport ? <ArrowDown size={10} /> : <ArrowUp size={10} />}
+                            {isImport ? 'Nhập' : 'Xuất'}
                           </span>
-                          <div className="font-mono text-[11px] text-slate-500">#{code}</div>
-                          <div className="text-[10px] text-slate-600 mt-0.5">{fmtDatetime(ord.created_at)}</div>
+                          <div className="font-mono text-[12px] text-subtle">#{code}</div>
+                          <div className="text-[12px] text-subtle mt-0.5">{fmtDatetime(ord.created_at)}</div>
                         </div>
                         <div className="text-right">
-                          <div className="font-mono font-bold text-sm text-slate-100">{fmtVNDFull(ord.total_amount)}</div>
-                          {!isImport && <div className={`text-xs font-mono font-semibold ${(ord.profit||0) >= 0 ? 'text-cgreen' : 'text-cred'}`}>{fmtVNDFull(ord.profit)}</div>}
+                          <div className="font-mono font-bold text-sm text-text">{fmtVNDFull(ord.total_amount)}</div>
+                          {!isImport && canViewCost && <div className={`text-xs font-mono font-semibold ${(ord.profit||0) >= 0 ? 'text-cgreen' : 'text-cred'}`}>{fmtVNDFull(ord.profit)}</div>}
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
                         {partner
                           ? <span className={`text-sm font-semibold truncate ${isImport ? 'text-cyellow' : 'text-cpurple'}`}>{partner}</span>
-                          : <span className="text-slate-500 italic text-sm">Khách lẻ</span>}
+                          : <span className="text-subtle italic text-sm">Khách lẻ</span>}
                         <div className="flex items-center gap-1.5 shrink-0 ml-2" onClick={e => e.stopPropagation()}>
                           <StatusBadge status={ord.status} />
                           <button onClick={() => setDetailTarget(ord)}
-                            className="h-8 px-3 rounded-lg border border-slate-700 text-slate-400 text-xs hover:border-cblue hover:text-cblue active:scale-95 transition-all">
+                            className="h-8 px-3 rounded-lg border border-border text-muted text-xs hover:border-cblue hover:text-cblue active:scale-95 transition-all">
                             Chi tiết
                           </button>
                           {ord.status === 'completed' && (
                             <button onClick={() => setCancelTarget(ord)}
-                              className="h-8 w-8 rounded-lg border border-slate-700 text-slate-500 hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center">
-                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                              className="h-8 w-8 rounded-lg border border-border text-subtle hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center">
+                              <X size={14} />
                             </button>
                           )}
                         </div>
@@ -713,34 +863,45 @@ export default function Orders() {
               <div className="hidden sm:block w-full overflow-x-auto whitespace-nowrap">
                 <table className="w-full min-w-0 text-xs md:text-sm">
                   <thead>
-                    <tr className="bg-[#f1f5f9] border-b border-border">
-                      <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Mã đơn</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thời gian</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Loại</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Đối tác</th>
-                      <th className="px-3 sm:px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Tổng tiền</th>
-                      <th className="px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Lợi nhuận</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Trạng thái</th>
-                      <th className="px-3 sm:px-4 py-3 text-center text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thao tác</th>
+                    <tr className="bg-[#f8fafc] border-b border-border">
+                      <th className="sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 w-10">
+                        <input type="checkbox"
+                          checked={orders.length > 0 && orders.every(o => selectedIds.has(o.id))}
+                          onChange={toggleSelectAllOnPage}
+                          className="w-4 h-4 rounded accent-cblue" />
+                      </th>
+                      <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Mã đơn</th>
+                      <th className="sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thời gian</th>
+                      <th className="sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Loại</th>
+                      <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Đối tác</th>
+                      <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-right text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Tổng tiền</th>
+                      {canViewCost && <th className="sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 text-right text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Lợi nhuận</th>}
+                      <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Trạng thái</th>
+                      <th className="sticky top-0 z-10 bg-[#f8fafc] px-3 sm:px-4 py-3 text-center text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Thao tác</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border">
                     {orders.map(ord => {
                       const isImport    = ord.type === 'import'
                       const isCancelled = ord.status === 'cancelled'
                       const partner     = isImport ? ord.suppliers?.name : ord.customers?.full_name
                       const code        = (ord.order_code || ord.id.slice(-8)).toUpperCase()
+                      const checked     = selectedIds.has(ord.id)
                       return (
                         <tr key={ord.id}
-                          className={`border-b border-border/40 last:border-0 transition-colors group ${isCancelled ? 'opacity-45' : 'hover:bg-slate-800/30 cursor-pointer'}`}
+                          className={`transition-colors group ${isCancelled ? 'opacity-45' : 'hover:bg-surface2 cursor-pointer'} ${checked ? 'bg-blue-50/60' : ''}`}
                           onClick={() => !isCancelled && setDetailTarget(ord)}>
+                          <td className="px-4 py-3 sm:py-3.5" onClick={e => e.stopPropagation()}>
+                            <input type="checkbox" checked={checked} onChange={() => toggleSelectOne(ord.id)} className="w-4 h-4 rounded accent-cblue" />
+                          </td>
                           <td className="px-3 sm:px-4 py-3 sm:py-3.5">
                             <div className="font-mono text-xs bg-surface2 border border-border px-2 py-0.5 rounded text-muted inline-block">#{code}</div>
                           </td>
                           <td className="px-4 py-3.5 text-xs text-muted whitespace-nowrap">{fmtDatetime(ord.created_at)}</td>
                           <td className="px-4 py-3.5">
-                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${isImport ? 'bg-cyellow/15 text-cyellow border-cyellow/30' : 'bg-cblue/15 text-cblue border-cblue/30'}`}>
-                              {isImport ? '⬇️ Nhập' : '⬆️ Xuất'}
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[12px] font-bold ${isImport ? 'bg-amber-50 text-cyellow' : 'bg-blue-50 text-cblue'}`}>
+                              {isImport ? <ArrowDown size={11} /> : <ArrowUp size={11} />}
+                              {isImport ? 'Nhập' : 'Xuất'}
                             </span>
                           </td>
                           <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-sm">
@@ -748,33 +909,37 @@ export default function Orders() {
                               ? <span className={`${isImport ? 'text-cyellow font-semibold' : 'text-cpurple font-semibold'}`}>{partner}</span>
                               : <span className="text-muted italic">Khách lẻ</span>}
                           </td>
-                          <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-right font-mono text-xs sm:text-sm font-semibold text-[#1e293b] tabular-nums whitespace-nowrap">
+                          <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-right font-mono text-xs sm:text-sm font-semibold text-text tabular-nums whitespace-nowrap">
                             {fmtVNDFull(ord.total_amount)}
                           </td>
-                          <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                            {isImport ? <span className="text-muted text-xs">—</span>
-                              : <span className={`font-mono text-sm font-bold tabular-nums ${(ord.profit||0) >= 0 ? 'text-cgreen' : 'text-cred'}`}>{fmtVNDFull(ord.profit)}</span>}
-                          </td>
+                          {canViewCost && (
+                            <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                              {isImport ? <span className="text-muted text-xs">—</span>
+                                : <span className={`font-mono text-sm font-bold tabular-nums ${(ord.profit||0) >= 0 ? 'text-cgreen' : 'text-cred'}`}>{fmtVNDFull(ord.profit)}</span>}
+                            </td>
+                          )}
                           <td className="px-3 sm:px-4 py-3 sm:py-3.5"><StatusBadge status={ord.status} /></td>
                           <td className="px-3 sm:px-4 py-3 sm:py-3.5" onClick={e => e.stopPropagation()}>
                             <div className="flex items-center justify-center gap-1.5">
                               <button onClick={() => setDetailTarget(ord)} title="Xem chi tiết"
-                                className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 active:scale-90 transition-all flex items-center justify-center">
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.8"/></svg>
+                                className="w-7 h-7 rounded-md border border-border text-muted hover:border-cblue hover:text-cblue hover:bg-blue-50 active:scale-90 transition-all flex items-center justify-center">
+                                <Eye size={14} />
                               </button>
                               {ord.status !== 'cancelled' && (
                                 <button onClick={() => reprintOrder(ord)} title="In lại hóa đơn"
-                                  className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center">
-                                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                                    <path d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                                    <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.8"/>
-                                  </svg>
+                                  className="w-7 h-7 rounded-md border border-border text-muted hover:border-cblue hover:text-cblue hover:bg-blue-50 transition-colors flex items-center justify-center">
+                                  <Printer size={14} />
                                 </button>
                               )}
                               {ord.status === 'completed' && (
-                                <button onClick={() => setCancelTarget(ord)} title="Hủy đơn & hoàn kho"
-                                  className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors flex items-center justify-center">
-                                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                                <button
+                                  onClick={e => {
+                                    const r = e.currentTarget.getBoundingClientRect()
+                                    setRowMenu({ ord, top: r.bottom + 4, left: Math.max(8, r.right - 184) })
+                                  }}
+                                  title="Thao tác khác"
+                                  className="w-7 h-7 rounded-md border border-border text-muted hover:border-cblue hover:text-cblue hover:bg-surface2 transition-colors flex items-center justify-center">
+                                  <MoreVertical size={14} />
                                 </button>
                               )}
                             </div>
@@ -788,20 +953,21 @@ export default function Orders() {
             </>
           )}
         </div>
+        </>
       )}
 
       {/* View: Theo sản phẩm */}
       {viewMode === 'products' && (
-        <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-2xl shadow-black/20">
+        <div className="rounded-2xl border border-border bg-surface overflow-hidden shadow-card">
           <div className="px-5 py-3.5 border-b border-border bg-surface2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold">
-                {typeFilter === 'import' ? '⬇️ Sản phẩm nhập nhiều nhất' : '📊 Sản phẩm bán chạy nhất'}
+              <span className="text-sm font-bold text-text flex items-center gap-1.5">
+                {typeFilter === 'import' ? <><ArrowDown size={14} className="text-cyellow" /> Sản phẩm nhập nhiều nhất</> : <><TrendingUp size={14} className="text-cblue" /> Sản phẩm bán chạy nhất</>}
               </span>
-              <span className="text-[10px] text-muted">(sắp xếp theo số lượng)</span>
+              <span className="text-[12px] text-muted">(sắp xếp theo số lượng)</span>
             </div>
             <span className={typeFilter === 'import'
-              ? 'bg-cyellow/15 text-cyellow text-xs font-bold px-2 py-0.5 rounded'
+              ? 'bg-amber-50 text-cyellow text-xs font-bold px-2.5 py-0.5 rounded-full'
               : 'tag-blue'}>
               {productStats.length} sản phẩm
             </span>
@@ -811,52 +977,52 @@ export default function Orders() {
             <div className="text-center py-12 text-muted text-sm">Đang tải…</div>
           ) : productStats.length === 0 ? (
             <div className="text-center py-12 text-muted">
-              <div className="text-4xl mb-2">📦</div>
+              <Package className="mx-auto mb-2 text-subtle" size={36} />
               <div className="font-semibold">Không có dữ liệu trong khoảng thời gian này</div>
             </div>
           ) : (
             <div className="w-full overflow-x-auto whitespace-nowrap">
               <table className="w-full min-w-[640px] text-xs md:text-sm">
                 <thead>
-                  <tr className="bg-[#f1f5f9] border-b border-border">
-                    <th className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider w-10">#</th>
-                    <th className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider">Sản phẩm</th>
-                    <th className="px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Số đơn</th>
-                    <th className="px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Số lượng</th>
-                    <th className="px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">
+                  <tr className="bg-gray-50 border-b border-border">
+                    <th className="px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider w-10">#</th>
+                    <th className="px-4 py-3 text-left text-[12px] font-bold text-muted uppercase tracking-wider">Sản phẩm</th>
+                    <th className="px-4 py-3 text-right text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Số đơn</th>
+                    <th className="px-4 py-3 text-right text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Số lượng</th>
+                    <th className="px-4 py-3 text-right text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">
                       {typeFilter === 'import' ? 'Tổng tiền nhập' : 'Doanh thu'}
                     </th>
-                    {typeFilter === 'export' && (
-                      <th className="px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Lợi nhuận</th>
+                    {typeFilter === 'export' && canViewCost && (
+                      <th className="px-4 py-3 text-right text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Lợi nhuận</th>
                     )}
-                    {typeFilter === 'export' && (
-                      <th className="px-4 py-3 text-right text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Margin</th>
+                    {typeFilter === 'export' && canViewCost && (
+                      <th className="px-4 py-3 text-right text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">Margin</th>
                     )}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border">
                   {productStats.map((p, idx) => {
                     const margin = p.totalRevenue > 0 ? (p.totalProfit / p.totalRevenue * 100).toFixed(1) : 0
                     const maxQty = productStats[0]?.totalQty || 1
                     const barPct = Math.round(p.totalQty / maxQty * 100)
 
                     return (
-                      <tr key={p.productId} className="border-b border-border/40 last:border-0 hover:bg-slate-800/30 transition-colors">
+                      <tr key={p.productId} className="hover:bg-surface2 transition-colors">
 
                         {/* Rank */}
                         <td className="px-4 py-3.5 text-center">
-                          {idx === 0 && <span className="text-base">🥇</span>}
-                          {idx === 1 && <span className="text-base">🥈</span>}
-                          {idx === 2 && <span className="text-base">🥉</span>}
+                          {idx === 0 && <Trophy size={16} className="text-cyellow inline-block" />}
+                          {idx === 1 && <Medal size={16} className="text-subtle inline-block" />}
+                          {idx === 2 && <Award size={16} className="text-amber-700 inline-block" />}
                           {idx > 2 && <span className="text-sm text-muted font-mono">{idx + 1}</span>}
                         </td>
 
                         {/* Tên + SKU + bar */}
                         <td className="px-4 py-3 min-w-[220px]">
-                          <div className="font-semibold text-sm text-[#1e293b] truncate max-w-[260px]">{p.name}</div>
-                          <div className="text-[10px] text-muted font-mono mt-0.5">{p.sku}</div>
+                          <div className="font-semibold text-sm text-text truncate max-w-[260px]">{p.name}</div>
+                          <div className="text-[12px] text-muted font-mono mt-0.5">{p.sku}</div>
                           {/* Mini progress bar */}
-                          <div className="mt-1.5 h-1 bg-slate-800 rounded-full overflow-hidden w-full max-w-[200px]">
+                          <div className="mt-1.5 h-1 bg-surface2 rounded-full overflow-hidden w-full max-w-[200px]">
                             <div className={`h-full rounded-full ${typeFilter === 'import' ? 'bg-cyellow/70' : 'bg-cblue/70'}`}
                               style={{ width: `${barPct}%` }} />
                           </div>
@@ -874,16 +1040,16 @@ export default function Orders() {
                           <span className={`text-base font-black tabular-nums ${typeFilter === 'import' ? 'text-cyellow' : 'text-cblue'}`}>
                             {p.totalQty.toLocaleString('vi-VN')}
                           </span>
-                          <span className="text-[10px] text-muted ml-1">sp</span>
+                          <span className="text-[12px] text-muted ml-1">sp</span>
                         </td>
 
                         {/* Doanh thu / tiền nhập */}
-                        <td className="px-4 py-3.5 text-right font-mono text-sm font-semibold text-[#1e293b] tabular-nums whitespace-nowrap">
+                        <td className="px-4 py-3.5 text-right font-mono text-sm font-semibold text-text tabular-nums whitespace-nowrap">
                           {fmtVNDFull(p.totalRevenue)}
                         </td>
 
                         {/* Lợi nhuận (export only) */}
-                        {typeFilter === 'export' && (
+                        {typeFilter === 'export' && canViewCost && (
                           <td className="px-4 py-3.5 text-right whitespace-nowrap">
                             <span className={`font-mono text-sm font-bold tabular-nums ${p.totalProfit >= 0 ? 'text-cgreen' : 'text-cred'}`}>
                               {fmtVNDFull(p.totalProfit)}
@@ -892,14 +1058,14 @@ export default function Orders() {
                         )}
 
                         {/* Margin (export only) */}
-                        {typeFilter === 'export' && (
+                        {typeFilter === 'export' && canViewCost && (
                           <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                               Number(margin) >= 20
-                                ? 'bg-cgreen/15 text-cgreen border-cgreen/30'
+                                ? 'tag-green'
                                 : Number(margin) >= 10
-                                ? 'bg-cyellow/15 text-cyellow border-cyellow/30'
-                                : 'bg-cred/15 text-cred border-cred/30'
+                                ? 'tag-yellow'
+                                : 'tag-red'
                             }`}>
                               {margin}%
                             </span>
@@ -920,23 +1086,39 @@ export default function Orders() {
                       <span className={`text-base font-black tabular-nums ${typeFilter === 'import' ? 'text-cyellow' : 'text-cblue'}`}>
                         {productStats.reduce((s,p) => s + p.totalQty, 0).toLocaleString('vi-VN')}
                       </span>
-                      <span className="text-[10px] text-muted ml-1">sp</span>
+                      <span className="text-[12px] text-muted ml-1">sp</span>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono font-black text-sm text-[#1e293b] tabular-nums whitespace-nowrap">
+                    <td className="px-4 py-3 text-right font-mono font-black text-sm text-text tabular-nums whitespace-nowrap">
                       {fmtVNDFull(productStats.reduce((s,p) => s + p.totalRevenue, 0))}
                     </td>
-                    {typeFilter === 'export' && (
+                    {typeFilter === 'export' && canViewCost && (
                       <td className="px-4 py-3 text-right font-mono font-black text-sm text-cgreen tabular-nums whitespace-nowrap">
                         {fmtVNDFull(productStats.reduce((s,p) => s + p.totalProfit, 0))}
                       </td>
                     )}
-                    {typeFilter === 'export' && <td />}
+                    {typeFilter === 'export' && canViewCost && <td />}
                   </tr>
                 </tfoot>
               </table>
             </div>
           )}
         </div>
+      )}
+
+      {/* Row action menu (kebab) */}
+      {rowMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setRowMenu(null)} />
+          <div className="fixed z-50 w-44 bg-surface border border-border rounded-xl shadow-xl py-1"
+            style={{ top: rowMenu.top, left: rowMenu.left }}>
+            <Can permission={PERMISSIONS.ORDER_CANCEL}>
+              <button onClick={() => { setCancelTarget(rowMenu.ord); setRowMenu(null) }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-cred hover:bg-rose-50 transition-colors flex items-center gap-2">
+                <Ban size={13} /> Hủy đơn & hoàn kho
+              </button>
+            </Can>
+          </div>
+        </>
       )}
 
       {/* ── Modals ─────────────────────────────────────── */}
@@ -957,6 +1139,7 @@ export default function Orders() {
           }}
         />
       )}
+    </div>
     </div>
   )
 }

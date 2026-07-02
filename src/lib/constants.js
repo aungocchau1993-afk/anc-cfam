@@ -13,17 +13,19 @@ export const ALLOC_LABELS = {
   cash:       'Tiền mặt',
 }
 
+// Bảng màu hợp nhất theo token accent của Design System (cblue/cgreen/cyellow/cpurple/cteal)
+// — thay cho palette dark-theme cũ (#58a6ff…) để đồng bộ màu với toàn bộ giao diện sáng.
 export const ALLOC_COLORS = {
-  stocks:     '#58a6ff',
-  realestate: '#3fb950',
-  gold:       '#d29922',
-  crypto:     '#bc8cff',
-  cash:       '#39c5cf',
+  stocks:     '#2563eb',
+  realestate: '#16a34a',
+  gold:       '#f59e0b',
+  crypto:     '#7c3aed',
+  cash:       '#0d9488',
 }
 
 export const CATEGORY_CONFIG = {
   stocks: {
-    label: 'Chứng Khoán', icon: '📈', color: '#58a6ff',
+    label: 'Chứng Khoán', icon: '📈', color: '#2563eb',
     fields: [
       { key: 'name',   label: 'Mã / Tên CK',    placeholder: 'VNM, HPG, VIC…', wide: true },
       { key: 'qty',    label: 'Số lượng (cp)',   placeholder: '1000' },
@@ -33,7 +35,7 @@ export const CATEGORY_CONFIG = {
     meta: h => [h.qty ? h.qty + ' cp' : '', h.note].filter(Boolean).join(' · '),
   },
   realestate: {
-    label: 'Bất Động Sản', icon: '🏠', color: '#3fb950',
+    label: 'Bất Động Sản', icon: '🏠', color: '#16a34a',
     fields: [
       { key: 'name',     label: 'Tên BĐS',          placeholder: 'Chung cư Q7…', wide: true },
       { key: 'location', label: 'Vị trí / Địa chỉ', placeholder: '123 Nguyễn Văn A, Q.7', wide: true },
@@ -44,7 +46,7 @@ export const CATEGORY_CONFIG = {
     meta: h => [h.location, h.area ? h.area + 'm²' : '', h.note].filter(Boolean).join(' · '),
   },
   gold: {
-    label: 'Vàng', icon: '🪙', color: '#d29922',
+    label: 'Vàng', icon: '🪙', color: '#f59e0b',
     fields: [
       { key: 'name',   label: 'Loại vàng',       placeholder: 'Vàng SJC, Vàng nhẫn 999.9…', wide: true },
       { key: 'qty',    label: 'Số lượng (lượng)', placeholder: '2.5' },
@@ -54,7 +56,7 @@ export const CATEGORY_CONFIG = {
     meta: h => [h.qty ? h.qty + ' lượng' : '', h.note].filter(Boolean).join(' · '),
   },
   crypto: {
-    label: 'Crypto', icon: '🔗', color: '#bc8cff',
+    label: 'Crypto', icon: '🔗', color: '#7c3aed',
     fields: [
       { key: 'name',   label: 'Đồng coin',       placeholder: 'BTC, ETH, SOL…', wide: true },
       { key: 'qty',    label: 'Số lượng (coin)', placeholder: '0.05' },
@@ -64,7 +66,7 @@ export const CATEGORY_CONFIG = {
     meta: h => [h.qty ? h.qty + ' coin' : '', h.note].filter(Boolean).join(' · '),
   },
   cash: {
-    label: 'Tiền Mặt & Tiết Kiệm', icon: '💵', color: '#39c5cf',
+    label: 'Tiền Mặt & Tiết Kiệm', icon: '💵', color: '#0d9488',
     fields: [
       { key: 'name',   label: 'Ngân hàng / Tài khoản', placeholder: 'Vietcombank, Tiết kiệm 6 tháng…', wide: true },
       { key: 'rate',   label: 'Lãi suất (%/năm)',       placeholder: '5.5' },

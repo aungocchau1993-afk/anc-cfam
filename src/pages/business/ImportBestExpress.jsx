@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
+import { X, PenLine, FileSpreadsheet, Truck, Package, PackagePlus, Gift, FolderOpen, ChevronRight, CheckCircle2, XCircle, AlertTriangle, CreditCard } from 'lucide-react'
 import ModalOverlay from '../../components/ui/ModalOverlay'
 import { createImportOrder, loadSuppliers, loadProducts } from '../../lib/supabase'
 import { formatMoneyLive, parseVNDInput, fmtVNDFull } from '../../lib/formatters'
@@ -436,24 +437,24 @@ function parseSupplierMoney(raw) {
 export function ImportMethodModal({ onManual, onExcel, onBest, onClose }) {
   const options = [
     {
-      key: 'manual', icon: '✍️', bg: 'bg-cgreen/15 border-cgreen/40',
+      key: 'manual', icon: PenLine, bg: 'bg-cgreen/10 border-cgreen/30',
       title: 'Nhập kho thủ công',
       desc: 'Tìm kiếm sản phẩm, nhập số lượng và giá nhập cho từng mặt hàng. Phù hợp khi nhập ít sản phẩm.',
       onClick: onManual,
     },
     {
-      key: 'excel', icon: '📊', bg: 'bg-cblue/15 border-cblue/40',
+      key: 'excel', icon: FileSpreadsheet, bg: 'bg-cblue/10 border-cblue/30',
       title: 'Nhập kho bằng file Excel',
       desc: 'Tải lên file Excel chứa danh sách sản phẩm cần nhập kho. Phù hợp khi nhập số lượng lớn cùng lúc.',
       tags: ['Mã hàng (SKU)', 'Số lượng', 'Giá nhập'],
       onClick: onExcel,
     },
     {
-      key: 'best', icon: '🚚', bg: 'bg-orange-500/15 border-orange-500/40',
+      key: 'best', icon: Truck, bg: 'bg-orange-50 border-orange-200',
       title: 'Nhập từ file NCC / Đơn Vị Vận Chuyển',
       desc: 'Đọc file CSV/Excel từ nhà cung cấp hoặc đơn vị vận chuyển. Tự động nhận diện sản phẩm, tách [Tặng X gói...] thành dòng hàng tặng kèm riêng.',
       tags: ['Fuzzy Match', 'Tách [Tặng ...]', 'Cảnh báo chênh lệch'],
-      tagColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+      tagColor: 'bg-orange-100 text-orange-600 border-orange-200',
       onClick: onBest,
     },
   ]
@@ -462,36 +463,39 @@ export function ImportMethodModal({ onManual, onExcel, onBest, onClose }) {
     <ModalOverlay onClose={onClose}>
       <div className="bg-surface border border-border rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
         <div className="px-6 py-5 border-b border-border flex items-center justify-between">
-          <div>
-            <div className="text-lg font-bold text-[#1e293b]">📦 Nhập Kho</div>
-            <div className="text-xs text-muted mt-0.5">Chọn phương thức nhập kho bạn muốn sử dụng</div>
+          <div className="flex items-center gap-2">
+            <PackagePlus size={18} strokeWidth={2} className="text-cblue" />
+            <div>
+              <div className="text-lg font-bold text-text">Nhập Kho</div>
+              <div className="text-xs text-muted mt-0.5">Chọn phương thức nhập kho bạn muốn sử dụng</div>
+            </div>
           </div>
-          <button onClick={onClose} className="text-muted hover:text-[#1e293b] transition-colors text-xl leading-none">×</button>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors flex items-center justify-center shrink-0"><X size={15} strokeWidth={2.2} /></button>
         </div>
 
         <div className="p-4 flex flex-col gap-3">
           {options.map(opt => (
             <button key={opt.key} onClick={opt.onClick}
-              className={`flex items-start gap-4 p-4 rounded-xl border ${opt.bg} hover:brightness-125 text-left transition-all group`}>
-              <div className="text-2xl mt-0.5">{opt.icon}</div>
+              className={`flex items-start gap-4 p-4 rounded-xl border ${opt.bg} hover:shadow-cardHover text-left transition-all group`}>
+              <opt.icon size={22} strokeWidth={2} className="text-text mt-0.5 shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-[#1e293b] group-hover:text-white text-sm">{opt.title}</div>
+                <div className="font-bold text-text text-sm">{opt.title}</div>
                 <div className="text-xs text-muted mt-1 leading-relaxed">{opt.desc}</div>
                 {opt.tags && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {opt.tags.map(tag => (
-                      <span key={tag} className={`text-[10px] px-2 py-0.5 rounded-full border ${opt.tagColor || 'bg-slate-800 text-slate-400 border-slate-700'}`}>{tag}</span>
+                      <span key={tag} className={`text-[12px] px-2 py-0.5 rounded-full border ${opt.tagColor || 'bg-surface2 text-muted border-border'}`}>{tag}</span>
                     ))}
                   </div>
                 )}
               </div>
-              <span className="text-muted group-hover:text-slate-300 mt-2">›</span>
+              <ChevronRight size={16} strokeWidth={2} className="text-muted group-hover:text-text mt-2 shrink-0" />
             </button>
           ))}
         </div>
 
         <div className="px-4 pb-4">
-          <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] hover:border-slate-600 transition-all">Huỷ</button>
+          <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-border text-muted text-sm hover:text-text hover:border-subtle transition-all">Huỷ</button>
         </div>
       </div>
     </ModalOverlay>
@@ -520,7 +524,7 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
   const [dragOver,         setDragOver]         = useState(false)
   const fileInputRef = useRef(null)
 
-  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-all min-h-[52px] rounded-xl'
+  const iCls = 'input-base min-h-[52px]'
 
   useEffect(() => {
     loadSuppliers().then(s => setSuppliersList(s || [])).catch(() => {})
@@ -1190,8 +1194,9 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
 
           {/* Header */}
           <div className="shrink-0 px-6 py-4 border-b border-border flex items-center justify-between">
-            <div>
-              <span className="text-lg font-bold text-[#1e293b]">🚚 Nhập từ NCC / Đơn Vị Vận Chuyển</span>
+            <div className="flex items-center gap-2">
+              <Truck size={18} strokeWidth={2} className="text-orange-500 shrink-0" />
+              <span className="text-lg font-bold text-text">Nhập từ NCC / Đơn Vị Vận Chuyển</span>
               {fileName && <span className="text-xs text-muted ml-2">— {fileName}</span>}
               {step === 'preview' && (
                 <div className="text-xs text-muted mt-0.5">{cart.length} sản phẩm nhận diện — kiểm tra và xác nhận</div>
@@ -1200,9 +1205,9 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
             <div className="flex items-center gap-2">
               {step === 'preview' && (
                 <button onClick={() => { setStep('upload'); setCart([]); setFileName('') }}
-                  className="text-xs text-muted hover:text-[#1e293b] border border-slate-700 rounded-lg px-3 py-1.5 transition-colors">← Chọn file khác</button>
+                  className="text-xs text-muted hover:text-text border border-border rounded-lg px-3 py-1.5 transition-colors">← Chọn file khác</button>
               )}
-              <button onClick={onClose} className="text-muted hover:text-[#1e293b] text-xl leading-none">×</button>
+              <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors flex items-center justify-center shrink-0"><X size={15} strokeWidth={2.2} /></button>
             </div>
           </div>
 
@@ -1211,17 +1216,17 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
             <div className="flex-1 flex flex-col items-center justify-center p-10 gap-4">
               <div
                 className={`w-full max-w-md border-2 border-dashed rounded-2xl p-10 text-center transition-all cursor-pointer
-                  ${dragOver ? 'border-orange-400 bg-orange-500/10' : 'border-slate-700 hover:border-orange-500/50 hover:bg-slate-800/50'}`}
+                  ${dragOver ? 'border-orange-400 bg-orange-50' : 'border-border hover:border-orange-300 hover:bg-surface2'}`}
                 onDragOver={e => { e.preventDefault(); setDragOver(true) }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={e => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files?.[0]) }}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <div className="text-5xl mb-3">{dragOver ? '📂' : '📁'}</div>
-                <div className="font-bold text-[#1e293b]">Kéo thả file vào đây</div>
+                <FolderOpen size={40} strokeWidth={1.5} className="mx-auto mb-3 text-subtle" />
+                <div className="font-bold text-text">Kéo thả file vào đây</div>
                 <div className="text-xs text-muted mt-1">hoặc click để chọn file (.xlsx, .xls, .csv)</div>
-                <div className="text-[11px] text-slate-600 mt-3 leading-relaxed">
-                  Dòng chứa <span className="text-orange-400 font-bold">[Tặng X gói...]</span> sẽ tự tách thành sản phẩm chính + hàng tặng kèm
+                <div className="text-[12px] text-subtle mt-3 leading-relaxed">
+                  Dòng chứa <span className="text-orange-500 font-bold">[Tặng X gói...]</span> sẽ tự tách thành sản phẩm chính + hàng tặng kèm
                 </div>
               </div>
               <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden"
@@ -1240,27 +1245,27 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
                   return (
                     <>
                       {mainCount > 0 && (
-                        <span className="text-xs px-3 py-1 rounded-full bg-cgreen/15 text-cgreen border border-cgreen/30">
-                          ✓ {mainCount} sản phẩm
+                        <span className="text-xs px-3 py-1 rounded-full bg-cgreen/10 text-cgreen border border-cgreen/30 flex items-center gap-1">
+                          <CheckCircle2 size={12} strokeWidth={2.4} /> {mainCount} sản phẩm
                         </span>
                       )}
                       {bonusCount > 0 && (
-                        <span className="text-xs px-3 py-1 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/30">
-                          🎁 {bonusCount} hàng tặng kèm
+                        <span className="text-xs px-3 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 flex items-center gap-1">
+                          <Gift size={12} strokeWidth={2.4} /> {bonusCount} hàng tặng kèm
                         </span>
                       )}
                     </>
                   )
                 })()}
                 {unmatchedRows.length > 0 && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-cred/15 text-cred border border-cred/30">
-                    ✕ {unmatchedRows.length} không khớp
+                  <span className="text-xs px-3 py-1 rounded-full bg-cred/10 text-cred border border-cred/30 flex items-center gap-1">
+                    <XCircle size={12} strokeWidth={2.4} /> {unmatchedRows.length} không khớp
                   </span>
                 )}
                 {warnings.length > 0 && (
                   <button onClick={() => setShowWarnings(!showWarnings)}
-                    className="text-xs px-3 py-1 rounded-full bg-cyellow/15 text-cyellow border border-cyellow/30 hover:brightness-125 transition-all">
-                    ⚠ {warnings.length} cảnh báo → xem chi tiết
+                    className="text-xs px-3 py-1 rounded-full bg-cyellow/10 text-cyellow border border-cyellow/30 hover:brightness-95 transition-all flex items-center gap-1">
+                    <AlertTriangle size={12} strokeWidth={2.4} /> {warnings.length} cảnh báo → xem chi tiết
                   </button>
                 )}
               </div>
@@ -1282,7 +1287,7 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
                   {unmatchedRows.map((u, i) => (
                     <div key={i} className="text-xs text-cred bg-cred/5 rounded-lg px-3 py-1.5 mb-1 border border-cred/20">
                       <span className="font-bold">Dòng {u.rowNum}:</span>{' '}
-                      {u.name.substring(0, 80)} — <span className="text-orange-400">{u.reason}</span>
+                      {u.name.substring(0, 80)} — <span className="text-orange-600">{u.reason}</span>
                     </div>
                   ))}
                 </div>
@@ -1291,42 +1296,42 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
               {/* Cart table */}
               <div className="flex-1 overflow-auto px-6 py-3">
                 {cart.length > 0 && (
-                  <table className="w-full text-[15px]">
+                  <table className="w-full text-[16px]">
                     <thead>
-                      <tr className="text-[13px] uppercase text-[#64748b] tracking-[0.06em] font-bold border-b-2 border-slate-700">
-                        <th className="text-left pb-3 font-bold">Sản phẩm</th>
-                        <th className="text-center pb-3 font-bold w-20">Match</th>
-                        <th className="text-center pb-3 font-bold w-20">Tồn kho</th>
-                        <th className="text-center pb-3 font-bold w-24">SL nhập</th>
-                        <th className="text-center pb-3 font-bold w-16">ĐVT</th>
-                        <th className="text-right pb-3 font-bold w-36">Giá nhập (₫)</th>
-                        <th className="text-right pb-3 font-bold w-36">Thành tiền</th>
+                      <tr className="text-[12px] uppercase text-muted tracking-wide font-semibold border-b-2 border-border">
+                        <th className="text-left pb-3 font-semibold">Sản phẩm</th>
+                        <th className="text-center pb-3 font-semibold w-20">Match</th>
+                        <th className="text-center pb-3 font-semibold w-20">Tồn kho</th>
+                        <th className="text-center pb-3 font-semibold w-24">SL nhập</th>
+                        <th className="text-center pb-3 font-semibold w-16">ĐVT</th>
+                        <th className="text-right pb-3 font-semibold w-36">Giá nhập (₫)</th>
+                        <th className="text-right pb-3 font-semibold w-36">Thành tiền</th>
                         <th className="w-8"></th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-border">
                       {cart.map((item, idx) => {
                         const price    = typeof item.unitPrice === 'string' ? parseVNDInput(item.unitPrice) : (item.unitPrice || 0)
                         const total    = price * item.qty
-                        const scoreCls = item.matchScore >= FUZZY_HIGH ? 'text-cgreen' : item.matchScore >= 60 ? 'text-cyellow' : 'text-orange-400'
+                        const scoreCls = item.matchScore >= FUZZY_HIGH ? 'text-cgreen' : item.matchScore >= 60 ? 'text-cyellow' : 'text-orange-600'
                         return (
-                          <tr key={idx} className={`border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors ${item.isBonus ? 'bg-orange-500/[0.04]' : ''}`}>
+                          <tr key={idx} className={`hover:bg-surface2 transition-colors ${item.isBonus ? 'bg-orange-50/50' : ''}`}>
                             <td className="py-3.5">
                               <div className="flex items-center gap-2.5">
                                 {item.imageUrl
-                                  ? <img src={item.imageUrl} className="w-11 h-11 rounded-lg object-cover border border-slate-700 shrink-0" alt="" />
-                                  : <div className={`w-11 h-11 rounded-lg border flex items-center justify-center text-xs shrink-0 ${item.isBonus ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-slate-800 border-slate-700 text-muted'}`}>
-                                      {item.isBonus ? '🎁' : '📦'}
+                                  ? <img src={item.imageUrl} className="w-11 h-11 rounded-lg object-cover border border-border shrink-0" alt="" />
+                                  : <div className={`w-11 h-11 rounded-lg border flex items-center justify-center shrink-0 ${item.isBonus ? 'bg-orange-50 border-orange-200 text-orange-500' : 'bg-surface2 border-border text-muted'}`}>
+                                      {item.isBonus ? <Gift size={16} strokeWidth={2} /> : <Package size={16} strokeWidth={2} />}
                                     </div>
                                 }
                                 <div className="min-w-0">
-                                  <div className="font-semibold text-[#1e293b] truncate text-[13px]">
-                                    {item.isBonus && <span className="text-orange-400 mr-1">🎁</span>}
+                                  <div className="font-semibold text-text truncate text-[14px] flex items-center">
+                                    {item.isBonus && <Gift size={12} strokeWidth={2.4} className="text-orange-500 mr-1 shrink-0" />}
                                     {item.name}
                                   </div>
                                   <div className="text-xs text-muted truncate">{item.sku}</div>
                                   {item.supplierName && (
-                                    <div className="text-xs text-slate-500 truncate">
+                                    <div className="text-xs text-subtle truncate">
                                       ← {item.supplierName.length > 50 ? item.supplierName.substring(0, 50) + '…' : item.supplierName}
                                     </div>
                                   )}
@@ -1334,24 +1339,24 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
                               </div>
                             </td>
                             <td className="text-center">
-                              <span className={`text-[13px] font-bold ${scoreCls}`}>{item.matchScore}%</span>
-                              {item.warning && <div className="text-orange-400 text-xs">⚠</div>}
+                              <span className={`text-[14px] font-bold ${scoreCls}`}>{item.matchScore}%</span>
+                              {item.warning && <AlertTriangle size={12} strokeWidth={2.4} className="text-orange-500 mx-auto mt-0.5" />}
                             </td>
-                            <td className="text-center text-[13px] text-muted">{item.currentStock}</td>
+                            <td className="text-center text-[14px] text-muted">{item.currentStock}</td>
                             <td className="text-center">
                               <input type="number" min="1" value={item.qty} onChange={e => updateQty(idx, e.target.value)}
-                                className="w-16 bg-slate-800 border border-slate-700 rounded-md px-2 py-1.5 text-center text-[13px] text-[#1e293b] outline-none focus:border-orange-500" />
+                                className="w-16 input-sm px-2 py-1.5 text-center text-[14px]" />
                             </td>
-                            <td className="text-center text-xs text-slate-400 font-medium">{item.unit || '—'}</td>
+                            <td className="text-center text-xs text-muted font-medium">{item.unit || '—'}</td>
                             <td className="text-right">
                               <input type="text" value={item.unitPrice} onChange={e => updatePrice(idx, formatMoneyLive(e.target.value))}
-                                className={`w-32 bg-slate-800 border rounded-md px-2 py-1.5 text-right text-[13px] font-mono text-[#1e293b] outline-none transition-all ${item.isBonus ? 'border-orange-500/40 focus:border-orange-400' : 'border-slate-700 focus:border-orange-500'}`} />
+                                className={`w-32 input-sm px-2 py-1.5 text-right text-[14px] font-mono ${item.isBonus ? 'border-orange-300 focus:border-orange-400' : ''}`} />
                             </td>
-                            <td className="text-right text-[13px] font-mono font-bold tabular-nums">
-                              <span className={item.isBonus ? 'text-orange-400' : 'text-[#1e293b]'}>{fmtVNDFull(total)}</span>
+                            <td className="text-right text-[14px] font-mono font-bold tabular-nums">
+                              <span className={item.isBonus ? 'text-orange-600' : 'text-text'}>{fmtVNDFull(total)}</span>
                             </td>
                             <td className="pl-2">
-                              <button onClick={() => removeItem(idx)} className="text-slate-700 hover:text-cred transition-colors text-base leading-none">×</button>
+                              <button onClick={() => removeItem(idx)} className="text-subtle hover:text-cred transition-colors flex items-center justify-center"><X size={14} strokeWidth={2.2} /></button>
                             </td>
                           </tr>
                         )
@@ -1363,58 +1368,58 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
 
               {/* Footer */}
               {cart.length > 0 && (
-                <div className="shrink-0 border-t border-slate-800 px-6 py-4 flex flex-col gap-3 bg-slate-900/60">
+                <div className="shrink-0 border-t border-border px-6 py-4 flex flex-col gap-3 bg-surface2">
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="flex-1">
-                      <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Nhà cung cấp</label>
+                      <label className="text-[12px] text-muted font-semibold uppercase tracking-wider block mb-1">Nhà cung cấp</label>
                       <select className={iCls + ' cursor-pointer'} value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)}>
                         <option value="">— Không chọn —</option>
                         {suppliersList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </div>
                     <div className="flex-1">
-                      <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Ghi chú</label>
+                      <label className="text-[12px] text-muted font-semibold uppercase tracking-wider block mb-1">Ghi chú</label>
                       <input className={iCls} placeholder="Ghi chú phiếu nhập…" value={notes} onChange={e => setNotes(e.target.value)} />
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2 border-t border-slate-800/60 pt-3">
+                  <div className="flex flex-col gap-2 border-t border-border pt-3">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-400">Tổng tiền nhập</span>
-                      <span className="font-black text-base tabular-nums text-[#1e293b]">{fmtVNDFull(grandTotal)}</span>
+                      <span className="text-muted">Tổng tiền nhập</span>
+                      <span className="font-black text-base tabular-nums text-text">{fmtVNDFull(grandTotal)}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-slate-400 shrink-0 w-[108px]">Số tiền thanh toán</span>
+                      <span className="text-xs text-muted shrink-0 w-[108px]">Số tiền thanh toán</span>
                       <input type="text" inputMode="numeric"
                         placeholder={grandTotal.toLocaleString('vi-VN')}
                         value={paidInput}
                         onChange={e => setPaidInput(formatMoneyLive(e.target.value))}
                         onFocus={e => { if (!paidInput) setPaidInput(grandTotal.toLocaleString('vi-VN')); e.target.select() }}
                         onBlur={() => { if (!paidInput || parseVNDInput(paidInput) >= grandTotal) setPaidInput('') }}
-                        className="flex-1 min-w-0 bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-base text-right font-mono font-bold text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cgreen focus:ring-1 focus:ring-cgreen/20 transition-all" />
+                        className="flex-1 min-w-0 input-base text-right font-mono font-bold focus:border-cgreen focus:ring-cgreen/10" />
                     </div>
                     {newDebtAmt > 0 && (
                       <div className="flex justify-between items-center rounded-lg bg-cred/10 border border-cred/25 px-3 py-2">
-                        <span className="text-xs font-bold text-cred">💳 Còn nợ NCC</span>
+                        <span className="text-xs font-bold text-cred flex items-center gap-1"><CreditCard size={12} strokeWidth={2.4} /> Còn nợ NCC</span>
                         <span className="font-mono font-black text-sm text-cred tabular-nums">{fmtVNDFull(newDebtAmt)}</span>
                       </div>
                     )}
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-muted">
                       <span className="text-cblue font-bold">{cart.filter(i => !i.isBonus).length}</span> sản phẩm
                       {cart.filter(i => i.isBonus).length > 0 && (
-                        <> · <span className="text-orange-400 font-bold">{cart.filter(i => i.isBonus).length}</span> tặng kèm</>
+                        <> · <span className="text-orange-600 font-bold">{cart.filter(i => i.isBonus).length}</span> tặng kèm</>
                       )}
-                      {warnings.length > 0 && <span className="text-cyellow ml-1">· {warnings.length} ⚠</span>}
+                      {warnings.length > 0 && <span className="text-cyellow ml-1 inline-flex items-center gap-0.5">· {warnings.length} <AlertTriangle size={11} strokeWidth={2.4} /></span>}
                     </div>
                     <div className="flex gap-2">
                       <button type="button" onClick={onClose}
-                        className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors">Huỷ</button>
+                        className="px-4 py-2 rounded-lg border border-border text-muted text-sm hover:text-text transition-colors">Huỷ</button>
                       <button onClick={() => setShowConfirm(true)}
                         className="flex items-center gap-2 px-6 py-2 rounded-xl bg-cgreen hover:brightness-110 text-white text-sm font-bold transition-all shadow-lg shadow-cgreen/20">
-                        📦 Xác nhận nhập {cart.length} sản phẩm
+                        <Package size={15} strokeWidth={2.2} /> Xác nhận nhập {cart.length} sản phẩm
                       </button>
                     </div>
                   </div>
@@ -1430,7 +1435,7 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
       {showConfirm && (
         <ModalOverlay onClose={() => setShowConfirm(false)}>
           <div className="bg-surface border border-border rounded-2xl max-w-sm shadow-2xl p-6 flex flex-col gap-4">
-            <div className="font-bold text-[#1e293b]">Xác nhận nhập kho?</div>
+            <div className="font-bold text-text">Xác nhận nhập kho?</div>
             <div className="text-sm text-muted">
               {cart.filter(i => !i.isBonus).length} sản phẩm chính
               {cart.filter(i => i.isBonus).length > 0 && ` · ${cart.filter(i => i.isBonus).length} hàng tặng kèm`}
@@ -1439,8 +1444,8 @@ export function ImportBestExpressModal({ products = [], onImported, onClose }) {
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowConfirm(false)} className="btn-ghost px-4 py-3 text-base">Huỷ</button>
               <button onClick={handleSubmit} disabled={saving}
-                className="px-5 py-2 rounded-lg bg-cgreen text-white text-sm font-bold hover:brightness-110 transition-all disabled:opacity-60">
-                {saving ? 'Đang lưu…' : '✅ Xác nhận'}
+                className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-cgreen text-white text-sm font-bold hover:brightness-110 transition-all disabled:opacity-60">
+                {saving ? 'Đang lưu…' : <><CheckCircle2 size={15} strokeWidth={2.2} /> Xác nhận</>}
               </button>
             </div>
           </div>

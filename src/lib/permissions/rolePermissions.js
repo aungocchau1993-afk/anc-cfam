@@ -1,0 +1,112 @@
+/**
+ * rolePermissions.js — DUY NHẤT nơi ánh xạ Role → Permission trong toàn bộ
+ * ANC-CFAM. Sprint 1.5 tính permission ở frontend (từ role.code, đọc từ DB
+ * bảng `roles`, KHÔNG hardcode trong component) — kiến trúc sẵn sàng chuyển
+ * việc tính toán này sang backend (Supabase RLS/RPC) ở sprint sau mà KHÔNG
+ * cần đổi API của permissionEngine/usePermission (xem permissionEngine.js).
+ *
+ * Việc thêm/sửa quyền cho 1 role CHỈ sửa ở file này — không rải rác nơi khác.
+ */
+
+import { PERMISSIONS, ALL_PERMISSIONS } from './permissionConstants'
+
+const {
+  DASHBOARD_VIEW,
+  POS_VIEW, POS_SELL, POS_REFUND,
+  INVENTORY_VIEW, INVENTORY_CREATE, INVENTORY_UPDATE, INVENTORY_DELETE,
+  INVENTORY_IMPORT, INVENTORY_EXPORT, INVENTORY_VIEW_COST,
+  STOCKTAKE_VIEW, STOCKTAKE_CREATE, STOCKTAKE_COMPLETE,
+  ORDER_VIEW, ORDER_CREATE, ORDER_UPDATE, ORDER_DELETE, ORDER_CANCEL,
+  ORDER_APPROVE, ORDER_RETURN, ORDER_EXPORT,
+  CRM_VIEW, CRM_CREATE, CRM_UPDATE, CRM_DELETE, CRM_EXPORT,
+  CHANNEL_VIEW, CHANNEL_UPDATE,
+  CASHBOOK_VIEW, CASHBOOK_CREATE, CASHBOOK_DELETE,
+  REPORT_VIEW, REPORT_EXPORT,
+  HRM_VIEW, HRM_UPDATE,
+  USER_VIEW, USER_UPDATE, USER_DELETE,
+  SYSTEM_SETTING, SYSTEM_ACTIVITYLOG, SYSTEM_DATA_ADMIN,
+  DEVELOPER_VIEW,
+} = PERMISSIONS
+
+// ── Khối quyền tái dùng (tránh lặp danh sách permission ở nhiều role) ──────
+const CASHIER_CORE = [
+  DASHBOARD_VIEW,
+  POS_VIEW, POS_SELL, POS_REFUND,
+  INVENTORY_VIEW,          // xem sản phẩm để bán — KHÔNG kèm view_cost
+  ORDER_VIEW, ORDER_CREATE,
+  CRM_VIEW,                // tra cứu khách hàng tại quầy
+]
+
+const SALE_CORE = [
+  DASHBOARD_VIEW,
+  POS_VIEW, POS_SELL,
+  INVENTORY_VIEW,
+  ORDER_VIEW, ORDER_CREATE, ORDER_UPDATE,
+  CRM_VIEW, CRM_CREATE, CRM_UPDATE, CRM_EXPORT,
+]
+
+const WAREHOUSE_CORE = [
+  DASHBOARD_VIEW,
+  INVENTORY_VIEW, INVENTORY_CREATE, INVENTORY_UPDATE,
+  INVENTORY_IMPORT, INVENTORY_EXPORT, INVENTORY_VIEW_COST,
+  STOCKTAKE_VIEW, STOCKTAKE_CREATE, STOCKTAKE_COMPLETE,
+  ORDER_VIEW,
+]
+
+const ACCOUNTANT_CORE = [
+  DASHBOARD_VIEW,
+  INVENTORY_VIEW, INVENTORY_VIEW_COST,
+  ORDER_VIEW, ORDER_EXPORT,
+  CRM_VIEW,
+  CASHBOOK_VIEW, CASHBOOK_CREATE, CASHBOOK_DELETE,
+  REPORT_VIEW, REPORT_EXPORT,
+  HRM_VIEW,
+]
+
+// Quyền vận hành đầy đủ (Manager) — mọi domain nghiệp vụ, TRỪ các hành động
+// phá huỷ dữ liệu (xoá) và toàn bộ System/Developer.
+const MANAGER_CORE = [
+  DASHBOARD_VIEW,
+  POS_VIEW, POS_SELL, POS_REFUND,
+  INVENTORY_VIEW, INVENTORY_CREATE, INVENTORY_UPDATE,
+  INVENTORY_IMPORT, INVENTORY_EXPORT, INVENTORY_VIEW_COST,
+  STOCKTAKE_VIEW, STOCKTAKE_CREATE, STOCKTAKE_COMPLETE,
+  ORDER_VIEW, ORDER_CREATE, ORDER_UPDATE, ORDER_CANCEL, ORDER_APPROVE, ORDER_RETURN, ORDER_EXPORT,
+  CRM_VIEW, CRM_CREATE, CRM_UPDATE, CRM_EXPORT,
+  CHANNEL_VIEW, CHANNEL_UPDATE,
+  CASHBOOK_VIEW, CASHBOOK_CREATE,
+  REPORT_VIEW, REPORT_EXPORT,
+  HRM_VIEW, HRM_UPDATE,
+  USER_VIEW,
+]
+
+// Owner = Manager + toàn bộ quyền xoá + System — trừ Developer.
+const OWNER_CORE = [
+  ...new Set([
+    ...MANAGER_CORE,
+    INVENTORY_DELETE, ORDER_DELETE, CRM_DELETE, CASHBOOK_DELETE, USER_UPDATE, USER_DELETE,
+    SYSTEM_SETTING, SYSTEM_ACTIVITYLOG, SYSTEM_DATA_ADMIN,
+  ]),
+]
+
+/**
+ * ROLE_PERMISSIONS — map role.code (đọc từ bảng `roles`) → danh sách permission.
+ * SUPER_ADMIN/DEVELOPER = full quyền (ALL_PERMISSIONS); DEVELOPER thêm
+ * DEVELOPER_VIEW (đã có sẵn trong ALL_PERMISSIONS).
+ */
+export const ROLE_PERMISSIONS = Object.freeze({
+  SUPER_ADMIN: ALL_PERMISSIONS,
+  DEVELOPER:   ALL_PERMISSIONS,
+  OWNER:       OWNER_CORE,
+  MANAGER:     MANAGER_CORE,
+  ACCOUNTANT:  ACCOUNTANT_CORE,
+  WAREHOUSE:   WAREHOUSE_CORE,
+  SALE:        SALE_CORE,
+  CASHIER:     CASHIER_CORE,
+})
+
+/** Trả về danh sách permission của 1 role code — role lạ/chưa gán = rỗng (an toàn mặc định). */
+export function getPermissionsForRole(roleCode) {
+  if (!roleCode) return []
+  return ROLE_PERMISSIONS[roleCode] ?? []
+}

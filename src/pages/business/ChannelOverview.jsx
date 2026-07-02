@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
+import { Globe, Calendar, RefreshCw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { CHANNEL_CONFIG_FIELDS, OAUTH_URLS, getAdapter } from '../../lib/channelAdapters'
 import { loadChannelConfig, saveChannelConfig, syncChannel, pullOrdersFromChannel, syncPriceToChannel } from '../../lib/channelSync'
+import PageHeader from '../../components/ui/PageHeader'
+import Can from '../../components/permission/Can'
+import { PERMISSIONS } from '../../lib/permissions/permissionConstants'
 
 // ── Channel config (sync với DB seed) ────────────────────────────────────────
 const CHANNELS = [
@@ -168,7 +172,7 @@ function RevenueAreaChart({ series, color }) {
   return (
     <div className="flex gap-2">
       {/* Trục Y */}
-      <div className="flex flex-col justify-between text-[10px] text-slate-500 w-12 text-right shrink-0 py-0.5" style={{ height: 200 }}>
+      <div className="flex flex-col justify-between text-[12px] text-slate-500 w-12 text-right shrink-0 py-0.5" style={{ height: 200 }}>
         {yTicks.map(t => <div key={t} className="leading-none">{fmtMoney(niceMax * t)}</div>)}
       </div>
 
@@ -190,7 +194,7 @@ function RevenueAreaChart({ series, color }) {
           </svg>
         </div>
         {/* Trục X */}
-        <div className="flex justify-between text-[9px] text-slate-500 mt-1.5">
+        <div className="flex justify-between text-[12px] text-slate-500 mt-1.5">
           {xIdx.map(i => <span key={i}>{series[i]?.label}</span>)}
         </div>
       </div>
@@ -200,7 +204,7 @@ function RevenueAreaChart({ series, color }) {
 
 // ── Sync status badge ─────────────────────────────────────────────────────────
 function SyncBadge({ status }) {
-  if (!status) return <span className="text-[10px] text-slate-600">Chưa đồng bộ</span>
+  if (!status) return <span className="text-[12px] text-slate-600">Chưa đồng bộ</span>
   const map = {
     success: 'text-cgreen bg-cgreen/10 border-cgreen/25',
     error:   'text-cred bg-cred/10 border-cred/25',
@@ -208,7 +212,7 @@ function SyncBadge({ status }) {
   }
   const label = { success: '✓ Thành công', error: '✗ Lỗi', partial: '⚠ Một phần' }
   return (
-    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${map[status] || ''}`}>
+    <span className={`text-[12px] font-semibold px-1.5 py-0.5 rounded border ${map[status] || ''}`}>
       {label[status] || status}
     </span>
   )
@@ -462,64 +466,59 @@ export default function ChannelOverview() {
     change == null
       ? <span className="text-slate-500">— so với {range} ngày trước</span>
       : (
-        <span className={change >= 0 ? 'text-emerald-600' : 'text-rose-500'}>
+        <span className={change >= 0 ? 'text-emerald-700' : 'text-rose-500'}>
           {change >= 0 ? '↑' : '↓'}{Math.abs(change).toFixed(1)}% so với {range} ngày trước
         </span>
       )
 
   return (
-    <div className="p-5 bg-bg min-h-full">
+    <div className="w-full">
+      <PageHeader
+        icon={Globe}
+        title="Đa Kênh"
+        subtitle={`Quản lý bán hàng đa kênh · ${lastSyncTime ? `Đồng bộ lần cuối: ${fmtDate(lastSyncTime)}` : 'Chưa đồng bộ'}`}
+        actions={
+          <>
+            <div className="relative">
+              <Calendar size={14} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
+              <select
+                value={range}
+                onChange={e => setRange(Number(e.target.value))}
+                className="appearance-none text-xs font-semibold bg-white/10 border border-white/20 text-white rounded-xl pl-8 pr-7 h-11 cursor-pointer hover:bg-white/15 transition-colors"
+              >
+                <option value={7}  className="text-gray-900">7 ngày</option>
+                <option value={30} className="text-gray-900">30 ngày</option>
+                <option value={90} className="text-gray-900">90 ngày</option>
+              </select>
+            </div>
+            <Can permission={PERMISSIONS.CHANNEL_UPDATE}>
+              <button
+                onClick={handleSyncAll}
+                disabled={!!syncing}
+                className="flex items-center gap-2 px-4 h-11 rounded-xl text-sm font-semibold bg-cblue text-white hover:brightness-105 transition-all disabled:opacity-50 shadow-sm shadow-blue-500/20"
+              >
+                <RefreshCw size={15} strokeWidth={2.2} className={syncing ? 'animate-spin' : ''} />
+                {syncing ? 'Đang đồng bộ...' : 'Đồng bộ tất cả'}
+              </button>
+            </Can>
+          </>
+        }
+      />
 
-      {/* ── Header ── */}
-      <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-xl shadow-sm shrink-0">🌐</div>
-          <div>
-            <h1 className="text-xl font-bold text-[#1e293b] leading-tight">Omnichannel Overview</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Quản lý bán hàng đa kênh · {lastSyncTime ? `Đồng bộ lần cuối: ${fmtDate(lastSyncTime)}` : 'Chưa đồng bộ'}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">📅</span>
-            <select
-              value={range}
-              onChange={e => setRange(Number(e.target.value))}
-              className="appearance-none text-xs font-semibold bg-white border border-slate-700 text-slate-600 rounded-lg pl-7 pr-7 py-2 cursor-pointer hover:border-slate-600 transition-colors"
-            >
-              <option value={7}>7 ngày</option>
-              <option value={30}>30 ngày</option>
-              <option value={90}>90 ngày</option>
-            </select>
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[8px]">▼</span>
-          </div>
-          <button
-            onClick={handleSyncAll}
-            disabled={!!syncing}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1e293b] text-white hover:bg-[#0f172a] transition-all disabled:opacity-50 shadow-sm"
-          >
-            <svg className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 2v6h-6M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6M21 12a9 9 0 01-15 6.7L3 16"/>
-            </svg>
-            {syncing ? 'Đang đồng bộ...' : 'Đồng bộ tất cả'}
-          </button>
-        </div>
-      </div>
+      <div className="p-5 bg-bg min-h-full">
 
       {/* ── KPI cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {/* Tổng doanh thu */}
         <div className="bg-white border border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">{KpiIcon.money}</span>
-            <span className="text-[11px] font-medium text-slate-500">Tổng doanh thu</span>
+            <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">{KpiIcon.money}</span>
+            <span className="text-[12px] font-medium text-slate-500">Tổng doanh thu</span>
           </div>
           <div className="flex items-end justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-2xl font-extrabold text-[#1e293b] leading-none truncate">{fmtMoney(totalRevenue)}</div>
-              <div className="text-[10px] mt-1.5"><ChangeText change={revChange} /></div>
+              <div className="text-2xl font-extrabold text-[#111827] leading-none truncate">{fmtMoney(totalRevenue)}</div>
+              <div className="text-[12px] mt-1.5"><ChangeText change={revChange} /></div>
             </div>
             <Sparkline data={daily.map(d => d.total)} color="#16a34a" />
           </div>
@@ -529,12 +528,12 @@ export default function ChannelOverview() {
         <div className="bg-white border border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">{KpiIcon.doc}</span>
-            <span className="text-[11px] font-medium text-slate-500">Tổng đơn hàng</span>
+            <span className="text-[12px] font-medium text-slate-500">Tổng đơn hàng</span>
           </div>
           <div className="flex items-end justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-2xl font-extrabold text-[#1e293b] leading-none">{totalOrders.toLocaleString('vi-VN')}</div>
-              <div className="text-[10px] mt-1.5"><ChangeText change={ordChange} /></div>
+              <div className="text-2xl font-extrabold text-[#111827] leading-none">{totalOrders.toLocaleString('vi-VN')}</div>
+              <div className="text-[12px] mt-1.5"><ChangeText change={ordChange} /></div>
             </div>
             <Sparkline data={daily.map(d => d.orders)} color="#2563eb" />
           </div>
@@ -543,21 +542,21 @@ export default function ChannelOverview() {
         {/* Kênh hoạt động */}
         <div className="bg-white border border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">{KpiIcon.pulse}</span>
-            <span className="text-[11px] font-medium text-slate-500">Kênh hoạt động</span>
+            <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">{KpiIcon.pulse}</span>
+            <span className="text-[12px] font-medium text-slate-500">Kênh hoạt động</span>
           </div>
-          <div className="text-2xl font-extrabold text-[#1e293b] leading-none">{activeCount} / {CHANNELS.length}</div>
-          <div className="text-[10px] text-slate-500 mt-1.5">{Math.round((activeCount / CHANNELS.length) * 100)}% kênh đang hoạt động</div>
+          <div className="text-2xl font-extrabold text-[#111827] leading-none">{activeCount} / {CHANNELS.length}</div>
+          <div className="text-[12px] text-slate-500 mt-1.5">{Math.round((activeCount / CHANNELS.length) * 100)}% kênh đang hoạt động</div>
         </div>
 
         {/* Kênh chủ lực */}
         <div className="bg-white border border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <span className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">{KpiIcon.crown}</span>
-            <span className="text-[11px] font-medium text-slate-500">Kênh chủ lực</span>
+            <span className="text-[12px] font-medium text-slate-500">Kênh chủ lực</span>
           </div>
-          <div className="text-xl font-extrabold text-[#1e293b] leading-tight truncate">{topChannel?.name || '—'}</div>
-          <div className="text-[10px] text-slate-500 mt-1.5">{topPct}% doanh thu</div>
+          <div className="text-xl font-extrabold text-[#111827] leading-tight truncate">{topChannel?.name || '—'}</div>
+          <div className="text-[12px] text-slate-500 mt-1.5">{topPct}% doanh thu</div>
         </div>
       </div>
 
@@ -568,7 +567,7 @@ export default function ChannelOverview() {
             className={`px-3.5 py-2 text-xs font-semibold rounded-lg transition-all ${
               activeTab === t.id
                 ? 'bg-cblue text-white shadow-sm'
-                : 'bg-white border border-slate-800 text-slate-500 hover:text-[#1e293b] hover:border-slate-700'
+                : 'bg-white border border-slate-800 text-slate-500 hover:text-[#111827] hover:border-slate-700'
             }`}
           >{t.label}</button>
         ))}
@@ -586,13 +585,13 @@ export default function ChannelOverview() {
                 {/* ── Biểu đồ doanh thu theo kênh ── */}
                 <div className="bg-white border border-slate-800 rounded-2xl p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-[#1e293b]">Doanh thu theo kênh ({range} ngày)</h3>
-                    <span className="text-[10px] font-semibold text-slate-500 bg-surface2 border border-slate-800 rounded-md px-2 py-1">{range} ngày</span>
+                    <h3 className="text-sm font-bold text-[#111827]">Doanh thu theo kênh ({range} ngày)</h3>
+                    <span className="text-[12px] font-semibold text-slate-500 bg-surface2 border border-slate-800 rounded-md px-2 py-1">{range} ngày</span>
                   </div>
 
                   <div className="mb-3">
                     <div className="text-2xl font-extrabold" style={{ color: chartColor }}>{fmtMoney(totalRevenue)}</div>
-                    <div className="text-[11px] text-slate-500">Tổng doanh thu</div>
+                    <div className="text-[12px] text-slate-500">Tổng doanh thu</div>
                   </div>
 
                   {/* Channel chips */}
@@ -608,8 +607,8 @@ export default function ChannelOverview() {
                           }`}
                           style={active ? { borderColor: ch.color, boxShadow: `0 0 0 1px ${ch.color}55` } : undefined}
                         >
-                          <span className="text-sm font-extrabold tabular-nums" style={{ color: active ? ch.color : '#1e293b' }}>{fmtMoney(ch.revenue)}</span>
-                          <span className="text-[10px] text-slate-500 flex items-center gap-1 whitespace-nowrap">
+                          <span className="text-sm font-extrabold tabular-nums" style={{ color: active ? ch.color : '#111827' }}>{fmtMoney(ch.revenue)}</span>
+                          <span className="text-[12px] text-slate-500 flex items-center gap-1 whitespace-nowrap">
                             <span className="text-xs leading-none">{ch.icon}</span>{ch.name.split(' ')[0]}
                           </span>
                         </button>
@@ -622,7 +621,7 @@ export default function ChannelOverview() {
 
                 {/* ── Trạng thái kênh kết nối ── */}
                 <div className="bg-white border border-slate-800 rounded-2xl p-5 shadow-sm">
-                  <h3 className="text-sm font-bold text-[#1e293b] mb-3">Trạng thái kênh kết nối</h3>
+                  <h3 className="text-sm font-bold text-[#111827] mb-3">Trạng thái kênh kết nối</h3>
                   <div className="flex flex-col gap-2">
                     {stats.map(ch => {
                       const pct    = totalRevenue > 0 ? ((ch.revenue / totalRevenue) * 100).toFixed(0) : 0
@@ -643,48 +642,50 @@ export default function ChannelOverview() {
 
                           {/* Info + progress */}
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-bold text-[#1e293b] truncate">{ch.name}</div>
+                            <div className="text-sm font-bold text-[#111827] truncate">{ch.name}</div>
                             <div className="flex items-center gap-2 mt-1">
                               <div className="flex-1 h-1.5 bg-surface2 rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all duration-700"
                                   style={{ width: `${pct}%`, background: ch.color }} />
                               </div>
-                              <span className="text-[10px] text-slate-500 shrink-0 tabular-nums">{pct}% · {ch.orderCount} đơn</span>
+                              <span className="text-[12px] text-slate-500 shrink-0 tabular-nums">{pct}% · {ch.orderCount} đơn</span>
                             </div>
                           </div>
 
                           {/* Revenue + status */}
                           <div className="shrink-0 text-right">
                             <div className="text-sm font-extrabold tabular-nums" style={{ color: ch.color }}>{fmtMoney(ch.revenue)}</div>
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${online ? 'text-emerald-600 bg-emerald-50' : 'text-rose-500 bg-rose-50'}`}>
+                            <span className={`text-[12px] font-bold px-1.5 py-0.5 rounded-full ${online ? 'text-emerald-700 bg-emerald-50' : 'text-rose-500 bg-rose-50'}`}>
                               {online ? '● Online' : 'Offline'}
                             </span>
                           </div>
 
                           {/* Sync */}
-                          <button
-                            onClick={() => handleSync(ch.id)}
-                            disabled={syncing === ch.id || isPOS}
-                            title={isPOS ? 'Kênh offline, không cần đồng bộ' : `Đồng bộ ${ch.name}`}
-                            className={`shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all disabled:opacity-40 ${
-                              isPOS
-                                ? 'text-slate-500 border-slate-800 cursor-default'
-                                : 'text-cblue border-cblue/30 bg-cblue/5 hover:bg-cblue/15'
-                            }`}
-                          >
-                            {syncing === ch.id ? (
-                              <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9" strokeDasharray="28" strokeDashoffset="10"/></svg>
-                            ) : (
-                              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 2v6h-6M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6M21 12a9 9 0 01-15 6.7L3 16"/></svg>
-                            )}
-                            Sync
-                          </button>
+                          <Can permission={PERMISSIONS.CHANNEL_UPDATE}>
+                            <button
+                              onClick={() => handleSync(ch.id)}
+                              disabled={syncing === ch.id || isPOS}
+                              title={isPOS ? 'Kênh offline, không cần đồng bộ' : `Đồng bộ ${ch.name}`}
+                              className={`shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-bold border transition-all disabled:opacity-40 ${
+                                isPOS
+                                  ? 'text-slate-500 border-slate-800 cursor-default'
+                                  : 'text-cblue border-cblue/30 bg-cblue/5 hover:bg-cblue/15'
+                              }`}
+                            >
+                              {syncing === ch.id ? (
+                                <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9" strokeDasharray="28" strokeDashoffset="10"/></svg>
+                              ) : (
+                                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 2v6h-6M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6M21 12a9 9 0 01-15 6.7L3 16"/></svg>
+                              )}
+                              Sync
+                            </button>
+                          </Can>
 
                           {/* Kebab menu */}
                           <div className="relative shrink-0">
                             <button
                               onClick={() => setMenuCh(menuCh === ch.id ? null : ch.id)}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-[#1e293b] hover:bg-surface2 transition-colors"
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-[#111827] hover:bg-surface2 transition-colors"
                               title="Thao tác khác"
                             >
                               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
@@ -693,14 +694,16 @@ export default function ChannelOverview() {
                               <>
                                 <div className="fixed inset-0 z-10" onClick={() => setMenuCh(null)} />
                                 <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-slate-800 rounded-xl shadow-lg z-20 overflow-hidden py-1">
-                                  <button onClick={() => { setMenuCh(null); handleSync(ch.id) }} disabled={isPOS}
-                                    className="w-full text-left px-3 py-2 text-xs text-[#1e293b] hover:bg-surface2 disabled:opacity-40 transition-colors">🔄 Đồng bộ ngay</button>
-                                  <button onClick={() => { setMenuCh(null); handlePullOrders(ch.id) }} disabled={isPOS}
-                                    className="w-full text-left px-3 py-2 text-xs text-[#1e293b] hover:bg-surface2 disabled:opacity-40 transition-colors">🧾 Kéo đơn về</button>
-                                  <button onClick={() => { setMenuCh(null); handleSyncPrice(ch.id) }} disabled={isPOS}
-                                    className="w-full text-left px-3 py-2 text-xs text-[#1e293b] hover:bg-surface2 disabled:opacity-40 transition-colors">💰 Sync giá → sàn</button>
+                                  <Can permission={PERMISSIONS.CHANNEL_UPDATE}>
+                                    <button onClick={() => { setMenuCh(null); handleSync(ch.id) }} disabled={isPOS}
+                                      className="w-full text-left px-3 py-2 text-xs text-[#111827] hover:bg-surface2 disabled:opacity-40 transition-colors">🔄 Đồng bộ ngay</button>
+                                    <button onClick={() => { setMenuCh(null); handlePullOrders(ch.id) }} disabled={isPOS}
+                                      className="w-full text-left px-3 py-2 text-xs text-[#111827] hover:bg-surface2 disabled:opacity-40 transition-colors">🧾 Kéo đơn về</button>
+                                    <button onClick={() => { setMenuCh(null); handleSyncPrice(ch.id) }} disabled={isPOS}
+                                      className="w-full text-left px-3 py-2 text-xs text-[#111827] hover:bg-surface2 disabled:opacity-40 transition-colors">💰 Sync giá → sàn</button>
+                                  </Can>
                                   <button onClick={() => { setMenuCh(null); setCfgChannel(ch.id === 'POS' ? 'SHOPEE' : ch.id); setActiveTab('apiconfig') }}
-                                    className="w-full text-left px-3 py-2 text-xs text-[#1e293b] hover:bg-surface2 transition-colors">🔑 Cấu hình API</button>
+                                    className="w-full text-left px-3 py-2 text-xs text-[#111827] hover:bg-surface2 transition-colors">🔑 Cấu hình API</button>
                                 </div>
                               </>
                             )}
@@ -717,18 +720,18 @@ export default function ChannelOverview() {
                 <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">🗺️ Lộ trình tích hợp API sàn</div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
-                    { step: '1', icon: '🛡️', iconBg: 'bg-emerald-50 text-emerald-600', title: 'Cấu hình API Key', desc: 'Đăng ký Shopee/Lazada Partner API, nhập key vào tab Cấu hình API', btn: 'Cấu hình', btnCls: 'border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100', nav: 'apiconfig' },
+                    { step: '1', icon: '🛡️', iconBg: 'bg-emerald-50 text-emerald-700', title: 'Cấu hình API Key', desc: 'Đăng ký Shopee/Lazada Partner API, nhập key vào tab Cấu hình API', btn: 'Cấu hình', btnCls: 'border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100', nav: 'apiconfig' },
                     { step: '2', icon: '🧩', iconBg: 'bg-blue-50 text-blue-600',       title: 'Map SKU sản phẩm', desc: 'Liên kết SKU nội bộ với mã sản phẩm trên sàn',                  btn: 'Mapping',  btnCls: 'border-blue-200 text-blue-600 bg-blue-50 hover:bg-blue-100',          nav: 'mapping' },
                     { step: '3', icon: '🔗', iconBg: 'bg-violet-50 text-violet-600',   title: 'Bật Webhook',      desc: 'Khi có đơn mới trên sàn → tự động đẩy vào hệ thống qua Supabase Edge Function', btn: 'Webhook', btnCls: 'border-violet-200 text-violet-600 bg-violet-50 hover:bg-violet-100', nav: 'apiconfig' },
                   ].map((s, i, arr) => (
                     <div key={s.step} className="relative rounded-xl border border-slate-800 p-4 bg-surface2/50">
-                      <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-surface2 border border-slate-700 text-[10px] font-bold text-slate-500 flex items-center justify-center">{s.step}</span>
+                      <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-surface2 border border-slate-700 text-[12px] font-bold text-slate-500 flex items-center justify-center">{s.step}</span>
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-3 ${s.iconBg}`}>{s.icon}</div>
-                      <div className="text-sm font-bold text-[#1e293b] mb-1">{s.title}</div>
-                      <div className="text-[11px] text-slate-500 leading-relaxed mb-3">{s.desc}</div>
+                      <div className="text-sm font-bold text-[#111827] mb-1">{s.title}</div>
+                      <div className="text-[12px] text-slate-500 leading-relaxed mb-3">{s.desc}</div>
                       <button
                         onClick={() => setActiveTab(s.nav)}
-                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${s.btnCls}`}
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-bold border transition-colors ${s.btnCls}`}
                       >
                         {s.btn} <span className="text-xs">→</span>
                       </button>
@@ -743,7 +746,7 @@ export default function ChannelOverview() {
           {activeTab === 'inventory' && (
             <div className="bg-white border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
               <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
-                <span className="text-sm font-semibold text-[#1e293b]">Phân bổ tồn kho theo kênh</span>
+                <span className="text-sm font-semibold text-[#111827]">Phân bổ tồn kho theo kênh</span>
                 <span className="text-xs text-slate-500">{products.length} cấu hình</span>
               </div>
               {products.length === 0 ? (
@@ -769,8 +772,8 @@ export default function ChannelOverview() {
                       {products.map(row => (
                         <tr key={row.id} className="hover:bg-surface2 transition-colors">
                           <td className="px-4 py-2.5">
-                            <div className="font-medium text-[#1e293b]">{row.products?.name || '—'}</div>
-                            <div className="text-slate-500 font-mono text-[10px]">{row.products?.sku}</div>
+                            <div className="font-medium text-[#111827]">{row.products?.name || '—'}</div>
+                            <div className="text-slate-500 font-mono text-[12px]">{row.products?.sku}</div>
                           </td>
                           <td className="px-4 py-2.5">
                             <span className="text-sm">{row.channels?.icon}</span>{' '}
@@ -796,8 +799,8 @@ export default function ChannelOverview() {
             <div className="bg-white border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
               <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
                 <div>
-                  <span className="text-sm font-semibold text-[#1e293b]">SKU Mapping — Liên kết sàn ↔ nội bộ</span>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Liên kết mã sản phẩm trên sàn TMĐT với SKU trong hệ thống</p>
+                  <span className="text-sm font-semibold text-[#111827]">SKU Mapping — Liên kết sàn ↔ nội bộ</span>
+                  <p className="text-[12px] text-slate-500 mt-0.5">Liên kết mã sản phẩm trên sàn TMĐT với SKU trong hệ thống</p>
                 </div>
                 <span className="text-xs text-slate-500">{skuMappings.length} mapping</span>
               </div>
@@ -825,15 +828,15 @@ export default function ChannelOverview() {
                         return (
                           <tr key={m.id} className="hover:bg-surface2 transition-colors">
                             <td className="px-4 py-2.5">
-                              <div className="font-medium text-[#1e293b]">{m.products?.name || '—'}</div>
-                              <div className="text-slate-500 font-mono text-[10px]">{m.products?.sku}</div>
+                              <div className="font-medium text-[#111827]">{m.products?.name || '—'}</div>
+                              <div className="text-slate-500 font-mono text-[12px]">{m.products?.sku}</div>
                             </td>
                             <td className="px-4 py-2.5">
                               <span>{ch?.icon}</span>{' '}
                               <span className={ch?.colorClass}>{ch?.name}</span>
                             </td>
                             <td className="px-4 py-2.5 font-mono text-cyellow">{m.platform_sku}</td>
-                            <td className="px-4 py-2.5 font-mono text-slate-500 text-[10px]">{m.platform_product_id || '—'}</td>
+                            <td className="px-4 py-2.5 font-mono text-slate-500 text-[12px]">{m.platform_product_id || '—'}</td>
                             <td className="px-4 py-2.5 text-right text-slate-500">{fmtDate(m.last_synced_at)}</td>
                           </tr>
                         )
@@ -851,7 +854,7 @@ export default function ChannelOverview() {
 
               {/* ── Chọn kênh ── */}
               <div className="flex flex-col gap-3">
-                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chọn sàn kết nối</div>
+                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">Chọn sàn kết nối</div>
 
                 {CHANNELS.filter(c => c.id !== 'POS').map(ch => {
                   const meta    = PLATFORM_META[ch.id]
@@ -878,14 +881,14 @@ export default function ChannelOverview() {
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-black leading-tight text-[#1e293b]">
+                          <div className="text-sm font-black leading-tight text-[#111827]">
                             {meta?.label}
                           </div>
-                          <div className="text-[10px] text-slate-500 mt-0.5">{meta?.tagline}</div>
+                          <div className="text-[12px] text-slate-500 mt-0.5">{meta?.tagline}</div>
                           {hasConfig && (
                             <div className="flex items-center gap-1 mt-1">
                               <span className="w-1.5 h-1.5 rounded-full bg-cgreen inline-block"/>
-                              <span className="text-[10px] text-cgreen font-semibold">Đã cấu hình</span>
+                              <span className="text-[12px] text-cgreen font-semibold">Đã cấu hình</span>
                             </div>
                           )}
                         </div>
@@ -896,7 +899,7 @@ export default function ChannelOverview() {
                             <div className="w-2 h-2 rounded-full bg-white"/>
                           </div>
                         ) : (
-                          <div className="shrink-0 text-[10px] text-slate-500 group-hover:text-slate-400 font-semibold transition-colors">
+                          <div className="shrink-0 text-[12px] text-slate-500 group-hover:text-slate-400 font-semibold transition-colors">
                             ⊕ Kết nối
                           </div>
                         )}
@@ -911,7 +914,7 @@ export default function ChannelOverview() {
                 })}
 
                 {/* Hướng dẫn nhanh */}
-                <div className="p-3 bg-white border border-slate-800 rounded-xl text-[11px] text-slate-500 leading-relaxed">
+                <div className="p-3 bg-white border border-slate-800 rounded-xl text-[12px] text-slate-500 leading-relaxed">
                   <div className="font-bold text-slate-400 mb-1.5">📌 Lấy API Key</div>
                   {cfgChannel === 'SHOPEE' && <><span className="text-[#EE4D2D] font-semibold">Shopee Open Platform</span><br/>→ Tạo app · lấy Partner ID + Key<br/>→ OAuth để lấy Access Token<br/>→ Shop ID từ Seller Center</>}
                   {cfgChannel === 'LAZADA' && <><span className="text-[#FF6900] font-semibold">Lazada Open Platform</span><br/>→ Tạo app · lấy App Key + Secret<br/>→ OAuth để lấy Access Token</>}
@@ -924,7 +927,7 @@ export default function ChannelOverview() {
               <div className="lg:col-span-2 flex flex-col gap-4">
                 <div className="bg-white border border-slate-800 rounded-2xl p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm font-bold text-[#1e293b]">
+                    <div className="text-sm font-bold text-[#111827]">
                       {CHANNELS.find(c => c.id === cfgChannel)?.icon}{' '}
                       Cấu hình API — {CHANNELS.find(c => c.id === cfgChannel)?.name}
                     </div>
@@ -947,7 +950,7 @@ export default function ChannelOverview() {
                         <div key={field.key}>
                           <label className="block text-xs font-semibold text-slate-400 mb-1">
                             {field.label}
-                            {field.type === 'password' && <span className="ml-1 text-cyellow text-[10px]">🔒 Secret</span>}
+                            {field.type === 'password' && <span className="ml-1 text-cyellow text-[12px]">🔒 Secret</span>}
                           </label>
                           <div className="relative">
                             <input
@@ -958,20 +961,20 @@ export default function ChannelOverview() {
                                 setCfgValid(null)
                               }}
                               placeholder={field.hint}
-                              className="w-full bg-surface2 border border-slate-700 text-[#1e293b] text-sm rounded-lg px-3 py-2 pr-10 placeholder:text-slate-500 focus:outline-none focus:border-cblue focus:ring-2 focus:ring-cblue/15 transition-colors font-mono"
+                              className="w-full bg-surface2 border border-slate-700 text-[#111827] text-sm rounded-lg px-3 py-2 pr-10 placeholder:text-slate-500 focus:outline-none focus:border-cblue focus:ring-2 focus:ring-cblue/15 transition-colors font-mono"
                             />
                             {field.type === 'password' && (
                               <button
                                 type="button"
                                 onClick={() => setShowPwd(prev => ({ ...prev, [field.key]: !prev[field.key] }))}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#1e293b] text-[11px]"
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#111827] text-[12px]"
                                 title={showPwd[field.key] ? 'Ẩn' : 'Hiện'}
                               >
                                 {showPwd[field.key] ? '🙈' : '👁️'}
                               </button>
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{field.hint}</p>
+                          <p className="text-[12px] text-slate-500 mt-0.5">{field.hint}</p>
                         </div>
                       ))}
                     </div>
@@ -981,7 +984,7 @@ export default function ChannelOverview() {
                   <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-slate-800">
                     <button
                       onClick={handleValidate}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-700 text-slate-600 hover:border-slate-600 hover:text-[#1e293b] transition-colors"
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-700 text-slate-600 hover:border-slate-600 hover:text-[#111827] transition-colors"
                     >
                       🔍 Kiểm tra
                     </button>
@@ -1016,7 +1019,7 @@ export default function ChannelOverview() {
                           🔗 Tạo Access Token (OAuth)
                         </a>
                       ) : (
-                        <span className="text-[11px] text-slate-500">Nhập {cfgChannel === 'SHOPEE' ? 'Partner ID' : 'App Key'} trước để tạo link OAuth</span>
+                        <span className="text-[12px] text-slate-500">Nhập {cfgChannel === 'SHOPEE' ? 'Partner ID' : 'App Key'} trước để tạo link OAuth</span>
                       )
                     })()}
                   </div>
@@ -1024,39 +1027,41 @@ export default function ChannelOverview() {
 
                 {/* ── Quick sync panel ── */}
                 <div className="bg-white border border-slate-800 rounded-2xl p-5 shadow-sm">
-                  <div className="text-sm font-bold text-[#1e293b] mb-3">⚡ Đồng bộ nhanh</div>
+                  <div className="text-sm font-bold text-[#111827] mb-3">⚡ Đồng bộ nhanh</div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      { label: '📦 Tồn kho → Sàn',  desc: 'Đẩy số lượng tồn lên sàn', action: () => {
-                          setSyncing(cfgChannel + '_inv')
-                          const ch = CHANNELS.find(c => c.id === cfgChannel)
-                          syncChannel(cfgChannel)
-                            .then(r => toast.success(`✅ ${ch?.name}: sync ${r.updated} sản phẩm`))
-                            .catch(e => toast.error(e.message))
-                            .finally(() => setSyncing(null))
-                        }, id: '_inv' },
-                      { label: '💰 Giá → Sàn',       desc: 'Đẩy giá bán lên sàn',     action: () => handleSyncPrice(cfgChannel), id: '_price' },
-                      { label: '🧾 Kéo đơn về',       desc: 'Lấy đơn mới 7 ngày',      action: () => handlePullOrders(cfgChannel), id: '_orders' },
-                    ].map(btn => (
-                      <button
-                        key={btn.id}
-                        onClick={btn.action}
-                        disabled={!!syncing}
-                        className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-800 bg-surface2/50 hover:border-slate-700 text-left transition-all disabled:opacity-40 group"
-                      >
-                        <span className="text-xs font-bold text-[#1e293b] group-hover:text-cblue transition-colors">
-                          {syncing === cfgChannel + btn.id ? (
-                            <span className="inline-flex items-center gap-1">
-                              <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" strokeDasharray="28" strokeDashoffset="10"/></svg>
-                              Đang chạy...
-                            </span>
-                          ) : btn.label}
-                        </span>
-                        <span className="text-[10px] text-slate-500">{btn.desc}</span>
-                      </button>
-                    ))}
+                    <Can permission={PERMISSIONS.CHANNEL_UPDATE}>
+                      {[
+                        { label: '📦 Tồn kho → Sàn',  desc: 'Đẩy số lượng tồn lên sàn', action: () => {
+                            setSyncing(cfgChannel + '_inv')
+                            const ch = CHANNELS.find(c => c.id === cfgChannel)
+                            syncChannel(cfgChannel)
+                              .then(r => toast.success(`✅ ${ch?.name}: sync ${r.updated} sản phẩm`))
+                              .catch(e => toast.error(e.message))
+                              .finally(() => setSyncing(null))
+                          }, id: '_inv' },
+                        { label: '💰 Giá → Sàn',       desc: 'Đẩy giá bán lên sàn',     action: () => handleSyncPrice(cfgChannel), id: '_price' },
+                        { label: '🧾 Kéo đơn về',       desc: 'Lấy đơn mới 7 ngày',      action: () => handlePullOrders(cfgChannel), id: '_orders' },
+                      ].map(btn => (
+                        <button
+                          key={btn.id}
+                          onClick={btn.action}
+                          disabled={!!syncing}
+                          className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-800 bg-surface2/50 hover:border-slate-700 text-left transition-all disabled:opacity-40 group"
+                        >
+                          <span className="text-xs font-bold text-[#111827] group-hover:text-cblue transition-colors">
+                            {syncing === cfgChannel + btn.id ? (
+                              <span className="inline-flex items-center gap-1">
+                                <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" strokeDasharray="28" strokeDashoffset="10"/></svg>
+                                Đang chạy...
+                              </span>
+                            ) : btn.label}
+                          </span>
+                          <span className="text-[12px] text-slate-500">{btn.desc}</span>
+                        </button>
+                      ))}
+                    </Can>
                   </div>
-                  <div className="mt-3 text-[11px] text-slate-500">
+                  <div className="mt-3 text-[12px] text-slate-500">
                     💡 Cần lưu cấu hình API hợp lệ trước khi đồng bộ. Xem log tại tab 📋 Lịch sử đồng bộ.
                   </div>
                 </div>
@@ -1068,7 +1073,7 @@ export default function ChannelOverview() {
           {activeTab === 'logs' && (
             <div className="bg-white border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
               <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
-                <span className="text-sm font-semibold text-[#1e293b]">Lịch sử đồng bộ</span>
+                <span className="text-sm font-semibold text-[#111827]">Lịch sử đồng bộ</span>
                 <button onClick={loadData} className="text-xs text-cblue hover:underline">Làm mới</button>
               </div>
               {syncLogs.length === 0 ? (
@@ -1087,14 +1092,14 @@ export default function ChannelOverview() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`text-sm font-medium ${ch?.colorClass || 'text-slate-300'}`}>{ch?.name}</span>
                             <SyncBadge status={log.status} />
-                            <span className="text-[11px] text-slate-500 uppercase">{log.sync_type}</span>
+                            <span className="text-[12px] text-slate-500 uppercase">{log.sync_type}</span>
                             {log.synced_count > 0 && (
-                              <span className="text-[11px] text-slate-500">{log.synced_count} items</span>
+                              <span className="text-[12px] text-slate-500">{log.synced_count} items</span>
                             )}
                           </div>
-                          {log.message && <p className="text-[11px] text-slate-500 mt-0.5">{log.message}</p>}
+                          {log.message && <p className="text-[12px] text-slate-500 mt-0.5">{log.message}</p>}
                         </div>
-                        <span className="text-[10px] text-slate-500 shrink-0">{fmtDate(log.created_at)}</span>
+                        <span className="text-[12px] text-slate-500 shrink-0">{fmtDate(log.created_at)}</span>
                       </div>
                     )
                   })}
@@ -1104,6 +1109,7 @@ export default function ChannelOverview() {
           )}
         </>
       )}
+    </div>
     </div>
   )
 }

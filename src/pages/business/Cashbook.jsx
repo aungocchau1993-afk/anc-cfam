@@ -3,12 +3,19 @@ import { toast } from 'sonner'
 import { loadCashbook, insertCashbookTx, deleteCashbookTx } from '../../lib/supabase'
 import { fmtVNDFull, formatMoneyLive, parseVNDInput } from '../../lib/formatters'
 import ModalOverlay from '../../components/ui/ModalOverlay'
+import PageHeader from '../../components/ui/PageHeader'
 import DateFilterBar, { getDateRange, toInputDate, startOf } from '../../components/ui/DateFilterBar'
 import {
   Chart as ChartJS, CategoryScale, LinearScale,
   BarElement, Tooltip, Legend,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
+import {
+  Wallet, Plus, ArrowUp, ArrowDown, BarChart3, FolderOpen,
+  ListChecks, Loader2, X, Trash2,
+} from 'lucide-react'
+import Can from '../../components/permission/Can'
+import { PERMISSIONS } from '../../lib/permissions/permissionConstants'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
@@ -66,19 +73,19 @@ function useCountUp(target, duration = 800) {
 
 // ── Stat Card ──────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, icon, textColor, gradient, count }) {
+function StatCard({ label, value, sub, icon: Icon, textColor, gradient, count }) {
   const animated = useCountUp(value)
   return (
     <div className={`relative rounded-2xl border p-5 overflow-hidden transition-all hover:scale-[1.01] ${gradient}`}>
-      <div className="absolute -top-3 -right-3 text-5xl opacity-[0.08] select-none pointer-events-none">{icon}</div>
-      <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">{label}</div>
+      <Icon className="absolute -top-2 -right-2 w-16 h-16 opacity-[0.08] select-none pointer-events-none" strokeWidth={1.5} />
+      <div className="text-caption text-muted font-semibold uppercase tracking-wider mb-2">{label}</div>
       <div className={`text-2xl font-black tabular-nums leading-tight ${textColor}`}>
         {fmtVNDFull(animated)}
       </div>
       <div className="flex items-center justify-between mt-2">
-        <span className="text-[11px] text-slate-500">{sub}</span>
+        <span className="text-[12px] text-muted">{sub}</span>
         {count !== undefined && (
-          <span className="text-[10px] font-bold text-slate-600 bg-slate-800/60 px-2 py-0.5 rounded-full">
+          <span className="text-[12px] font-bold text-muted bg-surface2 px-2 py-0.5 rounded-full">
             {count} phiếu
           </span>
         )}
@@ -110,12 +117,12 @@ function CategoryBreakdown({ transactions, type }) {
 
   const total = data.reduce((s, d) => s + d.amount, 0)
   const isThu = type === 'THU'
-  const barColor = isThu ? 'bg-emerald-500' : 'bg-red-500'
-  const textColor = isThu ? 'text-emerald-400' : 'text-red-400'
+  const barColor = isThu ? 'bg-cgreen' : 'bg-cred'
+  const textColor = isThu ? 'text-cgreen' : 'text-cred'
 
   if (data.length === 0) {
     return (
-      <div className="text-center py-6 text-slate-600 text-xs">
+      <div className="text-center py-6 text-subtle text-xs">
         Chưa có dữ liệu
       </div>
     )
@@ -126,15 +133,15 @@ function CategoryBreakdown({ transactions, type }) {
       {data.map(d => (
         <div key={d.cat}>
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-slate-300 font-medium truncate max-w-[60%]">{d.cat}</span>
+            <span className="text-xs text-text font-medium truncate max-w-[60%]">{d.cat}</span>
             <div className="flex items-center gap-2">
-              <span className={`text-[11px] font-bold tabular-nums ${textColor}`}>
+              <span className={`text-[12px] font-bold tabular-nums ${textColor}`}>
                 {fmtVNDFull(d.amount)}
               </span>
-              <span className="text-[10px] text-slate-600 tabular-nums w-10 text-right">{d.pct}%</span>
+              <span className="text-[12px] text-subtle tabular-nums w-10 text-right">{d.pct}%</span>
             </div>
           </div>
-          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-surface2 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-700 ${barColor}`}
               style={{ width: `${total > 0 ? (d.amount / total * 100) : 0}%`, opacity: 0.7 }}
@@ -194,44 +201,44 @@ function TxModal({ onSave, onClose }) {
     }
   }
 
-  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none transition-all min-h-[52px] rounded-xl'
+  const iCls = 'input-base'
 
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-sm mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-          <div className="font-bold text-base text-[#1e293b]">💰 Tạo Phiếu Thu / Chi</div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg leading-none">×</button>
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <div className="flex items-center gap-2 font-bold text-base text-text"><Wallet size={18} className="text-cblue" /> Tạo Phiếu Thu / Chi</div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors flex items-center justify-center"><X size={16} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
 
           {/* Toggle THU / CHI */}
-          <div className="flex rounded-xl overflow-hidden border border-slate-700">
+          <div className="flex rounded-xl overflow-hidden border border-border">
             {['THU', 'CHI'].map(t => (
               <button
                 key={t}
                 type="button"
                 onClick={() => { setType(t); setCategory('') }}
-                className={`flex-1 py-2.5 text-sm font-black transition-colors ${
+                className={`flex-1 py-2.5 text-sm font-black transition-colors flex items-center justify-center gap-1.5 ${
                   type === t
                     ? t === 'THU'
                       ? 'bg-cgreen text-white'
                       : 'bg-cred text-white'
-                    : 'bg-slate-800 text-slate-500 hover:text-[#1e293b]'
+                    : 'bg-surface2 text-muted hover:text-text'
                 }`}
               >
-                {t === 'THU' ? '⬆️ THU' : '⬇️ CHI'}
+                {t === 'THU' ? <ArrowUp size={14} /> : <ArrowDown size={14} />} {t}
               </button>
             ))}
           </div>
 
           {/* Số tiền */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Số tiền (₫) *</label>
+            <label className="text-[12px] text-muted font-semibold uppercase tracking-wider">Số tiền (₫) *</label>
             <input
               autoFocus
-              className={`${iCls} text-right font-mono text-xl font-black ${type === 'THU' ? 'text-cgreen border-cgreen/40 focus:border-cgreen focus:ring-1 focus:ring-cgreen/20' : 'text-cred border-cred/40 focus:border-cred focus:ring-1 focus:ring-cred/20'}`}
+              className={`${iCls} text-right font-mono text-xl font-black ${type === 'THU' ? 'text-cgreen border-cgreen/40 focus:border-cgreen focus:ring-cgreen/20' : 'text-cred border-cred/40 focus:border-cred focus:ring-cred/20'}`}
               inputMode="numeric"
               placeholder="0"
               value={amount}
@@ -241,9 +248,9 @@ function TxModal({ onSave, onClose }) {
 
           {/* Danh mục */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Danh mục *</label>
+            <label className="text-[12px] text-muted font-semibold uppercase tracking-wider">Danh mục *</label>
             <select
-              className={`${iCls} cursor-pointer focus:border-cblue`}
+              className={`${iCls} cursor-pointer`}
               value={category}
               onChange={e => setCategory(e.target.value)}
             >
@@ -254,9 +261,9 @@ function TxModal({ onSave, onClose }) {
 
           {/* Ghi chú */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Ghi chú</label>
+            <label className="text-[12px] text-muted font-semibold uppercase tracking-wider">Ghi chú</label>
             <textarea
-              className={`${iCls} resize-none focus:border-cblue`}
+              className={`${iCls} resize-none h-auto py-3`}
               rows={2}
               placeholder="Nội dung chi tiết…"
               value={notes}
@@ -265,11 +272,11 @@ function TxModal({ onSave, onClose }) {
           </div>
 
           <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors">Huỷ</button>
+            <button type="button" onClick={onClose} className="btn-ghost">Huỷ</button>
             <button
               type="submit"
               disabled={saving}
-              className={`px-6 py-2 rounded-lg text-white text-sm font-bold transition-all disabled:opacity-60 ${type === 'THU' ? 'bg-cgreen hover:brightness-110' : 'bg-cred hover:brightness-110'}`}
+              className={`h-11 px-6 rounded-xl text-white text-sm font-bold transition-all disabled:opacity-60 ${type === 'THU' ? 'bg-cgreen hover:brightness-110' : 'bg-cred hover:brightness-110'}`}
             >
               {saving ? 'Đang lưu…' : `Tạo phiếu ${type}`}
             </button>
@@ -283,7 +290,7 @@ function TxModal({ onSave, onClose }) {
 // ── Chart options ──────────────────────────────────────────────────────────
 
 const TICK = { color: '#6b7280', font: { size: 11 } }
-const GRID = { color: 'rgba(55,65,81,0.4)' }
+const GRID = { color: 'rgba(229,231,235,0.8)' }
 const chartOpts = {
   responsive: true, maintainAspectRatio: false,
   plugins: {
@@ -303,9 +310,9 @@ const chartOpts = {
 // ── Type filter tabs ───────────────────────────────────────────────────────
 
 const TYPE_FILTERS = [
-  { id: 'all', label: 'Tất cả',  icon: '📋' },
-  { id: 'THU', label: 'Phiếu Thu', icon: '⬆️' },
-  { id: 'CHI', label: 'Phiếu Chi', icon: '⬇️' },
+  { id: 'all', label: 'Tất cả',  icon: ListChecks },
+  { id: 'THU', label: 'Phiếu Thu', icon: ArrowUp },
+  { id: 'CHI', label: 'Phiếu Chi', icon: ArrowDown },
 ]
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -442,24 +449,21 @@ export default function Cashbook() {
   }, [preset, customFrom, customTo])
 
   return (
+    <div className="w-full">
+      <PageHeader
+        icon={Wallet}
+        title="Sổ Quỹ Thu Chi"
+        subtitle={`Quản lý dòng tiền ngoài bán hàng · ${periodLabel}`}
+        actions={
+          <Can permission={PERMISSIONS.CASHBOOK_CREATE}>
+            <button onClick={() => setShowModal(true)} className="btn-primary whitespace-nowrap">
+              <Plus size={16} strokeWidth={2.5} />
+              Tạo phiếu Thu/Chi
+            </button>
+          </Can>
+        }
+      />
     <div className="px-5 pt-3 pb-6 w-full flex flex-col gap-5">
-
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-black text-[#1e293b]">💵 Sổ Quỹ Thu Chi</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Quản lý dòng tiền ngoài bán hàng · {periodLabel}</p>
-        </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cblue hover:brightness-110 text-white text-sm font-black transition-all shadow-lg shadow-cblue/20 whitespace-nowrap active:scale-95"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-          </svg>
-          Tạo phiếu Thu/Chi
-        </button>
-      </div>
 
       {/* ── Bộ lọc thời gian ─────────────────────────────────────── */}
       <DateFilterBar
@@ -477,41 +481,41 @@ export default function Cashbook() {
           label="Tổng Thu"
           value={stats.totalThu}
           sub={periodLabel}
-          icon="⬆️"
-          textColor="text-emerald-400"
-          gradient="bg-emerald-950/40 border-emerald-800/40"
+          icon={ArrowUp}
+          textColor="text-cgreen"
+          gradient="bg-emerald-50 border-emerald-200"
           count={stats.thuCount}
         />
         <StatCard
           label="Tổng Chi"
           value={stats.totalChi}
           sub={periodLabel}
-          icon="⬇️"
-          textColor="text-red-400"
-          gradient="bg-red-950/40 border-red-800/40"
+          icon={ArrowDown}
+          textColor="text-cred"
+          gradient="bg-rose-50 border-rose-200"
           count={stats.chiCount}
         />
         <StatCard
           label="Tồn Quỹ"
           value={Math.abs(stats.balance)}
-          sub={stats.balance >= 0 ? '✅ Dương — dòng tiền lành mạnh' : '⚠️ Âm — chi vượt thu'}
-          icon="💰"
-          textColor={stats.balance >= 0 ? 'text-blue-400' : 'text-red-400'}
-          gradient={stats.balance >= 0 ? 'bg-blue-950/40 border-blue-800/40' : 'bg-red-950/40 border-red-800/40'}
+          sub={stats.balance >= 0 ? 'Dương — dòng tiền lành mạnh' : 'Âm — chi vượt thu'}
+          icon={Wallet}
+          textColor={stats.balance >= 0 ? 'text-cblue' : 'text-cred'}
+          gradient={stats.balance >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-rose-50 border-rose-200'}
         />
       </div>
 
       {/* ── Chart + Breakdown row ─────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Chart: Thu vs Chi theo ngày */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <div className="text-sm font-bold text-[#1e293b] mb-1">📊 Biến Động Thu Chi Theo Ngày</div>
-          <div className="text-[11px] text-slate-500 mb-4">Thu (dương) · Chi (âm) — đơn vị: triệu ₫</div>
+        <div className="lg:col-span-2 card p-5">
+          <div className="flex items-center gap-2 text-sm font-bold text-text mb-1"><BarChart3 size={16} className="text-cblue" /> Biến Động Thu Chi Theo Ngày</div>
+          <div className="text-[12px] text-muted mb-4">Thu (dương) · Chi (âm) — đơn vị: triệu ₫</div>
           <div className="h-52">
             {chartData.labels.length > 0 ? (
               <Bar data={chartData} options={chartOpts} />
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-600 text-xs">
+              <div className="flex items-center justify-center h-full text-subtle text-xs">
                 Chưa có dữ liệu trong khoảng thời gian này
               </div>
             )}
@@ -519,37 +523,19 @@ export default function Cashbook() {
         </div>
 
         {/* Category breakdown */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-800 flex items-center gap-2">
-            <span className="text-base">📂</span>
-            <span className="text-sm font-bold text-[#1e293b]">Phân Bổ Danh Mục</span>
+        <div className="card p-0 overflow-hidden">
+          <div className="px-5 py-3 border-b border-border flex items-center gap-2">
+            <FolderOpen size={16} className="text-cblue" />
+            <span className="text-sm font-bold text-text">Phân Bổ Danh Mục</span>
           </div>
           <div className="p-4">
-            {/* Mini tabs */}
-            <div className="flex rounded-lg overflow-hidden border border-slate-700 mb-4">
-              {['THU', 'CHI'].map(t => {
-                const isActive = t === 'THU'
-                return (
-                  <button
-                    key={t}
-                    className="flex-1 py-1.5 text-[11px] font-black transition-colors bg-slate-800/50 text-slate-500 first:border-r first:border-slate-700"
-                    style={
-                      /* Highlight based on which has data */
-                      {}
-                    }
-                  >
-                    {t === 'THU' ? '⬆ Thu' : '⬇ Chi'}
-                  </button>
-                )
-              })}
-            </div>
             {/* Show both breakdowns stacked */}
             <div className="mb-4">
-              <div className="text-[10px] text-emerald-500/80 font-bold uppercase tracking-wider mb-2">⬆ Khoản Thu</div>
+              <div className="text-[12px] text-cgreen font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><ArrowUp size={11} /> Khoản Thu</div>
               <CategoryBreakdown transactions={transactions} type="THU" />
             </div>
-            <div className="border-t border-slate-800 pt-3">
-              <div className="text-[10px] text-red-500/80 font-bold uppercase tracking-wider mb-2">⬇ Khoản Chi</div>
+            <div className="border-t border-border pt-3">
+              <div className="text-[12px] text-cred font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><ArrowDown size={11} /> Khoản Chi</div>
               <CategoryBreakdown transactions={transactions} type="CHI" />
             </div>
           </div>
@@ -557,62 +543,65 @@ export default function Cashbook() {
       </div>
 
       {/* ── Type filter + Transaction table ────────────────────────── */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-xl">
+      <div className="card p-0 overflow-hidden">
 
         {/* Table header with type filters */}
-        <div className="px-5 py-3 border-b border-slate-800 bg-slate-950/60 flex flex-wrap items-center justify-between gap-3">
+        <div className="px-5 py-3 border-b border-border bg-surface2 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-[#1e293b]">📋 Lịch Sử Giao Dịch</span>
-            <span className="text-[10px] font-bold text-slate-600 bg-slate-800 px-2 py-0.5 rounded-full">
+            <span className="text-sm font-bold text-text">Lịch Sử Giao Dịch</span>
+            <span className="text-[12px] font-bold text-muted bg-surface border border-border px-2 py-0.5 rounded-full">
               {filtered.length} / {transactions.length}
             </span>
           </div>
 
           {/* Type filter pills */}
-          <div className="flex rounded-lg overflow-hidden border border-slate-700">
-            {TYPE_FILTERS.map(f => (
-              <button
-                key={f.id}
-                onClick={() => setTypeFilter(f.id)}
-                className={`px-3 py-1.5 text-[11px] font-bold transition-colors whitespace-nowrap ${
-                  typeFilter === f.id
-                    ? f.id === 'THU'
-                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                      : f.id === 'CHI'
-                        ? 'bg-red-500/20 text-red-400 border-red-500/30'
-                        : 'bg-cblue/20 text-cblue'
-                    : 'bg-slate-800/60 text-slate-500 hover:text-slate-300'
-                } ${f.id !== 'all' ? 'border-l border-slate-700' : ''}`}
-              >
-                {f.icon} {f.label}
-              </button>
-            ))}
+          <div className="flex rounded-lg overflow-hidden border border-border">
+            {TYPE_FILTERS.map(f => {
+              const Icon = f.icon
+              return (
+                <button
+                  key={f.id}
+                  onClick={() => setTypeFilter(f.id)}
+                  className={`px-3 py-1.5 text-[12px] font-bold transition-colors whitespace-nowrap flex items-center gap-1 ${
+                    typeFilter === f.id
+                      ? f.id === 'THU'
+                        ? 'bg-emerald-50 text-cgreen'
+                        : f.id === 'CHI'
+                          ? 'bg-rose-50 text-cred'
+                          : 'bg-cblue/10 text-cblue'
+                      : 'bg-surface text-muted hover:text-text'
+                  } ${f.id !== 'all' ? 'border-l border-border' : ''}`}
+                >
+                  <Icon size={12} /> {f.label}
+                </button>
+              )
+            })}
           </div>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-slate-500 text-sm gap-2">
-            <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/>
-            </svg>
+          <div className="flex items-center justify-center py-16 text-muted text-sm gap-2">
+            <Loader2 size={18} className="animate-spin" />
             Đang tải dữ liệu…
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20 text-slate-600">
-            <div className="text-5xl mb-3 opacity-60">💵</div>
-            <div className="font-bold text-slate-400 mb-1">
+          <div className="text-center py-20">
+            <Wallet size={48} className="mx-auto mb-3 text-subtle opacity-60" />
+            <div className="font-bold text-muted mb-1">
               {typeFilter !== 'all'
                 ? `Không có phiếu ${typeFilter === 'THU' ? 'Thu' : 'Chi'} nào`
                 : 'Chưa có giao dịch nào'
               }
             </div>
-            <div className="text-xs text-slate-600 mb-4">trong khoảng thời gian đã chọn</div>
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-5 py-2 rounded-xl bg-cblue hover:brightness-110 text-white text-sm font-bold transition-all shadow-lg shadow-cblue/15 active:scale-95"
-            >
-              ＋ Tạo phiếu đầu tiên
-            </button>
+            <div className="text-xs text-subtle mb-4">trong khoảng thời gian đã chọn</div>
+            <Can permission={PERMISSIONS.CASHBOOK_CREATE}>
+              <button
+                onClick={() => setShowModal(true)}
+                className="btn-primary mx-auto"
+              >
+                <Plus size={16} /> Tạo phiếu đầu tiên
+              </button>
+            </Can>
           </div>
         ) : (
           <>
@@ -621,29 +610,31 @@ export default function Cashbook() {
               {withBalance.map(tx => {
                 const isThu = tx.transaction_type === 'THU'
                 return (
-                  <div key={tx.id} className="bg-[#ffffff] border border-slate-800 rounded-xl p-3.5">
+                  <div key={tx.id} className="bg-surface border border-border rounded-xl p-3.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black mb-1.5 ${isThu ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-red-500/15 text-red-400 border-red-500/30'}`}>
-                          {isThu ? '⬆ THU' : '⬇ CHI'}
+                        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[12px] font-black mb-1.5 ${isThu ? 'bg-emerald-50 text-cgreen border-emerald-200' : 'bg-rose-50 text-cred border-rose-200'}`}>
+                          {isThu ? <ArrowUp size={10} /> : <ArrowDown size={10} />} {isThu ? 'THU' : 'CHI'}
                         </span>
-                        <div className="text-sm font-semibold text-slate-100">{tx.category}</div>
-                        {tx.notes && <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{tx.notes}</div>}
-                        <div className="text-[10px] text-slate-600 mt-1 font-mono">
+                        <div className="text-sm font-semibold text-text">{tx.category}</div>
+                        {tx.notes && <div className="text-[12px] text-muted mt-0.5 line-clamp-1">{tx.notes}</div>}
+                        <div className="text-[12px] text-subtle mt-1 font-mono">
                           {fmtDay(tx.created_at)} · {new Date(tx.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className={`font-mono font-black text-base tabular-nums ${isThu ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <div className={`font-mono font-black text-base tabular-nums ${isThu ? 'text-cgreen' : 'text-cred'}`}>
                           {isThu ? '+' : '−'}{fmtVNDFull(tx.amount)}
                         </div>
-                        <div className={`text-[11px] font-mono font-semibold tabular-nums mt-0.5 ${tx._runningBalance >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                        <div className={`text-[12px] font-mono font-semibold tabular-nums mt-0.5 ${tx._runningBalance >= 0 ? 'text-cblue' : 'text-cred'}`}>
                           = {fmtVNDFull(tx._runningBalance)}
                         </div>
-                        <button onClick={() => handleDelete(tx.id)} disabled={deleting === tx.id}
-                          className="mt-2 h-7 w-7 rounded-lg border border-slate-700 text-slate-600 hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center ml-auto disabled:opacity-40">
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        </button>
+                        <Can permission={PERMISSIONS.CASHBOOK_DELETE}>
+                          <button onClick={() => handleDelete(tx.id)} disabled={deleting === tx.id}
+                            className="mt-2 h-7 w-7 rounded-lg border border-border text-subtle hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center ml-auto disabled:opacity-40">
+                            <Trash2 size={14} />
+                          </button>
+                        </Can>
                       </div>
                     </div>
                   </div>
@@ -653,8 +644,8 @@ export default function Cashbook() {
               <div className="bg-cblue/5 border border-cblue/20 rounded-xl p-3.5 mt-1">
                 <div className="text-xs font-black text-cblue mb-2">Tổng cộng ({filtered.length} giao dịch)</div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-emerald-400 font-mono font-black">+{fmtVNDFull(filtered.filter(t => t.transaction_type === 'THU').reduce((s, t) => s + (Number(t.amount) || 0), 0))}</span>
-                  <span className="text-red-400 font-mono font-black">−{fmtVNDFull(filtered.filter(t => t.transaction_type === 'CHI').reduce((s, t) => s + (Number(t.amount) || 0), 0))}</span>
+                  <span className="text-cgreen font-mono font-black">+{fmtVNDFull(filtered.filter(t => t.transaction_type === 'THU').reduce((s, t) => s + (Number(t.amount) || 0), 0))}</span>
+                  <span className="text-cred font-mono font-black">−{fmtVNDFull(filtered.filter(t => t.transaction_type === 'CHI').reduce((s, t) => s + (Number(t.amount) || 0), 0))}</span>
                   <span className={`font-mono font-black ${stats.balance >= 0 ? 'text-cblue' : 'text-cred'}`}>{fmtVNDFull(stats.balance)}</span>
                 </div>
               </div>
@@ -664,39 +655,41 @@ export default function Cashbook() {
             <div className="hidden sm:block w-full overflow-x-auto">
               <table className="w-full min-w-[700px]">
                 <thead>
-                  <tr className="bg-slate-950/80 border-b border-slate-800">
+                  <tr className="bg-surface2 border-b border-border">
                     {['Thời gian', 'Loại', 'Danh mục', 'Ghi chú', 'Số tiền', 'Tồn quỹ', ''].map((h, i) => (
-                      <th key={i} className={`px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap ${h === 'Số tiền' || h === 'Tồn quỹ' ? 'text-right' : 'text-left'}`}>{h}</th>
+                      <th key={i} className={`px-4 py-3 text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap ${h === 'Số tiền' || h === 'Tồn quỹ' ? 'text-right' : 'text-left'}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/50">
+                <tbody className="divide-y divide-border">
                   {withBalance.map(tx => {
                     const isThu = tx.transaction_type === 'THU'
                     return (
-                      <tr key={tx.id} className="hover:bg-slate-800/30 transition-colors group">
+                      <tr key={tx.id} className="hover:bg-surface2 transition-colors group">
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-xs text-slate-300 font-medium">{fmtDay(tx.created_at)}</div>
-                          <div className="text-[10px] text-slate-600 font-mono">{new Date(tx.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
+                          <div className="text-xs text-text font-medium">{fmtDay(tx.created_at)}</div>
+                          <div className="text-[12px] text-subtle font-mono">{new Date(tx.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-black ${isThu ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-red-500/15 text-red-400 border-red-500/30'}`}>
-                            {isThu ? '⬆ THU' : '⬇ CHI'}
+                          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[12px] font-black ${isThu ? 'bg-emerald-50 text-cgreen border-emerald-200' : 'bg-rose-50 text-cred border-rose-200'}`}>
+                            {isThu ? <ArrowUp size={11} /> : <ArrowDown size={11} />} {isThu ? 'THU' : 'CHI'}
                           </span>
                         </td>
-                        <td className="px-4 py-3"><span className="text-sm text-[#1e293b] font-medium">{tx.category}</span></td>
-                        <td className="px-4 py-3 max-w-[200px]"><div className="text-xs text-slate-400 truncate">{tx.notes || '—'}</div></td>
+                        <td className="px-4 py-3"><span className="text-sm text-text font-medium">{tx.category}</span></td>
+                        <td className="px-4 py-3 max-w-[200px]"><div className="text-xs text-muted truncate">{tx.notes || '—'}</div></td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
-                          <span className={`text-sm font-black tabular-nums font-mono ${isThu ? 'text-emerald-400' : 'text-red-400'}`}>{isThu ? '+' : '−'}{fmtVNDFull(tx.amount)}</span>
+                          <span className={`text-sm font-black tabular-nums font-mono ${isThu ? 'text-cgreen' : 'text-cred'}`}>{isThu ? '+' : '−'}{fmtVNDFull(tx.amount)}</span>
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
-                          <span className={`text-xs font-bold tabular-nums font-mono ${tx._runningBalance >= 0 ? 'text-blue-400' : 'text-red-400'}`}>{fmtVNDFull(tx._runningBalance)}</span>
+                          <span className={`text-xs font-bold tabular-nums font-mono ${tx._runningBalance >= 0 ? 'text-cblue' : 'text-cred'}`}>{fmtVNDFull(tx._runningBalance)}</span>
                         </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
-                          <button onClick={() => handleDelete(tx.id)} disabled={deleting === tx.id}
-                            className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md border border-slate-700 text-slate-500 hover:border-cred hover:text-cred hover:bg-cred/10 transition-all flex items-center justify-center disabled:opacity-50">
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          </button>
+                          <Can permission={PERMISSIONS.CASHBOOK_DELETE}>
+                            <button onClick={() => handleDelete(tx.id)} disabled={deleting === tx.id}
+                              className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md border border-border text-muted hover:border-cred hover:text-cred hover:bg-cred/10 transition-all flex items-center justify-center disabled:opacity-50">
+                              <Trash2 size={14} />
+                            </button>
+                          </Can>
                         </td>
                       </tr>
                     )
@@ -706,8 +699,8 @@ export default function Cashbook() {
                   <tr className="border-t-2 border-cblue/30 bg-cblue/5">
                     <td colSpan={4} className="px-4 py-3 text-sm font-black text-cblue">Tổng cộng ({filtered.length} giao dịch)</td>
                     <td className="px-4 py-3 text-right">
-                      <div className="text-xs font-black tabular-nums text-emerald-400">+{fmtVNDFull(filtered.filter(t => t.transaction_type === 'THU').reduce((s, t) => s + (Number(t.amount) || 0), 0))}</div>
-                      <div className="text-xs font-black tabular-nums text-red-400">−{fmtVNDFull(filtered.filter(t => t.transaction_type === 'CHI').reduce((s, t) => s + (Number(t.amount) || 0), 0))}</div>
+                      <div className="text-xs font-black tabular-nums text-cgreen">+{fmtVNDFull(filtered.filter(t => t.transaction_type === 'THU').reduce((s, t) => s + (Number(t.amount) || 0), 0))}</div>
+                      <div className="text-xs font-black tabular-nums text-cred">−{fmtVNDFull(filtered.filter(t => t.transaction_type === 'CHI').reduce((s, t) => s + (Number(t.amount) || 0), 0))}</div>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className={`text-sm font-black tabular-nums ${stats.balance >= 0 ? 'text-cblue' : 'text-cred'}`}>{fmtVNDFull(stats.balance)}</span>
@@ -722,6 +715,7 @@ export default function Cashbook() {
       </div>
 
       {showModal && <TxModal onSave={handleSave} onClose={() => setShowModal(false)} />}
+    </div>
     </div>
   )
 }

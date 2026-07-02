@@ -1,7 +1,7 @@
 import { PackageSearch, LoaderCircle } from 'lucide-react'
 import ProductCard from './ProductCard'
 
-export default function ProductGrid({ loading, products, cart, search, onAdd }) {
+export default function ProductGridView({ loading, products, cart, search, onAdd }) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-400 py-20">

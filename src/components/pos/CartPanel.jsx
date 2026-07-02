@@ -34,17 +34,17 @@ function CartItem({ item, onQty, onRemove, onPriceEdit }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="text-[13px] font-semibold text-[#1e293b] truncate leading-tight">{item.name}</span>
+          <span className="text-[14px] font-semibold text-[#111827] truncate leading-tight">{item.name}</span>
           {item.unit
-            ? <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-600">{item.unit}</span>
-            : <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full border border-dashed border-slate-700 text-slate-500" title="Chưa cài đơn vị tính">chưa có ĐVT</span>
+            ? <span className="shrink-0 text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-600">{item.unit}</span>
+            : <span className="shrink-0 text-[12px] px-1.5 py-0.5 rounded-full border border-dashed border-slate-700 text-slate-500" title="Chưa cài đơn vị tính">chưa có ĐVT</span>
           }
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
           {editingPrice ? (
             <input
               autoFocus
-              className="w-28 text-[11px] font-mono text-cblue bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 outline-none text-right"
+              className="w-28 text-[12px] font-mono text-cblue bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 outline-none text-right"
               value={priceDisplay}
               onChange={e => setPriceDisplay(formatMoneyLive(e.target.value))}
               onBlur={handlePriceSave}
@@ -55,7 +55,7 @@ function CartItem({ item, onQty, onRemove, onPriceEdit }) {
             />
           ) : (
             <button onClick={() => setEditingPrice(true)} title="Sửa giá"
-              className="text-[11px] text-slate-500 hover:text-cblue font-mono transition-colors">
+              className="text-[12px] text-slate-500 hover:text-cblue font-mono transition-colors">
               {item.price.toLocaleString('vi-VN')} ₫
             </button>
           )}
@@ -89,7 +89,7 @@ function CartItem({ item, onQty, onRemove, onPriceEdit }) {
           <span
             onClick={() => { setQtyInput(String(item.quantity)); setEditingQty(true) }}
             title="Click để nhập số lượng"
-            className="w-8 text-center text-sm font-bold tabular-nums text-[#1e293b] cursor-pointer hover:text-cblue hover:bg-blue-50 rounded transition-colors px-1 py-0.5"
+            className="w-8 text-center text-sm font-bold tabular-nums text-[#111827] cursor-pointer hover:text-cblue hover:bg-blue-50 rounded transition-colors px-1 py-0.5"
           >
             {item.quantity}
           </span>
@@ -102,7 +102,7 @@ function CartItem({ item, onQty, onRemove, onPriceEdit }) {
       </div>
 
       <div className="text-right shrink-0 min-w-[84px]">
-        <div className="text-[13px] font-bold text-[#1e293b] tabular-nums font-mono">{fmtVNDFull(subtotal)}</div>
+        <div className="text-[14px] font-bold text-[#111827] tabular-nums font-mono">{fmtVNDFull(subtotal)}</div>
       </div>
     </div>
   )
@@ -112,14 +112,14 @@ export default function CartPanel({ cart, cartCount, onQty, onRemove, onPriceEdi
   return (
     <div className="overflow-y-auto px-5 max-h-52 md:max-h-none md:flex-1">
       <div className="flex items-center justify-between py-3 sticky top-0 bg-white/95 backdrop-blur-sm z-10 -mx-5 px-5 border-b border-slate-800/60 mb-1">
-        <span className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
+        <span className="text-[12px] text-slate-500 font-bold uppercase tracking-widest">
           Giỏ hàng
           {cart.length > 0 && (
-            <span className="ml-2 bg-cblue/10 text-cblue text-[10px] font-bold px-1.5 py-0.5 rounded-full">{cartCount} sp</span>
+            <span className="ml-2 bg-cblue/10 text-cblue text-[12px] font-bold px-1.5 py-0.5 rounded-full">{cartCount} sp</span>
           )}
         </span>
         {cart.length > 0 && (
-          <button onClick={onClear} className="text-[11px] text-slate-400 hover:text-rose-500 transition-colors">Xoá tất cả</button>
+          <button onClick={onClear} className="text-[12px] text-slate-400 hover:text-rose-500 transition-colors">Xoá tất cả</button>
         )}
       </div>
 

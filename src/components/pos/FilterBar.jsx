@@ -9,20 +9,23 @@ const FILTERS = [
   { label: 'Kho: Tất cả' },
 ]
 
-export default function FilterBar() {
+export default function FilterBar({ right }) {
   return (
-    <div className="flex items-center gap-2 px-6 pb-4 -mt-1">
-      {FILTERS.map(f => (
-        <button
-          key={f.label}
-          disabled
-          title="Chưa có dữ liệu để lọc"
-          className="flex items-center gap-1.5 h-9 px-3.5 rounded-xl border border-slate-800 bg-white text-[13px] text-slate-500 cursor-not-allowed opacity-70"
-        >
-          {f.label}
-          <ChevronDown size={14} strokeWidth={2.2} className="text-slate-400" />
-        </button>
-      ))}
+    <div className="flex items-center justify-between gap-2 px-6 pb-4 -mt-1">
+      <div className="flex items-center gap-2">
+        {FILTERS.map(f => (
+          <button
+            key={f.label}
+            disabled
+            title="Chưa có dữ liệu để lọc"
+            className="flex items-center gap-1.5 h-9 px-3.5 rounded-xl border border-slate-800 bg-white text-[14px] text-slate-500 cursor-not-allowed opacity-70"
+          >
+            {f.label}
+            <ChevronDown size={14} strokeWidth={2.2} className="text-slate-400" />
+          </button>
+        ))}
+      </div>
+      {right}
     </div>
   )
 }

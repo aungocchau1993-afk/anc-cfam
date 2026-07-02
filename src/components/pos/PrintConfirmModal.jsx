@@ -38,7 +38,7 @@ export default function PrintConfirmModal({ data, onPrint, onSkip }) {
           </div>
           <div className="flex justify-between text-sm border-t border-slate-800 pt-2 mt-1">
             <span className="text-slate-500 font-semibold">Tổng cộng</span>
-            <span className="font-black text-lg text-[#1e293b] tabular-nums">{fmtVNDFull(total)}</span>
+            <span className="font-black text-lg text-[#111827] tabular-nums">{fmtVNDFull(total)}</span>
           </div>
           {paidAmount !== undefined && (
             <div className="flex justify-between text-sm">
@@ -48,8 +48,8 @@ export default function PrintConfirmModal({ data, onPrint, onSkip }) {
           )}
           {debtAmount > 0 && (
             <div className="flex justify-between text-sm rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 -mx-1">
-              <span className="text-rose-600 font-bold">💳 Còn nợ</span>
-              <span className="font-black text-rose-600 tabular-nums">{fmtVNDFull(debtAmount)}</span>
+              <span className="text-rose-700 font-bold">💳 Còn nợ</span>
+              <span className="font-black text-rose-700 tabular-nums">{fmtVNDFull(debtAmount)}</span>
             </div>
           )}
           {surplus > 0 && (
@@ -67,14 +67,14 @@ export default function PrintConfirmModal({ data, onPrint, onSkip }) {
             <button
               onClick={() => setMode('thermal')}
               className={`flex-1 py-2 text-sm font-bold transition-colors flex items-center justify-center gap-1.5
-                ${mode === 'thermal' ? 'bg-cblue text-white' : 'bg-surface2 text-slate-500 hover:text-[#1e293b]'}`}
+                ${mode === 'thermal' ? 'bg-cblue text-white' : 'bg-surface2 text-slate-500 hover:text-[#111827]'}`}
             >
               <Printer size={14} strokeWidth={2.2} /> <span>Nhiệt 80mm</span>
             </button>
             <button
               onClick={() => setMode('a4')}
               className={`flex-1 py-2 text-sm font-bold transition-colors flex items-center justify-center gap-1.5
-                ${mode === 'a4' ? 'bg-cblue text-white' : 'bg-surface2 text-slate-500 hover:text-[#1e293b]'}`}
+                ${mode === 'a4' ? 'bg-cblue text-white' : 'bg-surface2 text-slate-500 hover:text-[#111827]'}`}
             >
               <FileText size={14} strokeWidth={2.2} /> <span>A5 PDF</span>
             </button>

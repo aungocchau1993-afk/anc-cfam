@@ -1,9 +1,11 @@
 ﻿import { useState, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
+import { NotebookPen, Settings2, ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { fmtVNDFull, formatMoneyLive, parseVNDInput } from '../lib/formatters'
 import { MONTH_NAMES } from '../lib/constants'
 import IncomeCategoryModal from '../components/income/IncomeCategoryModal'
+import PageHeader from '../components/ui/PageHeader'
 
 const EXPENSE_LABELS = {
   living:    'Chi sinh hoạt',
@@ -180,7 +182,9 @@ function YearBlock({ year, isFirst, data, computed, onSave, onSaveDetail, showDe
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-surface2 transition-colors text-left"
       >
-        <span className="text-xs text-muted w-3">{open ? '▼' : '▶'}</span>
+        <span className="text-muted w-3 shrink-0">
+          {open ? <ChevronDown size={14} strokeWidth={2.4} /> : <ChevronRight size={14} strokeWidth={2.4} />}
+        </span>
         <span className="font-bold text-base">Năm {year}</span>
         <span className="ml-auto text-xs text-muted">
           Thu nhập: <strong className="text-cgreen">{fmtVNDFull(totIncome)}</strong>
@@ -189,39 +193,39 @@ function YearBlock({ year, isFirst, data, computed, onSave, onSaveDetail, showDe
       </button>
 
       {open && (
-        <div className="border-t border-border w-full overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900/30">
+        <div className="border-t border-border w-full overflow-x-auto">
           <table className="w-full min-w-max">
             <thead>
               <tr className="bg-surface2">
-                <th className="px-3 py-2 text-left text-[11px] text-muted whitespace-nowrap min-w-[90px] sticky left-0 bg-surface2 z-10">
+                <th className="px-3 py-2 text-left text-[12px] text-muted whitespace-nowrap min-w-[90px] sticky left-0 bg-surface2 z-10">
                   Tháng
                 </th>
 
                 {showDetail ? (
                   <>
                     {categories.map(cat => (
-                      <th key={cat.id} className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[110px]">
-                        {cat.name} ✏️
+                      <th key={cat.id} className="px-2 py-2 text-[12px] text-cblue text-right whitespace-nowrap min-w-[110px]">
+                        {cat.name}
                       </th>
                     ))}
-                    <th className="px-2 py-2 text-[11px] text-cyellow text-right whitespace-nowrap min-w-[110px]">
+                    <th className="px-2 py-2 text-[12px] text-cyellow text-right whitespace-nowrap min-w-[110px]">
                       Tổng Thu
                     </th>
                   </>
                 ) : (
-                  <th className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[150px]">
-                    Thu Nhập ✏️
+                  <th className="px-2 py-2 text-[12px] text-cblue text-right whitespace-nowrap min-w-[150px]">
+                    Thu Nhập
                   </th>
                 )}
 
                 {Object.values(EXPENSE_LABELS).map(h => (
-                  <th key={h} className="px-2 py-2 text-[11px] text-cblue text-right whitespace-nowrap min-w-[150px]">
-                    {h} ✏️
+                  <th key={h} className="px-2 py-2 text-[12px] text-cblue text-right whitespace-nowrap min-w-[150px]">
+                    {h}
                   </th>
                 ))}
-                <th className="px-3 py-2 text-right text-[11px] text-muted whitespace-nowrap min-w-[110px]">Thặng Dư</th>
-                <th className="px-3 py-2 text-right text-[11px] text-muted whitespace-nowrap min-w-[110px]">Đầu Tư</th>
-                <th className="px-3 py-2 text-right text-[11px] text-muted whitespace-nowrap min-w-[110px]">Tiền Mặt</th>
+                <th className="px-3 py-2 text-right text-[12px] text-muted whitespace-nowrap min-w-[110px]">Thặng Dư</th>
+                <th className="px-3 py-2 text-right text-[12px] text-muted whitespace-nowrap min-w-[110px]">Đầu Tư</th>
+                <th className="px-3 py-2 text-right text-[12px] text-muted whitespace-nowrap min-w-[110px]">Tiền Mặt</th>
               </tr>
             </thead>
             <tbody>
@@ -304,11 +308,18 @@ export default function MonthlyInput() {
   }
 
   return (
+    <div className="w-full">
+      <PageHeader
+        icon={NotebookPen}
+        title="Nhập Tháng"
+        subtitle="Nhập thu nhập & chi phí thực tế theo từng tháng"
+      />
     <div className="p-6 max-w-full">
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex-1 bg-cblue/10 border border-cblue/20 rounded-lg px-4 py-3 text-sm text-cblue">
-          ✏️ Nhập thu nhập & chi phí thực tế. Bấm tiêu đề năm để mở/đóng.
+          Nhập thu nhập & chi phí thực tế. Bấm tiêu đề năm để mở/đóng.
         </div>
 
         {/* Nút quản lý danh mục */}
@@ -317,9 +328,9 @@ export default function MonthlyInput() {
           title="Quản lý danh mục thu nhập"
           className="flex items-center gap-2 px-4 py-3 rounded-lg border border-border bg-surface text-muted text-sm font-semibold hover:border-cyellow hover:text-cyellow hover:bg-cyellow/5 transition-all"
         >
-          ⚙️ Danh mục
+          <Settings2 size={15} strokeWidth={2.2} /> Danh mục
           {incomeCategories.length > 0 && (
-            <span className="bg-cblue/20 text-cblue text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+            <span className="bg-cblue/20 text-cblue text-[12px] font-bold px-1.5 py-0.5 rounded-full">
               {incomeCategories.length}
             </span>
           )}
@@ -334,7 +345,7 @@ export default function MonthlyInput() {
               : 'bg-surface border-border text-muted hover:border-cblue hover:text-cblue'
           }`}
         >
-          {showDetail ? '🔵 Chi tiết' : '⚪ Tổng gộp'}
+          {showDetail ? 'Chi tiết' : 'Tổng gộp'}
         </button>
       </div>
 
@@ -342,7 +353,7 @@ export default function MonthlyInput() {
       {showDetail && incomeCategories.length > 0 && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4 px-1">
           {incomeCategories.map((cat, i) => {
-            const colors = ['#58a6ff', '#3fb950', '#bc8cff', '#d29922', '#39c5cf']
+            const colors = ['#2563eb', '#16a34a', '#7c3aed', '#f59e0b', '#0d9488']
             const color  = colors[i % colors.length]
             return (
               <div key={cat.id} className="flex items-center gap-1.5 text-xs text-muted">
@@ -359,7 +370,7 @@ export default function MonthlyInput() {
       {/* Cảnh báo nếu chưa có danh mục */}
       {showDetail && incomeCategories.length === 0 && (
         <div className="mb-4 bg-cyellow/10 border border-cyellow/30 rounded-lg px-4 py-3 text-sm text-cyellow flex items-center gap-3">
-          ⚠️ Chưa có danh mục nào.
+          Chưa có danh mục nào.
           <button onClick={() => setShowCatModal(true)} className="underline font-semibold hover:opacity-80">
             Tạo danh mục ngay →
           </button>
@@ -387,7 +398,7 @@ export default function MonthlyInput() {
             onClick={() => actions.addYear(nextYear)}
             className="flex items-center gap-2 px-5 py-3.5 bg-surface border-2 border-dashed border-border rounded-xl text-muted font-semibold hover:border-cblue hover:text-cblue hover:bg-cblue/5 transition-all"
           >
-            <span className="text-lg">＋</span> Thêm năm {nextYear}
+            <Plus size={18} strokeWidth={2.4} /> Thêm năm {nextYear}
           </button>
           <span className="text-xs text-muted">hoặc nhập năm bất kỳ:</span>
           <div className="flex gap-2 items-center">
@@ -407,6 +418,7 @@ export default function MonthlyInput() {
 
       {/* Modal quản lý danh mục */}
       {showCatModal && <IncomeCategoryModal onClose={() => setShowCatModal(false)} />}
+    </div>
     </div>
   )
 }

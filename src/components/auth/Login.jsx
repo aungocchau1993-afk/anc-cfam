@@ -1,23 +1,20 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { Briefcase, Eye, EyeOff, Mail, ArrowLeft, LoaderCircle, Send, Sparkles } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 
 // ── Shared input class ────────────────────────────────────────────────────
-const iCls = `
-  w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm
-  text-[#1e293b] placeholder:text-slate-600 outline-none
-  focus:border-cblue focus:ring-2 focus:ring-cblue/15 transition-all
-`
+const iCls = 'input-base'
 
 // ── Logo / Brand ──────────────────────────────────────────────────────────
 function Brand() {
   return (
     <div className="text-center mb-8">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cblue/30 to-cpurple/30 border border-cblue/25 mb-4 shadow-lg shadow-cblue/10">
-        <span className="text-3xl">💼</span>
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cblue/10 to-cpurple/10 border border-cblue/20 mb-4 shadow-card">
+        <Briefcase size={28} strokeWidth={2} className="text-cblue" />
       </div>
-      <h1 className="text-2xl font-black text-[#1e293b] tracking-tight">ANC - CFAM</h1>
-      <p className="text-xs text-slate-500 mt-1">Cash Flow & Asset Management · Business OS</p>
+      <h1 className="text-2xl font-black text-text tracking-tight">ANC - CFAM</h1>
+      <p className="text-xs text-muted mt-1">Cash Flow & Asset Management · Business OS</p>
     </div>
   )
 }
@@ -57,7 +54,7 @@ function LoginView({ onGoRegister, onGoForgot }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
-        <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Email</label>
+        <label className="text-[12px] font-semibold text-muted uppercase tracking-wider block mb-1.5">Email</label>
         <input
           type="email" value={email} onChange={e => setEmail(e.target.value)}
           className={iCls} placeholder="ban@email.com"
@@ -66,7 +63,7 @@ function LoginView({ onGoRegister, onGoForgot }) {
       </div>
 
       <div>
-        <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Mật khẩu</label>
+        <label className="text-[12px] font-semibold text-muted uppercase tracking-wider block mb-1.5">Mật khẩu</label>
         <div className="relative">
           <input
             type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
@@ -74,36 +71,33 @@ function LoginView({ onGoRegister, onGoForgot }) {
             autoComplete="current-password" required
           />
           <button type="button" onClick={() => setShowPw(v => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors text-lg">
-            {showPw ? '🙈' : '👁️'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-muted transition-colors">
+            {showPw ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={2} />}
           </button>
         </div>
       </div>
 
       <div className="flex justify-end -mt-1">
         <button type="button" onClick={onGoForgot}
-          className="text-[11px] text-cblue hover:text-blue-300 transition-colors">
+          className="text-[12px] text-cblue hover:text-blue-700 transition-colors">
           Quên mật khẩu?
         </button>
       </div>
 
-      <button type="submit" disabled={loading}
-        className="w-full py-3 rounded-xl bg-cblue hover:brightness-110 text-white text-sm font-black transition-all disabled:opacity-50 shadow-lg shadow-cblue/20 mt-1">
+      <button type="submit" disabled={loading} className="btn-primary w-full mt-1">
         {loading
           ? <span className="flex items-center justify-center gap-2">
-              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/>
-              </svg>
+              <LoaderCircle size={16} strokeWidth={2.2} className="animate-spin" />
               Đang đăng nhập…
             </span>
           : 'Đăng nhập'
         }
       </button>
 
-      <p className="text-center text-xs text-slate-500 mt-2">
+      <p className="text-center text-xs text-muted mt-2">
         Chưa có tài khoản?{' '}
         <button type="button" onClick={onGoRegister}
-          className="text-cblue hover:text-blue-300 font-semibold transition-colors">
+          className="text-cblue hover:text-blue-700 font-semibold transition-colors">
           Đăng ký ngay
         </button>
       </p>
@@ -158,20 +152,20 @@ function RegisterView({ onGoLogin }) {
   if (done) {
     return (
       <div className="text-center py-4 flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-full bg-cgreen/20 border border-cgreen/30 flex items-center justify-center text-3xl">
-          📧
+        <div className="w-16 h-16 rounded-full bg-cgreen/10 border border-cgreen/25 flex items-center justify-center">
+          <Mail size={28} strokeWidth={2} className="text-cgreen" />
         </div>
         <div>
           <div className="font-black text-lg text-cgreen">Kiểm tra hộp thư!</div>
-          <p className="text-sm text-slate-400 mt-2 leading-relaxed">
+          <p className="text-sm text-muted mt-2 leading-relaxed">
             Chúng tôi đã gửi link xác nhận đến<br/>
-            <strong className="text-[#1e293b]">{email}</strong>
+            <strong className="text-text">{email}</strong>
           </p>
-          <p className="text-xs text-slate-500 mt-3">Kiểm tra cả thư mục Spam nếu không thấy.</p>
+          <p className="text-xs text-subtle mt-3">Kiểm tra cả thư mục Spam nếu không thấy.</p>
         </div>
-        <button onClick={onGoLogin}
-          className="mt-2 px-6 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors">
-          ← Quay lại đăng nhập
+        <button onClick={onGoLogin} className="btn-ghost mt-2">
+          <ArrowLeft size={15} strokeWidth={2.2} />
+          Quay lại đăng nhập
         </button>
       </div>
     )
@@ -180,7 +174,7 @@ function RegisterView({ onGoLogin }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
-        <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Email</label>
+        <label className="text-[12px] font-semibold text-muted uppercase tracking-wider block mb-1.5">Email</label>
         <input
           type="email" value={email} onChange={e => setEmail(e.target.value)}
           className={iCls} placeholder="ban@email.com"
@@ -189,7 +183,7 @@ function RegisterView({ onGoLogin }) {
       </div>
 
       <div>
-        <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Mật khẩu</label>
+        <label className="text-[12px] font-semibold text-muted uppercase tracking-wider block mb-1.5">Mật khẩu</label>
         <div className="relative">
           <input
             type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
@@ -197,19 +191,19 @@ function RegisterView({ onGoLogin }) {
             autoComplete="new-password" required
           />
           <button type="button" onClick={() => setShowPw(v => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-lg">
-            {showPw ? '🙈' : '👁️'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-muted transition-colors">
+            {showPw ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={2} />}
           </button>
         </div>
         {/* Strength bar */}
         {password.length > 0 && (
           <div className="mt-2 flex items-center gap-2">
-            <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden flex gap-0.5">
+            <div className="flex-1 h-1.5 bg-surface2 rounded-full overflow-hidden flex gap-0.5">
               {[1,2,3,4].map(i => (
                 <div key={i} className={`flex-1 h-full rounded-full transition-all ${i <= strength ? strengthColor : 'bg-transparent'}`} />
               ))}
             </div>
-            <span className={`text-[10px] font-bold ${['','text-cred','text-cyellow','text-cblue','text-cgreen'][strength]}`}>
+            <span className={`text-[12px] font-bold ${['','text-cred','text-cyellow','text-cblue','text-cgreen'][strength]}`}>
               {strengthLabel}
             </span>
           </div>
@@ -217,35 +211,36 @@ function RegisterView({ onGoLogin }) {
       </div>
 
       <div>
-        <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Xác nhận mật khẩu</label>
+        <label className="text-[12px] font-semibold text-muted uppercase tracking-wider block mb-1.5">Xác nhận mật khẩu</label>
         <input
           type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
-          className={iCls + (confirm && confirm !== password ? ' border-cred focus:border-cred' : '')}
+          className={iCls + (confirm && confirm !== password ? ' !border-cred focus:!border-cred' : '')}
           placeholder="Nhập lại mật khẩu"
           autoComplete="new-password" required
         />
         {confirm && confirm !== password && (
-          <p className="text-[11px] text-cred mt-1">⚠ Mật khẩu không khớp</p>
+          <p className="text-[12px] text-cred mt-1">⚠ Mật khẩu không khớp</p>
         )}
       </div>
 
       <button type="submit" disabled={loading || (confirm && confirm !== password)}
-        className="w-full py-3 rounded-xl bg-cgreen hover:brightness-110 text-white text-sm font-black transition-all disabled:opacity-50 shadow-lg shadow-cgreen/20 mt-1">
+        className="btn-success w-full mt-1">
         {loading
           ? <span className="flex items-center justify-center gap-2">
-              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/>
-              </svg>
+              <LoaderCircle size={16} strokeWidth={2.2} className="animate-spin" />
               Đang tạo tài khoản…
             </span>
-          : '🚀 Tạo tài khoản'
+          : <span className="flex items-center justify-center gap-2">
+              <Sparkles size={16} strokeWidth={2.2} />
+              Tạo tài khoản
+            </span>
         }
       </button>
 
-      <p className="text-center text-xs text-slate-500 mt-2">
+      <p className="text-center text-xs text-muted mt-2">
         Đã có tài khoản?{' '}
         <button type="button" onClick={onGoLogin}
-          className="text-cblue hover:text-blue-300 font-semibold transition-colors">
+          className="text-cblue hover:text-blue-700 font-semibold transition-colors">
           Đăng nhập
         </button>
       </p>
@@ -281,14 +276,16 @@ function ForgotView({ onGoLogin }) {
   if (sent) {
     return (
       <div className="text-center py-4 flex flex-col items-center gap-4">
-        <div className="text-4xl">✉️</div>
+        <div className="w-16 h-16 rounded-full bg-cblue/10 border border-cblue/25 flex items-center justify-center">
+          <Mail size={28} strokeWidth={2} className="text-cblue" />
+        </div>
         <div>
           <div className="font-black text-lg text-cblue">Đã gửi link đặt lại!</div>
-          <p className="text-sm text-slate-400 mt-2">Kiểm tra hộp thư <strong className="text-[#1e293b]">{email}</strong></p>
+          <p className="text-sm text-muted mt-2">Kiểm tra hộp thư <strong className="text-text">{email}</strong></p>
         </div>
-        <button onClick={onGoLogin}
-          className="mt-2 px-6 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors">
-          ← Quay lại đăng nhập
+        <button onClick={onGoLogin} className="btn-ghost mt-2">
+          <ArrowLeft size={15} strokeWidth={2.2} />
+          Quay lại đăng nhập
         </button>
       </div>
     )
@@ -297,23 +294,26 @@ function ForgotView({ onGoLogin }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="text-center mb-2">
-        <p className="text-sm text-slate-400">Nhập email — chúng tôi gửi link đặt lại mật khẩu.</p>
+        <p className="text-sm text-muted">Nhập email — chúng tôi gửi link đặt lại mật khẩu.</p>
       </div>
       <div>
-        <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Email</label>
+        <label className="text-[12px] font-semibold text-muted uppercase tracking-wider block mb-1.5">Email</label>
         <input
           type="email" value={email} onChange={e => setEmail(e.target.value)}
           className={iCls} placeholder="ban@email.com"
           autoFocus required
         />
       </div>
-      <button type="submit" disabled={loading}
-        className="w-full py-3 rounded-xl bg-cblue hover:brightness-110 text-white text-sm font-black transition-all disabled:opacity-50">
-        {loading ? 'Đang gửi…' : '📧 Gửi link đặt lại'}
+      <button type="submit" disabled={loading} className="btn-primary w-full">
+        {loading
+          ? <span className="flex items-center justify-center gap-2"><LoaderCircle size={16} strokeWidth={2.2} className="animate-spin" />Đang gửi…</span>
+          : <span className="flex items-center justify-center gap-2"><Send size={16} strokeWidth={2.2} />Gửi link đặt lại</span>
+        }
       </button>
       <button type="button" onClick={onGoLogin}
-        className="text-center text-xs text-slate-500 hover:text-slate-300 transition-colors">
-        ← Quay lại đăng nhập
+        className="flex items-center justify-center gap-1.5 text-center text-xs text-muted hover:text-text transition-colors">
+        <ArrowLeft size={13} strokeWidth={2.2} />
+        Quay lại đăng nhập
       </button>
     </form>
   )
@@ -332,7 +332,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-10">
       {/* Background glow */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-cblue/5 rounded-full blur-3xl" />
@@ -341,12 +341,12 @@ export default function Login() {
 
       <div className="relative w-full max-w-md">
         {/* Card */}
-        <div className="bg-[#ffffff] border border-slate-800 rounded-2xl shadow-2xl shadow-black/50 p-8">
+        <div className="card p-8">
           <Brand />
 
           {/* View title */}
           <div className="mb-6">
-            <h2 className="text-lg font-black text-[#1e293b]">{TITLE[view]}</h2>
+            <h2 className="text-lg font-black text-text">{TITLE[view]}</h2>
             <div className="h-0.5 w-8 bg-cblue rounded-full mt-2" />
           </div>
 
@@ -357,8 +357,8 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[11px] text-slate-700 mt-6">
-          Powered by <strong className="text-slate-600">ANC - CFAM</strong> · Business OS v4
+        <p className="text-center text-[12px] text-subtle mt-6">
+          Powered by <strong className="text-muted">ANC - CFAM</strong> · Business OS v4
         </p>
       </div>
     </div>

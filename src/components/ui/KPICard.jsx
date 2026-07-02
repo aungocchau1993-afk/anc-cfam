@@ -11,9 +11,9 @@ export default function KPICard({ label, value, sub, variant = 'default', icon }
   return (
     <div className={`${v.box} relative overflow-hidden`}>
       {icon && <div className="absolute top-4 right-4 text-3xl opacity-30">{icon}</div>}
-      <div className={`text-[11px] font-semibold uppercase tracking-wide mb-2 ${v.label}`}>{label}</div>
+      <div className={`text-[12px] font-semibold uppercase tracking-wide mb-2 ${v.label}`}>{label}</div>
       <div className={`text-xl font-bold leading-tight ${v.value}`}>{value}</div>
-      {sub && <div className={`text-[11px] mt-1.5 ${v.sub}`}>{sub}</div>}
+      {sub && <div className={`text-[12px] mt-1.5 ${v.sub}`}>{sub}</div>}
     </div>
   )
 }

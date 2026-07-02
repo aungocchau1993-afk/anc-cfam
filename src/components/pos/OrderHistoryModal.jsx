@@ -30,7 +30,7 @@ export default function OrderHistoryModal({ onClose }) {
 
   const statusMap = {
     completed: { l: 'Hoàn thành', c: 'text-cgreen' },
-    pending:   { l: 'Chờ xử lý',  c: 'text-amber-600' },
+    pending:   { l: 'Chờ xử lý',  c: 'text-amber-700' },
     cancelled: { l: 'Đã huỷ',     c: 'text-rose-500' },
   }
 
@@ -38,7 +38,7 @@ export default function OrderHistoryModal({ onClose }) {
     <ModalOverlay onClose={onClose}>
       <div className="bg-white border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
-          <div className="flex items-center gap-2 font-bold text-base text-[#1e293b]">
+          <div className="flex items-center gap-2 font-bold text-base text-[#111827]">
             <History size={18} strokeWidth={2} /> Lịch sử đơn hàng
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface2 border border-slate-800 text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center"><X size={15} strokeWidth={2.2} /></button>
@@ -64,12 +64,12 @@ export default function OrderHistoryModal({ onClose }) {
                             <span className="text-xs text-violet-500 flex items-center gap-1"><User size={11} strokeWidth={2.2} /> {ord.customers.full_name}</span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">{fmtDate(ord.created_at)}</div>
+                        <div className="text-[12px] text-slate-400 mt-0.5">{fmtDate(ord.created_at)}</div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-black text-sm text-[#1e293b] tabular-nums">{fmtVNDFull(ord.total_amount)}</div>
+                        <div className="font-black text-sm text-[#111827] tabular-nums">{fmtVNDFull(ord.total_amount)}</div>
                         {ord.profit != null && (
-                          <div className="text-[11px] text-cgreen">+{fmtVNDFull(ord.profit)} LN</div>
+                          <div className="text-[12px] text-cgreen">+{fmtVNDFull(ord.profit)} LN</div>
                         )}
                       </div>
                     </div>
@@ -83,11 +83,11 @@ export default function OrderHistoryModal({ onClose }) {
                         ))}
                       </div>
                     )}
-                    {ord.note && <div className="mt-2 text-[11px] text-slate-400 italic">📝 {ord.note}</div>}
+                    {ord.note && <div className="mt-2 text-[12px] text-slate-400 italic">📝 {ord.note}</div>}
                     {ord.status === 'completed' && (
                       <div className="mt-2 flex justify-end">
                         <button onClick={() => handleCancel(ord.id)}
-                          className="text-[11px] text-slate-400 hover:text-rose-500 transition-colors px-2 py-1 rounded hover:bg-rose-50">
+                          className="text-[12px] text-slate-400 hover:text-rose-500 transition-colors px-2 py-1 rounded hover:bg-rose-50">
                           Huỷ đơn
                         </button>
                       </div>

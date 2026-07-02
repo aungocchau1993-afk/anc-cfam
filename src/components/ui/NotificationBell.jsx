@@ -1,46 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import { supabase, isSupabaseConfigured } from '../../lib/supabase'
-
-// ── SVG Icons ────────────────────────────────────────────────────────────────
-function BellIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-    </svg>
-  )
-}
-function PackageIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
-    </svg>
-  )
-}
-function ShoppingBagIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
-      <path d="M16 10a4 4 0 01-8 0"/>
-    </svg>
-  )
-}
-function InfoIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-  )
-}
-function ArrowRightIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-    </svg>
-  )
-}
+import { Bell, Package, ShoppingBag, Info, ArrowRight } from 'lucide-react'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function fmtRelTime(iso) {
@@ -55,9 +16,9 @@ function fmtRelTime(iso) {
 }
 
 const TYPE_CONFIG = {
-  order: { icon: ShoppingBagIcon, color: 'text-cblue',   bg: 'bg-cblue/10',   border: 'border-cblue/20',   label: 'Đơn hàng',  nav: 'orders'   },
-  stock: { icon: PackageIcon,     color: 'text-cyellow', bg: 'bg-cyellow/10', border: 'border-cyellow/20', label: 'Tồn kho',   nav: 'products' },
-  info:  { icon: InfoIcon,        color: 'text-cgreen',  bg: 'bg-cgreen/10',  border: 'border-cgreen/20',  label: 'Thông tin', nav: null       },
+  order: { icon: ShoppingBag, color: 'text-cblue',   bg: 'bg-cblue/10',   border: 'border-cblue/20',   label: 'Đơn hàng',  nav: 'orders'   },
+  stock: { icon: Package,     color: 'text-cyellow', bg: 'bg-cyellow/10', border: 'border-cyellow/20', label: 'Tồn kho',   nav: 'products' },
+  info:  { icon: Info,        color: 'text-cgreen',  bg: 'bg-cgreen/10',  border: 'border-cgreen/20',  label: 'Thông tin', nav: null       },
 }
 
 const LOW_STOCK_THRESHOLD = 10
@@ -259,14 +220,14 @@ export default function NotificationBell({ onNavigate }) {
       {/* ── Bell button ── */}
       <button
         onClick={() => setOpen(v => !v)}
-        className={`relative flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
-          open ? 'bg-slate-700 text-[#1e293b]' : 'text-slate-400 hover:text-[#1e293b] hover:bg-slate-800'
+        className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-colors ${
+          open ? 'bg-surface2 text-text' : 'text-slate-500 hover:text-text hover:bg-surface2'
         }`}
         title="Thông báo"
       >
-        <BellIcon className="w-[18px] h-[18px]" />
+        <Bell size={18} strokeWidth={2} />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-0.5 rounded-full bg-cred text-white text-[9px] font-bold leading-none animate-pulse">
+          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-0.5 rounded-full bg-cred text-white text-[12px] font-bold leading-none animate-pulse">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -274,15 +235,15 @@ export default function NotificationBell({ onNavigate }) {
 
       {/* ── Dropdown panel ── */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-[380px] max-h-[500px] flex flex-col bg-[#ffffff] border border-slate-700/80 rounded-xl shadow-2xl shadow-black/60 z-[100]">
+        <div className="absolute right-0 top-full mt-2 w-[380px] max-h-[500px] flex flex-col bg-white border border-border rounded-2xl shadow-card z-[100]">
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
             <div className="flex items-center gap-2">
-              <BellIcon className="w-4 h-4 text-slate-400" />
-              <span className="font-semibold text-sm text-[#1e293b]">Thông báo</span>
+              <Bell size={15} strokeWidth={2} className="text-slate-400" />
+              <span className="font-semibold text-sm text-text">Thông báo</span>
               {unreadCount > 0 && (
-                <span className="text-[10px] font-bold bg-cred/15 text-cred border border-cred/25 px-1.5 py-0.5 rounded-full">
+                <span className="text-[12px] font-bold bg-cred/15 text-cred border border-cred/25 px-1.5 py-0.5 rounded-full">
                   {unreadCount} mới
                 </span>
               )}
@@ -290,13 +251,13 @@ export default function NotificationBell({ onNavigate }) {
             <div className="flex items-center gap-1">
               {unreadCount > 0 && (
                 <button onClick={markAllRead} disabled={loading}
-                  className="text-[11px] text-cblue hover:text-blue-300 px-2 py-1 rounded hover:bg-slate-800 transition-colors">
+                  className="text-[12px] text-cblue hover:text-blue-700 px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors">
                   Đọc tất cả
                 </button>
               )}
               {notifications.length > 0 && (
                 <button onClick={clearAll} disabled={loading}
-                  className="text-[11px] text-slate-500 hover:text-cred px-2 py-1 rounded hover:bg-slate-800 transition-colors">
+                  className="text-[12px] text-slate-500 hover:text-cred px-2 py-1 rounded-lg hover:bg-surface2 transition-colors">
                   Xóa hết
                 </button>
               )}
@@ -306,8 +267,8 @@ export default function NotificationBell({ onNavigate }) {
           {/* List */}
           <div className="overflow-y-auto flex-1">
             {notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-14 gap-3 text-slate-600">
-                <BellIcon className="w-10 h-10 opacity-20" />
+              <div className="flex flex-col items-center justify-center py-14 gap-3 text-slate-400">
+                <Bell size={36} strokeWidth={1.5} className="opacity-30" />
                 <span className="text-sm">Chưa có thông báo nào</span>
               </div>
             ) : (
@@ -319,35 +280,35 @@ export default function NotificationBell({ onNavigate }) {
                   <div
                     key={n.id}
                     onClick={() => handleNotifClick(n)}
-                    className={`group flex gap-3 px-4 py-3 border-b border-slate-800/50 transition-colors ${
+                    className={`group flex gap-3 px-4 py-3 border-b border-border last:border-0 transition-colors ${
                       canNav ? 'cursor-pointer' : ''
-                    } ${n.is_read ? 'opacity-55' : 'bg-slate-800/20'} hover:bg-slate-800/50`}
+                    } ${n.is_read ? 'opacity-55' : 'bg-blue-50/40'} hover:bg-surface2`}
                   >
                     {/* Type icon */}
                     <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border ${cfg.bg} ${cfg.border} mt-0.5`}>
-                      <Icon className={`w-4 h-4 ${cfg.color}`} />
+                      <Icon size={15} strokeWidth={2} className={cfg.color} />
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className={`text-[13px] leading-snug ${n.is_read ? 'text-slate-400' : 'text-[#1e293b]'}`}>
+                        <p className={`text-[14px] leading-snug ${n.is_read ? 'text-slate-400' : 'text-text'}`}>
                           {n.message}
                         </p>
                         {!n.is_read && <span className="shrink-0 w-2 h-2 rounded-full bg-cblue mt-1.5" />}
                       </div>
 
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[11px] text-slate-600">{fmtRelTime(n.created_at)}</span>
-                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${cfg.bg} ${cfg.color}`}>
+                        <span className="text-[12px] text-slate-400">{fmtRelTime(n.created_at)}</span>
+                        <span className={`text-[12px] font-medium px-1.5 py-0.5 rounded ${cfg.bg} ${cfg.color}`}>
                           {cfg.label}
                         </span>
                         {canNav && (
-                          <span className={`ml-auto flex items-center gap-0.5 text-[11px] ${cfg.color} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                          <span className={`ml-auto flex items-center gap-0.5 text-[12px] ${cfg.color} opacity-0 group-hover:opacity-100 transition-opacity`}>
                             {n.type === 'order'  && 'Xem đơn hàng'}
                             {n.type === 'stock'  && 'Xem hàng hóa'}
                             {n.type === 'info'   && 'Chi tiết'}
-                            <ArrowRightIcon className="w-3 h-3" />
+                            <ArrowRight size={12} strokeWidth={2.2} />
                           </span>
                         )}
                       </div>
@@ -360,8 +321,8 @@ export default function NotificationBell({ onNavigate }) {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="px-4 py-2 border-t border-slate-800 shrink-0">
-              <p className="text-[11px] text-slate-600 text-center">
+            <div className="px-4 py-2 border-t border-border shrink-0">
+              <p className="text-[12px] text-slate-400 text-center">
                 {notifications.length} thông báo · Realtime · Tự xóa sau 30 ngày
               </p>
             </div>

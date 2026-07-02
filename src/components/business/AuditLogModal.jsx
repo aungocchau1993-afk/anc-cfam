@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { X, Clock, ChevronDown, ClipboardList, LoaderCircle } from 'lucide-react'
 import ModalOverlay from '../ui/ModalOverlay'
 import { loadAuditLogs } from '../../lib/supabase'
 
@@ -51,8 +52,8 @@ function DiffRow({ field, oldVal, newVal }) {
   const nv    = fmtVal(field, newVal)
   if (ov === nv) return null
   return (
-    <div className="grid grid-cols-[120px_1fr_1fr] gap-2 text-xs py-1.5 border-b border-slate-800 last:border-0">
-      <span className="text-slate-400 font-medium self-start pt-0.5">{label}</span>
+    <div className="grid grid-cols-[120px_1fr_1fr] gap-2 text-xs py-1.5 border-b border-border last:border-0">
+      <span className="text-muted font-medium self-start pt-0.5">{label}</span>
       <div className="rounded px-2 py-1 bg-cred/10 border border-cred/20 text-cred font-mono break-all">{ov}</div>
       <div className="rounded px-2 py-1 bg-cgreen/10 border border-cgreen/20 text-cgreen font-mono break-all">{nv}</div>
     </div>
@@ -85,22 +86,19 @@ function LogEntry({ log }) {
         <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${meta.border} ${meta.text}`}>
           {meta.label}
         </span>
-        <span className="text-xs text-slate-400 flex-1">{fmtTime(log.created_at)}</span>
+        <span className="text-xs text-muted flex-1">{fmtTime(log.created_at)}</span>
         {isUpd && changedFields.length > 0 && (
-          <span className="text-[10px] text-slate-500 mr-1">{changedFields.length} thay đổi</span>
+          <span className="text-[12px] text-subtle mr-1">{changedFields.length} thay đổi</span>
         )}
         {isUpd && changedFields.length > 0 && (
-          <svg className={`w-3.5 h-3.5 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`}
-            viewBox="0 0 24 24" fill="none">
-            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
+          <ChevronDown size={14} strokeWidth={2} className={`text-subtle transition-transform ${open ? 'rotate-180' : ''}`} />
         )}
       </div>
 
       {/* Chi tiết diff khi expand */}
       {open && isUpd && (
-        <div className="px-4 pb-3 border-t border-slate-800/60">
-          <div className="grid grid-cols-[120px_1fr_1fr] gap-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider pt-2 pb-1">
+        <div className="px-4 pb-3 border-t border-border/60">
+          <div className="grid grid-cols-[120px_1fr_1fr] gap-2 text-[12px] font-semibold text-subtle uppercase tracking-wider pt-2 pb-1">
             <span>Trường</span><span className="text-cred">Giá trị cũ</span><span className="text-cgreen">Giá trị mới</span>
           </div>
           {changedFields.map(f => (
@@ -114,13 +112,13 @@ function LogEntry({ log }) {
 
       {/* INSERT — hiển thị snapshot */}
       {log.action === 'INSERT' && log.new_data && (
-        <div className="px-4 pb-3 border-t border-slate-800/60">
-          <div className="text-[10px] text-slate-500 uppercase tracking-wider pt-2 pb-1 font-semibold">Dữ liệu khởi tạo</div>
+        <div className="px-4 pb-3 border-t border-border/60">
+          <div className="text-[12px] text-subtle uppercase tracking-wider pt-2 pb-1 font-semibold">Dữ liệu khởi tạo</div>
           {Object.entries(log.new_data)
             .filter(([f]) => !SKIP_FIELDS.has(f) && log.new_data[f] !== null && log.new_data[f] !== '')
             .map(([f, v]) => (
-              <div key={f} className="grid grid-cols-[120px_1fr] gap-2 text-xs py-1 border-b border-slate-800 last:border-0">
-                <span className="text-slate-400 font-medium">{FIELD_LABELS[f] || f}</span>
+              <div key={f} className="grid grid-cols-[120px_1fr] gap-2 text-xs py-1 border-b border-border last:border-0">
+                <span className="text-muted font-medium">{FIELD_LABELS[f] || f}</span>
                 <span className="font-mono text-cgreen break-all">{fmtVal(f, v)}</span>
               </div>
             ))}
@@ -143,36 +141,36 @@ export default function AuditLogModal({ tableName, recordId, title, onClose }) {
   }, [tableName, recordId])
 
   return (
-    <ModalOverlay onClose={onClose} className="bg-black/80">
-      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[85vh] flex flex-col">
+    <ModalOverlay onClose={onClose}>
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[85vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
-          <div>
-            <div className="font-bold text-[#1e293b]">🕒 Lịch sử chỉnh sửa</div>
-            {title && <div className="text-xs text-slate-400 mt-0.5">{title}</div>}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+          <div className="flex items-center gap-2">
+            <Clock size={18} strokeWidth={2} className="text-cblue" />
+            <div>
+              <div className="font-bold text-text">Lịch sử chỉnh sửa</div>
+              {title && <div className="text-xs text-muted mt-0.5">{title}</div>}
+            </div>
           </div>
           <button onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg leading-none">
-            ×
+            className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors flex items-center justify-center">
+            <X size={15} strokeWidth={2.2} />
           </button>
         </div>
 
         {/* Body */}
         <div className="overflow-y-auto flex-1 p-4">
           {loading ? (
-            <div className="flex items-center justify-center py-16 text-slate-500 text-sm gap-2">
-              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity=".25"/>
-                <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+            <div className="flex items-center justify-center py-16 text-muted text-sm gap-2">
+              <LoaderCircle size={16} strokeWidth={2.2} className="animate-spin" />
               Đang tải lịch sử…
             </div>
           ) : logs.length === 0 ? (
-            <div className="text-center py-16 text-slate-500">
-              <div className="text-4xl mb-2">📋</div>
+            <div className="text-center py-16 text-muted">
+              <ClipboardList size={40} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
               <div className="text-sm">Chưa có lịch sử chỉnh sửa</div>
-              <div className="text-xs mt-1 text-slate-600">Trigger sẽ ghi nhận từ lần chỉnh sửa tiếp theo</div>
+              <div className="text-xs mt-1 text-subtle">Trigger sẽ ghi nhận từ lần chỉnh sửa tiếp theo</div>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -183,10 +181,9 @@ export default function AuditLogModal({ tableName, recordId, title, onClose }) {
 
         {/* Footer */}
         {!loading && logs.length > 0 && (
-          <div className="px-5 py-3 border-t border-slate-800 shrink-0 flex items-center justify-between">
-            <span className="text-xs text-slate-500">{logs.length} mục gần nhất</span>
-            <button onClick={onClose}
-              className="px-4 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs hover:text-[#1e293b] transition-colors">
+          <div className="px-5 py-3 border-t border-border shrink-0 flex items-center justify-between">
+            <span className="text-xs text-muted">{logs.length} mục gần nhất</span>
+            <button onClick={onClose} className="btn-ghost h-auto px-4 py-1.5 text-xs">
               Đóng
             </button>
           </div>

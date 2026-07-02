@@ -1,12 +1,21 @@
-﻿import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import {
+  ClipboardList, Plus, Search, Eye, Printer, X, CheckCircle2,
+  FileText, PackagePlus, PackageMinus, Loader2, Download,
+} from 'lucide-react'
 import {
   loadProducts, loadStocktakes, loadStocktakeItems,
   createStocktake, completeStocktake,
 } from '../../lib/supabase'
 import { removeVietnameseTones } from '../../lib/formatters'
 import ModalOverlay from '../../components/ui/ModalOverlay'
+import PageHeader from '../../components/ui/PageHeader'
 import DateFilterBar, { getDateRange, toInputDate, startOf } from '../../components/ui/DateFilterBar'
+import { SkeletonCard } from '../../components/ui/Skeleton'
+import Can from '../../components/permission/Can'
+import { PERMISSIONS } from '../../lib/permissions/permissionConstants'
 
 const LS_SESSION = 'stocktake_session'
 const LS_ROWS    = 'stocktake_rows'
@@ -24,9 +33,9 @@ function fmtDate(iso) {
 
 // ── Variance badge ─────────────────────────────────────────────────────────
 function VarianceBadge({ variance }) {
-  if (variance === 0) return <span className="text-slate-500 font-mono tabular-nums">—</span>
+  if (variance === 0) return <span className="text-muted font-mono tabular-nums">—</span>
   return (
-    <span className={`font-black tabular-nums font-mono ${variance > 0 ? 'text-cgreen' : 'text-cred'}`}>
+    <span className={`font-bold tabular-nums font-mono ${variance > 0 ? 'text-cgreen' : 'text-cred'}`}>
       {variance > 0 ? '+' : ''}{fmtQty(variance)}
     </span>
   )
@@ -36,26 +45,29 @@ function VarianceBadge({ variance }) {
 function ConfirmModal({ itemCount, changedCount, onConfirm, onClose, loading }) {
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#ffffff] border border-slate-700 rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl flex flex-col gap-4">
-        <div className="text-base font-bold text-[#1e293b]">✅ Hoàn tất kiểm kho?</div>
-        <div className="text-sm text-slate-400 leading-relaxed">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 p-6 shadow-card flex flex-col gap-4">
+        <div className="flex items-center gap-2 text-cardtitle font-bold text-text">
+          <CheckCircle2 size={20} className="text-cgreen" />
+          Hoàn tất kiểm kho?
+        </div>
+        <div className="text-sm text-muted leading-relaxed">
           Hệ thống sẽ cân bằng tồn kho cho{' '}
-          <strong className="text-[#1e293b]">{itemCount} sản phẩm</strong>
+          <strong className="text-text">{itemCount} sản phẩm</strong>
           {changedCount > 0 && <>, trong đó <strong className="text-cyellow">{changedCount} sản phẩm</strong> có chênh lệch</>}.
           <br /><span className="text-cred text-xs mt-1 block">Hành động này không thể hoàn tác.</span>
         </div>
         <div className="flex justify-end gap-2">
-          <button onClick={onClose} disabled={loading}
-            className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors disabled:opacity-50">
+          <button onClick={onClose} disabled={loading} className="btn-ghost disabled:opacity-50">
             Huỷ
           </button>
-          <button onClick={onConfirm} disabled={loading}
-            className="px-5 py-2 rounded-lg bg-cgreen hover:brightness-110 text-white text-sm font-bold transition-all disabled:opacity-60 flex items-center gap-2">
-            {loading
-              ? <><svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>Đang cân bằng…</>
-              : '✅ Xác nhận & Cân bằng kho'
-            }
-          </button>
+          <Can permission={PERMISSIONS.STOCKTAKE_COMPLETE}>
+            <button onClick={onConfirm} disabled={loading} className="btn-success disabled:opacity-60">
+              {loading
+                ? <><Loader2 size={16} className="animate-spin" />Đang cân bằng…</>
+                : <><CheckCircle2 size={16} />Xác nhận &amp; Cân bằng kho</>
+              }
+            </button>
+          </Can>
         </div>
       </div>
     </ModalOverlay>
@@ -105,7 +117,7 @@ function DetailModal({ stocktake, onClose }) {
   </style>
 </head>
 <body>
-  <h1>📋 PHIẾU KIỂM KHO</h1>
+  <h1>PHIẾU KIỂM KHO</h1>
   <div class="meta">
     Ngày kiểm: ${fmtDate(stocktake.created_at)} &nbsp;|&nbsp;
     Trạng thái: Hoàn thành &nbsp;|&nbsp;
@@ -154,45 +166,45 @@ function DetailModal({ stocktake, onClose }) {
 
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl w-full max-w-3xl mx-4 shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-3xl mx-4 shadow-card flex flex-col max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <div>
-            <div className="font-bold text-[#1e293b]">📋 Chi tiết phiếu kiểm kho</div>
-            <div className="text-xs text-slate-500 mt-0.5">{fmtDate(stocktake.created_at)}</div>
-            {stocktake.notes && <div className="text-xs text-slate-400 mt-0.5">📝 {stocktake.notes}</div>}
+            <div className="flex items-center gap-2 font-bold text-text">
+              <FileText size={18} className="text-cblue" />
+              Chi tiết phiếu kiểm kho
+            </div>
+            <div className="text-xs text-muted mt-0.5">{fmtDate(stocktake.created_at)}</div>
+            {stocktake.notes && <div className="text-xs text-subtle mt-0.5">Ghi chú: {stocktake.notes}</div>}
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
               disabled={loading}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-semibold transition-colors disabled:opacity-50"
+              className="btn-ghost h-10 px-4 disabled:opacity-50"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.8"/>
-              </svg>
+              <Printer size={16} />
               In phiếu
             </button>
             <button onClick={onClose}
-              className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg leading-none">
-              ×
+              className="w-9 h-9 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors flex items-center justify-center">
+              <X size={16} />
             </button>
           </div>
         </div>
 
         {/* Stats */}
         {!loading && (
-          <div className="grid grid-cols-3 gap-3 px-5 py-3 border-b border-slate-800 shrink-0">
+          <div className="grid grid-cols-3 gap-3 px-5 py-3 border-b border-border shrink-0">
             {[
               { label: 'Tổng SP', value: items.length,    color: 'text-cblue'   },
               { label: 'Thừa',    value: surplus,          color: 'text-cgreen'  },
               { label: 'Thiếu',   value: shortage,         color: 'text-cred'    },
             ].map(s => (
               <div key={s.label} className="text-center">
-                <div className="text-[10px] text-slate-500 uppercase tracking-wide">{s.label}</div>
-                <div className={`text-xl font-black tabular-nums ${s.color}`}>{s.value}</div>
+                <div className="text-caption text-muted uppercase tracking-wide">{s.label}</div>
+                <div className={`text-xl font-bold tabular-nums ${s.color}`}>{s.value}</div>
               </div>
             ))}
           </div>
@@ -201,39 +213,39 @@ function DetailModal({ stocktake, onClose }) {
         {/* Table */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="text-center py-16 text-slate-500 text-sm">Đang tải chi tiết…</div>
+            <div className="text-center py-16 text-muted text-sm">Đang tải chi tiết…</div>
           ) : items.length === 0 ? (
-            <div className="text-center py-16 text-slate-600">Không có dữ liệu sản phẩm</div>
+            <div className="text-center py-16 text-subtle">Không có dữ liệu sản phẩm</div>
           ) : (
             <div className="w-full overflow-x-auto">
               <table className="w-full min-w-[560px]">
                 <thead>
-                  <tr className="bg-slate-950/80 border-b border-slate-800">
+                  <tr className="bg-gray-50 border-b border-border">
                     {['SKU', 'Tên sản phẩm', 'Tồn hệ thống', 'Tồn thực tế', 'Chênh lệch'].map((h, i) => (
-                      <th key={h} className={`px-4 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap ${i >= 2 ? 'text-right' : 'text-left'}`}>
+                      <th key={h} className={`sticky top-0 z-10 bg-gray-50 px-4 py-4 text-caption font-semibold text-muted uppercase tracking-wider whitespace-nowrap ${i >= 2 ? 'text-right' : 'text-left'}`}>
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-border">
                   {items.map(item => {
                     const changed = item.variance !== 0
                     return (
-                      <tr key={item.id} className={`transition-colors ${changed ? 'bg-cyellow/5' : 'hover:bg-slate-800/30'}`}>
-                        <td className="px-4 py-2.5 font-mono text-xs text-slate-400 whitespace-nowrap">{item.sku}</td>
-                        <td className="px-4 py-3 text-base text-[#1e293b] max-w-[200px]">
+                      <tr key={item.id} className={`transition-colors ${changed ? 'bg-cyellow/5' : 'hover:bg-surface2'}`}>
+                        <td className="px-4 py-4 font-mono text-xs text-muted whitespace-nowrap">{item.sku}</td>
+                        <td className="px-4 py-4 text-sm text-text max-w-[200px]">
                           <div className="truncate">{item.name}</div>
                         </td>
-                        <td className="px-4 py-2.5 text-right font-mono text-sm text-slate-300 tabular-nums whitespace-nowrap">
+                        <td className="px-4 py-4 text-right font-mono text-sm text-muted tabular-nums whitespace-nowrap">
                           {fmtQty(item.systemQty)}
                         </td>
-                        <td className="px-4 py-2.5 text-right font-mono text-sm tabular-nums whitespace-nowrap">
-                          <span className={changed ? (item.variance > 0 ? 'text-cgreen font-bold' : 'text-cred font-bold') : 'text-slate-300'}>
+                        <td className="px-4 py-4 text-right font-mono text-sm tabular-nums whitespace-nowrap">
+                          <span className={changed ? (item.variance > 0 ? 'text-cgreen font-bold' : 'text-cred font-bold') : 'text-muted'}>
                             {fmtQty(item.actualQty)}
                           </span>
                         </td>
-                        <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                        <td className="px-4 py-4 text-right whitespace-nowrap">
                           <VarianceBadge variance={item.variance} />
                         </td>
                       </tr>
@@ -274,6 +286,9 @@ export default function Stocktake() {
   const [search,      setSearch]      = useState('')
   const [saving,      setSaving]      = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+
+  // ── Chọn nhiều dòng lịch sử kiểm kho (chỉ để xuất Excel — không có bulk delete) ──
+  const [selectedIds, setSelectedIds] = useState(() => new Set())
 
   useEffect(() => {
     loadProducts('')
@@ -348,6 +363,41 @@ export default function Stocktake() {
     })
   }, [history, histPreset, histFrom, histTo])
 
+  // ── Chọn nhiều dòng lịch sử — chỉ dùng để xuất Excel, không sửa/xoá dữ liệu ──
+  function toggleSelectHistOne(id) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  function toggleSelectHistAll() {
+    setSelectedIds(prev => {
+      const ids = filteredHistory.map(h => h.id)
+      const allSelected = ids.length > 0 && ids.every(id => prev.has(id))
+      const next = new Set(prev)
+      ids.forEach(id => allSelected ? next.delete(id) : next.add(id))
+      return next
+    })
+  }
+  function clearHistSelection() { setSelectedIds(new Set()) }
+
+  function handleExportSelectedHistory() {
+    const rows = filteredHistory
+      .filter(h => selectedIds.has(h.id))
+      .map(h => ({
+        'Ngày kiểm': fmtDate(h.created_at),
+        'Trạng thái': h.status === 'completed' ? 'Hoàn thành' : 'Nháp',
+        'Ghi chú': h.notes ?? '',
+      }))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    ws['!cols'] = [{ wch: 20 }, { wch: 14 }, { wch: 40 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Kiểm Kho đã chọn')
+    XLSX.writeFile(wb, 'Kiem_Kho_Da_Chon.xlsx')
+    toast.success(`Đã xuất ${rows.length} phiếu kiểm kho`)
+  }
+
   async function handleComplete() {
     setSaving(true)
     try {
@@ -357,7 +407,7 @@ export default function Stocktake() {
         const r = rows.find(x => x.productId === p.id)
         return r ? { ...p, stockQuantity: r.actualQty } : p
       }))
-      toast.success(`✅ Kiểm kho hoàn tất — đã cân bằng ${rows.length} sản phẩm`)
+      toast.success(`Kiểm kho hoàn tất — đã cân bằng ${rows.length} sản phẩm`)
       const updated = await loadStocktakes()
       setHistory(Array.isArray(updated) ? updated : [])
       handleCancelSession()
@@ -372,21 +422,24 @@ export default function Stocktake() {
   // ── Màn hình danh sách ────────────────────────────────────────────────────
   if (!session) {
     return (
+      <div className="w-full">
+        <PageHeader
+          icon={ClipboardList}
+          title="Kiểm Kho"
+          subtitle="Đối chiếu tồn kho hệ thống và thực tế"
+          actions={
+            <Can permission={PERMISSIONS.STOCKTAKE_CREATE}>
+              <button onClick={handleNewSession} disabled={loadingProd} className="btn-primary disabled:opacity-50">
+                {loadingProd
+                  ? <Loader2 size={16} className="animate-spin" />
+                  : <Plus size={16} />
+                }
+                Tạo phiếu kiểm kho mới
+              </button>
+            </Can>
+          }
+        />
       <div className="p-6 w-full">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <div>
-            <h2 className="text-lg font-bold text-[#1e293b]">📋 Kiểm Kho</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Đối chiếu tồn kho thực tế với hệ thống và cân bằng tự động</p>
-          </div>
-          <button onClick={handleNewSession} disabled={loadingProd}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cblue hover:brightness-110 text-white text-sm font-bold transition-all disabled:opacity-50 shadow-lg shadow-cblue/20">
-            {loadingProd
-              ? <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
-              : <span className="text-lg leading-none">＋</span>
-            }
-            Tạo phiếu kiểm kho mới
-          </button>
-        </div>
 
         {/* ── Bộ lọc lịch sử ── */}
         <DateFilterBar
@@ -397,60 +450,92 @@ export default function Stocktake() {
           className="mb-4"
         />
 
+        {/* ══════ BULK ACTION BAR — nổi phía trên danh sách khi có chọn (chỉ xuất Excel) ══════ */}
+        {selectedIds.size > 0 && (
+          <div className="mb-4 bg-[#0f172a] rounded-2xl shadow-lg px-4 py-3 flex flex-wrap items-center gap-2.5 animate-slideUp">
+            <span className="text-sm font-semibold text-white mr-1">Đã chọn {selectedIds.size} phiếu</span>
+            <div className="w-px h-6 bg-white/15 hidden sm:block" />
+            <Can permission={PERMISSIONS.INVENTORY_EXPORT}>
+              <button onClick={handleExportSelectedHistory}
+                className="h-9 flex items-center gap-1.5 px-3 rounded-lg bg-white/10 hover:bg-white/15 text-white text-[14px] font-medium transition-colors">
+                <Download size={14} strokeWidth={2} /> Xuất Excel
+              </button>
+            </Can>
+            <button onClick={clearHistSelection}
+              className="h-9 flex items-center gap-1.5 px-3 rounded-lg text-white/60 hover:text-white text-[14px] font-medium transition-colors ml-auto">
+              <X size={14} strokeWidth={2.2} /> Bỏ chọn
+            </button>
+          </div>
+        )}
+
         {loadingHist ? (
-          <div className="text-center py-16 text-slate-500 text-sm">Đang tải lịch sử…</div>
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
         ) : filteredHistory.length > 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-300">📂 Lịch sử kiểm kho</span>
-              <span className="text-xs text-slate-500">
+          <div className="card p-0 overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
+              <span className="text-sm font-semibold text-text flex items-center gap-2">
+                <input type="checkbox"
+                  checked={filteredHistory.length > 0 && filteredHistory.every(h => selectedIds.has(h.id))}
+                  onChange={toggleSelectHistAll}
+                  className="w-4 h-4 rounded accent-cblue mr-1" />
+                <FileText size={16} className="text-cblue" />
+                Lịch sử kiểm kho
+              </span>
+              <span className="text-xs font-semibold text-muted bg-surface2 border border-border px-3 py-1 rounded-full">
                 {filteredHistory.length}{history.length !== filteredHistory.length ? ` / ${history.length}` : ''} phiếu
               </span>
             </div>
-            <div className="divide-y divide-slate-800">
-              {filteredHistory.map(h => (
-                <div key={h.id} className="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-800/30 transition-colors group">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-mono text-slate-400">{fmtDate(h.created_at)}</div>
-                    {h.notes && (
-                      <div className="text-xs text-slate-500 mt-0.5 truncate max-w-[300px]">📝 {h.notes}</div>
-                    )}
-                  </div>
+            <div className="divide-y divide-border">
+              {filteredHistory.map(h => {
+                const checked = selectedIds.has(h.id)
+                return (
+                <div key={h.id} className={`px-5 py-3.5 flex items-center gap-3 transition-colors group ${checked ? 'bg-cblue/5' : 'hover:bg-surface2'}`}>
+                  <input type="checkbox" checked={checked} onChange={() => toggleSelectHistOne(h.id)}
+                    className="w-4 h-4 rounded accent-cblue shrink-0" />
 
-                  {/* Action buttons */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Xem chi tiết */}
-                    <button
-                      onClick={() => setViewTarget(h)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-semibold hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/>
-                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.8"/>
-                      </svg>
-                      Xem chi tiết
-                    </button>
+                  <div className="min-w-0 flex-1 flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-mono text-muted">{fmtDate(h.created_at)}</div>
+                      {h.notes && (
+                        <div className="text-xs text-subtle mt-0.5 truncate max-w-[300px]">{h.notes}</div>
+                      )}
+                    </div>
 
-                    {/* Badge trạng thái */}
-                    <span className={`text-[11px] font-bold rounded-full border px-2.5 py-0.5 ${
-                      h.status === 'completed'
-                        ? 'text-cgreen bg-cgreen/15 border-cgreen/30'
-                        : 'text-cyellow bg-cyellow/15 border-cyellow/30'
-                    }`}>
-                      {h.status === 'completed' ? '✅ Hoàn thành' : '⏳ Nháp'}
-                    </span>
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Xem chi tiết */}
+                      <button
+                        onClick={() => setViewTarget(h)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-muted text-xs font-semibold hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors"
+                      >
+                        <Eye size={14} />
+                        Xem chi tiết
+                      </button>
+
+                      {/* Badge trạng thái */}
+                      <span className={`text-[12px] font-bold rounded-full border px-2.5 py-0.5 ${
+                        h.status === 'completed'
+                          ? 'text-cgreen bg-cgreen/15 border-cgreen/30'
+                          : 'text-cyellow bg-cyellow/15 border-cyellow/30'
+                      }`}>
+                        {h.status === 'completed' ? 'Hoàn thành' : 'Nháp'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-slate-800 py-20 text-center text-slate-600">
-            <div className="text-5xl mb-3">📋</div>
-            <div className="font-semibold text-slate-500">
+          <div className="rounded-2xl border border-dashed border-border py-20 text-center text-subtle">
+            <ClipboardList size={44} className="mx-auto mb-3 text-subtle" />
+            <div className="font-semibold text-muted">
               {history.length > 0 ? 'Không có phiếu nào trong khoảng thời gian này' : 'Chưa có phiếu kiểm kho nào'}
             </div>
-            <div className="text-xs mt-1 text-slate-600">
+            <div className="text-xs mt-1 text-subtle">
               {history.length > 0 ? 'Hãy chọn khoảng thời gian khác hoặc "Toàn thời gian"' : 'Bấm nút trên để bắt đầu kiểm kho'}
             </div>
           </div>
@@ -459,105 +544,107 @@ export default function Stocktake() {
         {/* Detail Modal */}
         {viewTarget && <DetailModal stocktake={viewTarget} onClose={() => setViewTarget(null)} />}
       </div>
+      </div>
     )
   }
 
   // ── Phiếu đang mở ─────────────────────────────────────────────────────────
   return (
+    <div className="w-full">
+      <PageHeader
+        icon={ClipboardList}
+        title="Phiếu Kiểm Kho"
+        subtitle={`Bắt đầu: ${fmtDate(session.startedAt)} · ${rows.length} sản phẩm`}
+        actions={
+          <>
+            <Can permission={PERMISSIONS.STOCKTAKE_COMPLETE}>
+              <button onClick={handleCancelSession} className="btn-ghost">
+                Huỷ phiếu
+              </button>
+              <button onClick={() => setShowConfirm(true)} disabled={saving} className="btn-success disabled:opacity-60">
+                <CheckCircle2 size={16} />
+                Hoàn tất &amp; Cân bằng kho
+              </button>
+            </Can>
+          </>
+        }
+      />
     <div className="p-6 w-full flex flex-col gap-4">
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-bold text-[#1e293b]">📋 Phiếu Kiểm Kho</h2>
-          <div className="text-xs text-slate-500 mt-0.5">
-            Bắt đầu: {fmtDate(session.startedAt)} · {rows.length} sản phẩm
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={handleCancelSession}
-            className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-sm hover:text-cred hover:border-cred/50 transition-colors">
-            Huỷ phiếu
-          </button>
-          <button onClick={() => setShowConfirm(true)} disabled={saving}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-cgreen hover:brightness-110 text-white text-sm font-bold transition-all disabled:opacity-60 shadow-lg shadow-cgreen/20">
-            ✅ Hoàn tất & Cân bằng kho
-          </button>
-        </div>
-      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Tổng SP kiểm',  value: rows.length,    color: 'text-cblue',   bg: 'bg-cblue/8   border-cblue/20'   },
-          { label: 'Có chênh lệch', value: stats.changed,  color: 'text-cyellow', bg: 'bg-cyellow/8 border-cyellow/20' },
-          { label: 'Thừa hàng',     value: stats.surplus,  color: 'text-cgreen',  bg: 'bg-cgreen/8  border-cgreen/20'  },
-          { label: 'Thiếu hàng',    value: stats.shortage, color: 'text-cred',    bg: 'bg-cred/8    border-cred/20'    },
+          { label: 'Tổng SP kiểm',  value: rows.length,    color: 'text-cblue',   icon: ClipboardList },
+          { label: 'Có chênh lệch', value: stats.changed,  color: 'text-cyellow', icon: FileText },
+          { label: 'Thừa hàng',     value: stats.surplus,  color: 'text-cgreen',  icon: PackagePlus },
+          { label: 'Thiếu hàng',    value: stats.shortage, color: 'text-cred',    icon: PackageMinus },
         ].map(k => (
-          <div key={k.label} className={`rounded-xl border p-4 ${k.bg}`}>
-            <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">{k.label}</div>
-            <div className={`text-2xl font-black tabular-nums mt-1 ${k.color}`}>{k.value}</div>
+          <div key={k.label} className="card p-4">
+            <div className="flex items-center gap-1.5 text-caption text-muted font-semibold uppercase tracking-wider">
+              <k.icon size={13} />
+              {k.label}
+            </div>
+            <div className={`text-2xl font-bold tabular-nums mt-1 ${k.color}`}>{k.value}</div>
           </div>
         ))}
       </div>
 
+      {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none">
-            <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.8"/>
-            <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-subtle" />
           <input
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue/60 transition-all"
+            className="input-base pl-10"
             placeholder="Lọc sản phẩm trong phiếu…"
             value={search} onChange={e => setSearch(e.target.value)}
           />
         </div>
         <input
-          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue/60 transition-all"
+          className="input-base flex-1"
           placeholder="Ghi chú phiếu kiểm kho…"
           value={notes} onChange={e => setNotes(e.target.value)}
         />
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-xl">
-        <div className="px-5 py-3 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
-          <span className="text-sm font-bold text-[#1e293b]">Bảng Nhập Liệu</span>
-          <span className="text-xs text-slate-500">
+      <div className="card p-0 overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
+          <span className="text-sm font-bold text-text">Bảng Nhập Liệu</span>
+          <span className="text-xs font-semibold text-muted bg-surface2 border border-border px-3 py-1 rounded-full">
             {search ? `${filteredRows.length} / ${rows.length} sản phẩm` : `${rows.length} sản phẩm`}
           </span>
         </div>
-        <div className="w-full overflow-x-auto">
+        <div className="w-full overflow-x-auto max-h-[560px] overflow-y-auto">
           <table className="w-full min-w-[640px]">
             <thead>
-              <tr className="bg-slate-950/80 border-b border-slate-800">
+              <tr className="bg-gray-50 border-b border-border">
                 {['SKU', 'Tên sản phẩm', 'Tồn hệ thống', 'Tồn thực tế', 'Chênh lệch'].map((h, i) => (
-                  <th key={h} className={`px-4 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap ${i >= 2 ? 'text-right' : 'text-left'}`}>{h}</th>
+                  <th key={h} className={`sticky top-0 z-10 bg-gray-50 px-4 py-4 text-caption font-semibold text-muted uppercase tracking-wider whitespace-nowrap ${i >= 2 ? 'text-right' : 'text-left'}`}>{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-border">
               {filteredRows.map(r => {
                 const variance = r.actualQty - r.systemQty
                 const changed  = variance !== 0
                 return (
-                  <tr key={r.productId} className={`transition-colors ${changed ? 'bg-cyellow/5 hover:bg-cyellow/8' : 'hover:bg-slate-800/40'}`}>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-400 whitespace-nowrap">{r.sku}</td>
-                    <td className="px-4 py-3 text-sm text-[#1e293b] max-w-[220px]">
+                  <tr key={r.productId} className={`transition-colors ${changed ? 'bg-cyellow/5 hover:bg-cyellow/10' : 'hover:bg-surface2'}`}>
+                    <td className="px-4 py-4 font-mono text-xs text-muted whitespace-nowrap">{r.sku}</td>
+                    <td className="px-4 py-4 text-sm text-text max-w-[220px]">
                       <div className="truncate">{r.name}</div>
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums font-mono text-slate-300 whitespace-nowrap">
+                    <td className="px-4 py-4 text-right tabular-nums font-mono text-muted whitespace-nowrap">
                       {fmtQty(r.systemQty)}
                     </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <td className="px-4 py-4 text-right whitespace-nowrap">
                       <input type="number" min="0" value={r.actualQty}
                         onChange={e => setActual(r.productId, e.target.value)}
-                        className={`w-24 rounded-lg px-3 py-1.5 text-sm text-right font-mono font-bold outline-none transition-all border ${
+                        className={`w-24 rounded-xl px-3 py-2 text-sm text-right font-mono font-bold outline-none transition-all border ${
                           changed
                             ? 'bg-cyellow/10 border-cyellow/50 text-cyellow focus:border-cyellow'
-                            : 'bg-slate-800 border-slate-700 text-[#1e293b] focus:border-cblue'
+                            : 'bg-white border-border text-text focus:border-cblue'
                         }`}
                       />
                     </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <td className="px-4 py-4 text-right whitespace-nowrap">
                       <VarianceBadge variance={variance} />
                     </td>
                   </tr>
@@ -577,6 +664,7 @@ export default function Stocktake() {
           onClose={() => setShowConfirm(false)}
         />
       )}
+    </div>
     </div>
   )
 }

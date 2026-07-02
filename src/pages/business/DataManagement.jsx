@@ -2,6 +2,11 @@
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { getShopConfig, saveShopConfig } from '../../lib/dataService'
+import PageHeader from '../../components/ui/PageHeader'
+import {
+  Trash2, Store, ShoppingCart, Package, Users, Building2,
+  Archive, Wallet, Tag, AlertTriangle, X, Check, Loader2, Lock,
+} from 'lucide-react'
 
 // ── Shop Info Form ─────────────────────────────────────────────────────────
 
@@ -34,40 +39,39 @@ function ShopInfoForm() {
     }
   }
 
-  const iCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-500 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/20 transition-all min-h-[52px] rounded-xl'
+  const iCls = 'input-base'
 
   return (
     <form onSubmit={handleSave} className="mb-8 rounded-2xl border border-cblue/25 bg-cblue/5 overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4 border-b border-cblue/15">
-        <span className="text-xl">🏪</span>
+        <span className="w-9 h-9 rounded-xl bg-blue-50 text-cblue flex items-center justify-center shrink-0"><Store size={18} /></span>
         <div>
-          <div className="font-black text-sm text-[#1e293b]">Thông tin cửa hàng</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">Hiển thị trên tất cả hóa đơn & phiếu nhập</div>
+          <div className="font-black text-sm text-text">Thông tin cửa hàng</div>
+          <div className="text-[12px] text-muted mt-0.5">Hiển thị trên tất cả hóa đơn & phiếu nhập</div>
         </div>
       </div>
 
       <div className="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Tên cửa hàng *</label>
+          <label className="text-[12px] text-muted font-semibold uppercase tracking-wider">Tên cửa hàng *</label>
           <input className={iCls} placeholder="Cửa Hàng ABC" value={name} onChange={e => setName(e.target.value)} disabled={loading} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Địa chỉ</label>
+          <label className="text-[12px] text-muted font-semibold uppercase tracking-wider">Địa chỉ</label>
           <input className={iCls} placeholder="123 Nguyễn Văn A, Q.1, TP.HCM" value={address} onChange={e => setAddress(e.target.value)} disabled={loading} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Số điện thoại</label>
+          <label className="text-[12px] text-muted font-semibold uppercase tracking-wider">Số điện thoại</label>
           <input className={iCls} placeholder="0901 234 567" value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" disabled={loading} />
         </div>
       </div>
 
       <div className="px-5 pb-4 flex items-center justify-between gap-4">
-        <div className="text-[11px] text-slate-500">
-          ☁️ Lưu trên Supabase — đồng bộ theo tài khoản, mọi thiết bị
+        <div className="text-[12px] text-muted">
+          Lưu trên Supabase — đồng bộ theo tài khoản, mọi thiết bị
         </div>
-        <button type="submit" disabled={saving || loading}
-          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-cblue hover:brightness-110 text-white text-sm font-bold transition-all shadow-lg shadow-cblue/20 whitespace-nowrap disabled:opacity-60">
-          {saving ? '⏳ Đang lưu…' : '💾 Lưu thông tin'}
+        <button type="submit" disabled={saving || loading} className="btn-primary whitespace-nowrap">
+          {saving ? <><Loader2 size={16} className="animate-spin" /> Đang lưu…</> : 'Lưu thông tin'}
         </button>
       </div>
     </form>
@@ -79,7 +83,7 @@ function ShopInfoForm() {
 const MODULES = [
   {
     id:    'sales',
-    icon:  '🛒',
+    icon:  ShoppingCart,
     label: 'Bán Hàng / POS',
     desc:  'Toàn bộ đơn xuất hàng, order_items, reset chi tiêu & nợ khách hàng',
     color: 'emerald',
@@ -87,7 +91,7 @@ const MODULES = [
   },
   {
     id:    'imports',
-    icon:  '📦',
+    icon:  Package,
     label: 'Nhập Kho',
     desc:  'Toàn bộ đơn nhập hàng, order_items, reset công nợ nhà cung cấp',
     color: 'yellow',
@@ -95,7 +99,7 @@ const MODULES = [
   },
   {
     id:    'customers',
-    icon:  '👥',
+    icon:  Users,
     label: 'Khách Hàng',
     desc:  'Toàn bộ hồ sơ khách hàng, điểm thưởng, lịch sử mua',
     color: 'purple',
@@ -103,7 +107,7 @@ const MODULES = [
   },
   {
     id:    'suppliers',
-    icon:  '🏢',
+    icon:  Building2,
     label: 'Nhà Cung Cấp',
     desc:  'Toàn bộ danh sách nhà cung cấp và công nợ',
     color: 'teal',
@@ -111,7 +115,7 @@ const MODULES = [
   },
   {
     id:    'stock',
-    icon:  '🗂️',
+    icon:  Archive,
     label: 'Tồn Kho',
     desc:  'Reset số lượng tồn kho về 0, xóa toàn bộ phiếu kiểm kho',
     color: 'amber',
@@ -119,7 +123,7 @@ const MODULES = [
   },
   {
     id:    'cashbook',
-    icon:  '💵',
+    icon:  Wallet,
     label: 'Sổ Quỹ',
     desc:  'Toàn bộ giao dịch thu chi thủ công',
     color: 'blue',
@@ -127,7 +131,7 @@ const MODULES = [
   },
   {
     id:    'products',
-    icon:  '🏷️',
+    icon:  Tag,
     label: 'Hàng Hóa',
     desc:  'Xóa toàn bộ sản phẩm khỏi hệ thống (SKU, giá, ảnh, tồn kho)',
     color: 'orange',
@@ -136,13 +140,13 @@ const MODULES = [
 ]
 
 const COLOR_MAP = {
-  emerald: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/8',  check: 'accent-emerald-500', tag: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
-  yellow:  { border: 'border-yellow-500/30',  bg: 'bg-yellow-500/8',   check: 'accent-yellow-400',  tag: 'bg-yellow-500/15  text-yellow-400  border-yellow-500/30' },
-  purple:  { border: 'border-purple-500/30',  bg: 'bg-purple-500/8',   check: 'accent-purple-400',  tag: 'bg-purple-500/15  text-purple-400  border-purple-500/30' },
-  teal:    { border: 'border-teal-500/30',    bg: 'bg-teal-500/8',     check: 'accent-teal-400',    tag: 'bg-teal-500/15    text-teal-400    border-teal-500/30' },
-  amber:   { border: 'border-amber-500/30',   bg: 'bg-amber-500/8',    check: 'accent-amber-400',   tag: 'bg-amber-500/15   text-amber-400   border-amber-500/30' },
-  blue:    { border: 'border-blue-500/30',    bg: 'bg-blue-500/8',     check: 'accent-blue-400',    tag: 'bg-blue-500/15    text-blue-400    border-blue-500/30' },
-  orange:  { border: 'border-orange-500/30',  bg: 'bg-orange-500/8',   check: 'accent-orange-400',  tag: 'bg-orange-500/15  text-orange-400  border-orange-500/30' },
+  emerald: { border: 'border-emerald-300', bg: 'bg-emerald-50', check: 'accent-emerald-500', tag: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  yellow:  { border: 'border-yellow-300',  bg: 'bg-yellow-50',  check: 'accent-yellow-500',  tag: 'bg-yellow-100  text-yellow-700  border-yellow-200' },
+  purple:  { border: 'border-purple-300',  bg: 'bg-purple-50',  check: 'accent-purple-500',  tag: 'bg-purple-100  text-purple-700  border-purple-200' },
+  teal:    { border: 'border-teal-300',    bg: 'bg-teal-50',    check: 'accent-teal-500',    tag: 'bg-teal-100    text-teal-700    border-teal-200' },
+  amber:   { border: 'border-amber-300',   bg: 'bg-amber-50',   check: 'accent-amber-500',   tag: 'bg-amber-100   text-amber-700   border-amber-200' },
+  blue:    { border: 'border-blue-300',    bg: 'bg-blue-50',    check: 'accent-blue-500',    tag: 'bg-blue-100    text-blue-700    border-blue-200' },
+  orange:  { border: 'border-orange-300',  bg: 'bg-orange-50',  check: 'accent-orange-500',  tag: 'bg-orange-100  text-orange-700  border-orange-200' },
 }
 
 // ── Hàm xóa dữ liệu Supabase ─────────────────────────────────────────────
@@ -229,17 +233,17 @@ const DELETE_FN = {
 function ConfirmModal({ selected, onYes, onNo, loading }) {
   const modules = MODULES.filter(m => selected.includes(m.id))
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#ffffff] border border-cred/40 rounded-2xl w-full max-w-md shadow-2xl shadow-cred/10 overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-surface border-2 border-cred/50 rounded-2xl w-full max-w-md shadow-2xl shadow-cred/10 overflow-hidden">
 
         {/* Header */}
-        <div className="bg-cred/10 px-6 pt-6 pb-4 border-b border-cred/20 flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-cred/20 border border-cred/30 flex items-center justify-center text-2xl shrink-0">
-            ⚠️
+        <div className="bg-rose-50 px-6 pt-6 pb-4 border-b border-cred/20 flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-cred/15 border border-cred/30 flex items-center justify-center shrink-0">
+            <AlertTriangle size={24} className="text-cred" />
           </div>
           <div>
             <div className="font-black text-lg text-cred">Xác nhận xóa dữ liệu</div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed">
+            <div className="text-xs text-muted mt-1 leading-relaxed">
               Bạn có chắc chắn muốn xóa vĩnh viễn dữ liệu của các mục đã chọn?
               <br/>
               <strong className="text-cred">Hành động này không thể hoàn tác!</strong>
@@ -249,18 +253,21 @@ function ConfirmModal({ selected, onYes, onNo, loading }) {
 
         {/* Danh sách sẽ bị xóa */}
         <div className="px-6 py-4 flex flex-col gap-2">
-          <div className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider mb-1">
+          <div className="text-[12px] text-muted font-semibold uppercase tracking-wider mb-1">
             Các module sẽ bị xóa:
           </div>
-          {modules.map(m => (
-            <div key={m.id} className="flex items-center gap-3 rounded-lg bg-cred/8 border border-cred/20 px-3 py-2.5">
-              <span className="text-lg shrink-0">{m.icon}</span>
-              <div className="min-w-0">
-                <div className="text-sm font-bold text-[#1e293b]">{m.label}</div>
-                <div className="text-[11px] text-slate-500 truncate">{m.desc}</div>
+          {modules.map(m => {
+            const Icon = m.icon
+            return (
+              <div key={m.id} className="flex items-center gap-3 rounded-lg bg-rose-50 border border-cred/20 px-3 py-2.5">
+                <Icon size={18} className="text-cred shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-text">{m.label}</div>
+                  <div className="text-[12px] text-muted truncate">{m.desc}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Buttons */}
@@ -268,23 +275,21 @@ function ConfirmModal({ selected, onYes, onNo, loading }) {
           <button
             onClick={onNo}
             disabled={loading}
-            className="flex-1 py-3 rounded-xl border border-slate-700 text-slate-300 text-sm font-bold hover:bg-slate-800 transition-colors disabled:opacity-50"
+            className="btn-ghost flex-1"
           >
-            ✗ Không, giữ lại
+            <X size={16} /> Không, giữ lại
           </button>
           <button
             onClick={onYes}
             disabled={loading}
-            className="flex-1 py-3 rounded-xl bg-cred hover:brightness-110 text-white text-sm font-black transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-cred/25"
+            className="btn-danger flex-1"
           >
             {loading ? (
               <>
-                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/>
-                </svg>
+                <Loader2 size={16} className="animate-spin" />
                 Đang xóa…
               </>
-            ) : '🗑️ Có, xóa vĩnh viễn'}
+            ) : <><Trash2 size={16} /> Có, xóa vĩnh viễn</>}
           </button>
         </div>
       </div>
@@ -347,22 +352,22 @@ export default function DataManagement() {
   const hasSelected = selected.length > 0
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="w-full">
+      <PageHeader icon={Trash2} title="Xóa Dữ Liệu" subtitle="Quản trị & dọn dẹp dữ liệu hệ thống" color="rose" />
+    <div className="p-4 sm:p-6 max-w-3xl">
 
       {/* Thông tin cửa hàng */}
       <ShopInfoForm />
 
       {/* Header */}
-      <div className="flex items-start gap-4 mb-8">
-        <div className="w-14 h-14 rounded-2xl bg-cred/15 border border-cred/30 flex items-center justify-center text-2xl shrink-0">
-          🗑️
-        </div>
+      <div className="flex items-start gap-3 mb-6 rounded-2xl border border-cred/25 bg-rose-50 px-5 py-4">
+        <AlertTriangle size={22} className="text-cred shrink-0 mt-0.5" />
         <div>
-          <h2 className="text-xl font-black text-[#1e293b]">Quản Trị Dữ Liệu</h2>
-          <p className="text-sm text-slate-400 mt-1 leading-relaxed">
+          <h2 className="text-base font-black text-text">Quản Trị Dữ Liệu</h2>
+          <p className="text-sm text-muted mt-1 leading-relaxed">
             Xóa dữ liệu theo từng module. Chỉ những mục được chọn mới bị xóa.
             <br/>
-            <span className="text-cred font-semibold">⚠️ Thao tác không thể hoàn tác — hãy cân nhắc kỹ trước khi thực hiện.</span>
+            <span className="text-cred font-semibold">Thao tác không thể hoàn tác — hãy cân nhắc kỹ trước khi thực hiện.</span>
           </p>
         </div>
       </div>
@@ -376,7 +381,7 @@ export default function DataManagement() {
             onChange={toggleAll}
             className="w-4 h-4 rounded accent-cred cursor-pointer"
           />
-          <span className="text-sm font-semibold text-slate-300 group-hover:text-[#1e293b] transition-colors">
+          <span className="text-sm font-semibold text-muted group-hover:text-text transition-colors">
             {allChecked ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
           </span>
         </label>
@@ -393,6 +398,7 @@ export default function DataManagement() {
           const isChecked = selected.includes(m.id)
           const isDone    = done.includes(m.id)
           const colors    = COLOR_MAP[m.color]
+          const Icon      = m.icon
 
           return (
             <label
@@ -402,7 +408,7 @@ export default function DataManagement() {
                 transition-all duration-150 select-none
                 ${isChecked
                   ? `${colors.border} ${colors.bg} ring-1 ring-cred/20`
-                  : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-800/40'
+                  : 'border-border bg-surface hover:border-gray-300 hover:bg-surface2'
                 }
                 ${isDone ? 'opacity-40 pointer-events-none' : ''}
               `}
@@ -416,26 +422,26 @@ export default function DataManagement() {
               />
 
               {/* Icon */}
-              <span className="text-2xl leading-none shrink-0 mt-0.5">{m.icon}</span>
+              <span className="shrink-0 mt-0.5 text-muted"><Icon size={22} /></span>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`font-bold text-sm ${isChecked ? 'text-[#1e293b]' : 'text-slate-300'}`}>
+                  <span className={`font-bold text-sm ${isChecked ? 'text-text' : 'text-muted'}`}>
                     {m.label}
                   </span>
                   {isDone && (
-                    <span className="text-[10px] font-black text-cgreen bg-cgreen/15 border border-cgreen/30 rounded-full px-2 py-0.5">
-                      ✓ Đã xóa
+                    <span className="text-[12px] font-black text-cgreen bg-cgreen/15 border border-cgreen/30 rounded-full px-2 py-0.5 flex items-center gap-1">
+                      <Check size={10} /> Đã xóa
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{m.desc}</p>
+                <p className="text-xs text-muted mt-0.5 leading-relaxed">{m.desc}</p>
                 {/* Tables — chỉ hiện khi đã tick */}
                 {isChecked && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {m.tables.map(t => (
-                      <span key={t} className={`text-[10px] font-mono font-semibold border rounded px-1.5 py-0.5 ${colors.tag}`}>
+                      <span key={t} className={`text-[12px] font-mono font-semibold border rounded px-1.5 py-0.5 ${colors.tag}`}>
                         {t}
                       </span>
                     ))}
@@ -453,8 +459,8 @@ export default function DataManagement() {
       </div>
 
       {/* Footer action */}
-      <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 px-5 py-4">
-        <div className="text-sm text-slate-400">
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface2 px-5 py-4">
+        <div className="text-sm text-muted">
           {hasSelected
             ? <><span className="font-bold text-cred">{selected.length} module</span> sẽ bị xóa vĩnh viễn</>
             : 'Chưa chọn module nào'
@@ -463,26 +469,18 @@ export default function DataManagement() {
         <button
           onClick={() => setShowModal(true)}
           disabled={!hasSelected || loading}
-          className={`
-            flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all
-            ${hasSelected
-              ? 'bg-cred hover:brightness-110 text-white shadow-lg shadow-cred/25 active:scale-[0.97]'
-              : 'bg-slate-800 border border-slate-700 text-slate-600 cursor-not-allowed'
-            }
-          `}
+          className={hasSelected ? 'btn-danger' : 'h-11 px-6 rounded-xl text-sm font-black bg-surface2 border border-border text-subtle cursor-not-allowed flex items-center gap-2'}
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-            <path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <Trash2 size={16} />
           Xóa dữ liệu đã chọn
         </button>
       </div>
 
       {/* Warning box */}
-      <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3 flex items-start gap-3">
-        <span className="text-base shrink-0 mt-0.5">🔒</span>
-        <div className="text-xs text-slate-500 leading-relaxed">
-          <strong className="text-slate-400">Bảo mật:</strong> Chỉ những module được tick mới bị xóa. Các dữ liệu khác (cấu hình, giả định tài chính, danh mục thu nhập) hoàn toàn được giữ nguyên. Nên xuất Excel backup trước khi thực hiện.
+      <div className="mt-4 rounded-xl border border-border bg-surface2 px-4 py-3 flex items-start gap-3">
+        <Lock size={16} className="text-muted shrink-0 mt-0.5" />
+        <div className="text-xs text-muted leading-relaxed">
+          <strong className="text-text">Bảo mật:</strong> Chỉ những module được tick mới bị xóa. Các dữ liệu khác (cấu hình, giả định tài chính, danh mục thu nhập) hoàn toàn được giữ nguyên. Nên xuất Excel backup trước khi thực hiện.
         </div>
       </div>
 
@@ -495,6 +493,7 @@ export default function DataManagement() {
           onYes={handleDelete}
         />
       )}
+    </div>
     </div>
   )
 }

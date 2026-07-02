@@ -1,3 +1,5 @@
+import { Globe, CalendarDays, RefreshCw } from 'lucide-react'
+
 // ── Shared Date Filter Bar ────────────────────────────────────────────────
 // Dùng chung cho: Báo Cáo, Khách Hàng, Nhà Cung Cấp, Sổ Quỹ, Kiểm Kho
 
@@ -77,9 +79,9 @@ export default function DateFilterBar({
   className  = '',
 }) {
   const presets = [
-    ...FILTER_PRESETS_BASE,
-    ...(showAllTime ? [{ id: 'all', label: '🌐 Toàn thời gian' }] : []),
-    { id: 'custom', label: '📅 Tùy chọn' },
+    ...FILTER_PRESETS_BASE.map(p => ({ ...p, icon: null })),
+    ...(showAllTime ? [{ id: 'all', label: 'Toàn thời gian', icon: Globe }] : []),
+    { id: 'custom', label: 'Tùy chọn', icon: CalendarDays },
   ]
 
   return (
@@ -88,12 +90,13 @@ export default function DateFilterBar({
         <button
           key={p.id}
           onClick={() => setPreset(p.id)}
-          className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg border text-sm font-semibold transition-all whitespace-nowrap ${
             preset === p.id
-              ? 'bg-cblue/20 border-cblue text-cblue'
-              : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-[#1e293b]'
+              ? 'bg-cblue/10 border-cblue text-cblue'
+              : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-text'
           }`}
         >
+          {p.icon && <p.icon size={14} strokeWidth={2.2} />}
           {p.label}
         </button>
       ))}
@@ -105,14 +108,14 @@ export default function DateFilterBar({
             type="date"
             value={customFrom}
             onChange={e => setCustomFrom(e.target.value)}
-            className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all cursor-pointer"
+            className="input-sm cursor-pointer"
           />
           <span className="text-muted text-sm">→</span>
           <input
             type="date"
             value={customTo}
             onChange={e => setCustomTo(e.target.value)}
-            className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all cursor-pointer"
+            className="input-sm cursor-pointer"
           />
         </div>
       )}
@@ -124,13 +127,7 @@ export default function DateFilterBar({
           disabled={loading}
           className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted text-sm hover:border-cblue hover:text-cblue transition-colors disabled:opacity-50 whitespace-nowrap"
         >
-          <svg
-            className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
-            viewBox="0 0 24 24" fill="none"
-          >
-            <path d="M4 4v5h5M20 20v-5h-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M4 9a8 8 0 0114.9-2.1M20 15a8 8 0 01-14.9 2.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
+          <RefreshCw size={14} strokeWidth={1.8} className={loading ? 'animate-spin' : ''} />
           {loading ? 'Đang tải…' : 'Làm mới'}
         </button>
       )}

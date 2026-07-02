@@ -141,7 +141,7 @@ export default function PointOfSaleExample() {
               >
                 <p className="text-sm font-medium truncate">{p.name}</p>
                 <p className="text-xs text-cgreen">{p.sellPrice?.toLocaleString('vi-VN')}₫</p>
-                <p className="text-[10px] text-muted">Tồn: {p.stockQuantity}</p>
+                <p className="text-[12px] text-muted">Tồn: {p.stockQuantity}</p>
               </button>
             ))}
           </div>

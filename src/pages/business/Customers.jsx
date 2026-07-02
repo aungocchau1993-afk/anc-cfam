@@ -1,8 +1,16 @@
-﻿import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
+import {
+  Users, Search, Loader2, Download, Upload, Plus, X, Pencil, Eye,
+  Trash2, MapPin, ShoppingCart, Trophy, Wallet, Star, Gem,
+} from 'lucide-react'
 import ModalOverlay from '../../components/ui/ModalOverlay'
+import PageHeader from '../../components/ui/PageHeader'
 import DateFilterBar, { getDateRange, toInputDate, startOf } from '../../components/ui/DateFilterBar'
+import { SkeletonTableBody, SkeletonCard } from '../../components/ui/Skeleton'
+import Can from '../../components/permission/Can'
+import { PERMISSIONS } from '../../lib/permissions/permissionConstants'
 import {
   getCustomers as loadCustomers,
   addCustomer as insertCustomer,
@@ -30,25 +38,48 @@ function fmtDate(iso) {
 }
 
 function tierOf(spent) {
-  if (spent >= 50_000_000) return { label: '💎 VIP',     cls: 'bg-[#bc8cff]/15 text-[#bc8cff] border-[#bc8cff]/30' }
-  if (spent >= 10_000_000) return { label: '🥇 Gold',    cls: 'bg-cyellow/15   text-cyellow   border-cyellow/30' }
-  if (spent >= 2_000_000)  return { label: '🥈 Silver',  cls: 'bg-slate-400/15 text-slate-300 border-slate-500/30' }
-  return                         { label: '🌱 New',      cls: 'bg-cgreen/15    text-cgreen    border-cgreen/30' }
+  if (spent >= 50_000_000) return { label: 'VIP',    cls: 'bg-violet-50 text-cpurple border border-violet-200' }
+  if (spent >= 10_000_000) return { label: 'Gold',   cls: 'bg-amber-50 text-cyellow border border-amber-200' }
+  if (spent >= 2_000_000)  return { label: 'Silver', cls: 'bg-gray-100 text-muted border border-border' }
+  return                         { label: 'New',     cls: 'bg-emerald-50 text-cgreen border border-emerald-200' }
 }
 
 const VIP_CFG = {
-  MEMBER:   { label: 'Member',   icon: '🌱', cls: 'bg-slate-700/50 text-slate-400 border-slate-600' },
-  SILVER:   { label: 'Silver',   icon: '🥈', cls: 'bg-slate-400/15 text-slate-300 border-slate-400/40' },
-  GOLD:     { label: 'Gold',     icon: '🥇', cls: 'bg-cyellow/15 text-cyellow border-cyellow/40' },
-  PLATINUM: { label: 'Platinum', icon: '💎', cls: 'bg-[#bc8cff]/15 text-[#bc8cff] border-[#bc8cff]/40' },
+  MEMBER:   { label: 'Member',   cls: 'bg-gray-100 text-muted border border-border' },
+  SILVER:   { label: 'Silver',   cls: 'bg-gray-100 text-slate-600 border border-border' },
+  GOLD:     { label: 'Gold',     cls: 'bg-amber-50 text-cyellow border border-amber-200' },
+  PLATINUM: { label: 'Platinum', cls: 'bg-violet-50 text-cpurple border border-violet-200' },
+}
+
+// Avatar gradient theo VIP tier
+const AVATAR_CFG = {
+  MEMBER:   'bg-gradient-to-br from-gray-400 to-gray-500',
+  SILVER:   'bg-gradient-to-br from-slate-400 to-slate-500',
+  GOLD:     'bg-gradient-to-br from-amber-400 to-amber-600',
+  PLATINUM: 'bg-gradient-to-br from-violet-500 to-purple-600',
 }
 
 function VipBadge({ tier }) {
   const cfg = VIP_CFG[tier] || VIP_CFG.MEMBER
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${cfg.cls}`}>
-      {cfg.icon} {cfg.label}
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[12px] font-bold whitespace-nowrap ${cfg.cls}`}>
+      {tier === 'PLATINUM' && <Gem size={11} />}
+      {cfg.label}
     </span>
+  )
+}
+
+function CustomerAvatar({ name, tier, size = 'md' }) {
+  const sizes = {
+    sm: 'w-9 h-9 text-sm',
+    md: 'w-11 h-11 text-base',
+    lg: 'w-12 h-12 text-xl',
+  }
+  const cfg = AVATAR_CFG[tier] || AVATAR_CFG.MEMBER
+  return (
+    <div className={`${sizes[size]} rounded-full ${cfg} flex items-center justify-center font-black text-white shrink-0 shadow-sm`}>
+      {(name || '?').charAt(0).toUpperCase()}
+    </div>
   )
 }
 
@@ -96,41 +127,41 @@ function CustomerModal({ initial, onSave, onClose }) {
     }
   }
 
-  const iCls = 'w-full rounded-lg bg-slate-900/60 border border-slate-700 px-4 py-3 text-base text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue focus:ring-1 focus:ring-cblue/30 transition-all min-h-[52px] rounded-xl'
-
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-surface border border-border rounded-2xl w-full max-w-sm md:max-w-md mx-4 shadow-2xl">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-sm md:max-w-md mx-4 shadow-cardHover">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div>
-            <div className="font-bold text-base">{isEdit ? '✏️ Sửa khách hàng' : '➕ Thêm khách hàng'}</div>
-            <div className="text-xs text-muted mt-0.5">Thông tin cơ bản của khách</div>
+            <div className="font-bold text-cardtitle text-text">{isEdit ? 'Sửa khách hàng' : 'Thêm khách hàng'}</div>
+            <div className="text-caption text-muted mt-0.5">Thông tin cơ bản của khách</div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors">×</button>
+          <button onClick={onClose} className="w-9 h-9 rounded-xl bg-surface2 border border-border text-muted hover:text-cred hover:border-cred/40 transition-colors flex items-center justify-center">
+            <X size={16} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">Họ & Tên *</label>
-            <input className={iCls} placeholder="Nguyễn Văn A" value={form.fullName}
+            <label className="text-[12px] text-muted font-semibold uppercase tracking-wide">Họ & Tên *</label>
+            <input className="input-base" placeholder="Nguyễn Văn A" value={form.fullName}
               onChange={e => set('fullName', e.target.value)} autoFocus />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">Số điện thoại</label>
-            <input className={iCls} type="tel" placeholder="0901 234 567" value={form.phone}
+            <label className="text-[12px] text-muted font-semibold uppercase tracking-wide">Số điện thoại</label>
+            <input className="input-base" type="tel" placeholder="0901 234 567" value={form.phone}
               onChange={e => set('phone', e.target.value)} inputMode="tel" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">Địa chỉ</label>
-            <textarea className={iCls + ' resize-none'} rows={2} placeholder="123 Nguyễn Văn A, Q.7, TP.HCM"
+            <label className="text-[12px] text-muted font-semibold uppercase tracking-wide">Địa chỉ</label>
+            <textarea className="input-base resize-none !h-auto py-2.5" rows={2} placeholder="123 Nguyễn Văn A, Q.7, TP.HCM"
               value={form.address} onChange={e => set('address', e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">
-              Hạn mức công nợ (₫) <span className="text-slate-600 normal-case font-normal">— 0 = không cho nợ</span>
+            <label className="text-[12px] text-muted font-semibold uppercase tracking-wide">
+              Hạn mức công nợ (₫) <span className="text-subtle normal-case font-normal">— 0 = không cho nợ</span>
             </label>
             <input
-              className={iCls + ' text-right font-mono text-cyellow border-cyellow/30 focus:border-cyellow focus:ring-cyellow/20'}
+              className="input-base text-right font-mono text-cyellow border-amber-200 focus:border-cyellow focus:ring-cyellow/20"
               inputMode="numeric"
               placeholder="0"
               value={form.creditLimit}
@@ -138,14 +169,14 @@ function CustomerModal({ initial, onSave, onClose }) {
             />
           </div>
           {isEdit && (initial?.currentDebt ?? 0) > 0 && (
-            <div className="flex items-center justify-between rounded-lg bg-cred/8 border border-cred/20 px-3 py-2 text-xs">
-              <span className="text-slate-400">Nợ hiện tại</span>
+            <div className="flex items-center justify-between rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-sm">
+              <span className="text-muted">Nợ hiện tại</span>
               <span className="font-black font-mono text-cred tabular-nums">{fmtVNDFull(initial.currentDebt)}</span>
             </div>
           )}
           <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={onClose} className="btn-ghost px-4 py-3 text-base">Huỷ</button>
-            <button type="submit" disabled={saving} className="btn-primary px-5 py-2 text-sm disabled:opacity-60">
+            <button type="button" onClick={onClose} className="btn-ghost">Huỷ</button>
+            <button type="submit" disabled={saving} className="btn-primary disabled:opacity-60">
               {saving ? 'Đang lưu…' : isEdit ? 'Cập nhật' : 'Thêm khách'}
             </button>
           </div>
@@ -175,6 +206,7 @@ function CustomerDrawer({ customer, onClose, onEdit }) {
   }, [customer.id])
 
   const tier = tierOf(customer.totalSpent || 0)
+  const vipTier = customer.vipTier || calcVipTier(customer.totalSpent || 0)
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -182,49 +214,49 @@ function CustomerDrawer({ customer, onClose, onEdit }) {
       <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="w-full max-w-sm md:max-w-md bg-surface border-t md:border-t-0 md:border-l border-border flex flex-col shadow-2xl overflow-hidden max-h-[90vh] md:max-h-none">
+      <div className="w-full max-w-sm md:max-w-md bg-surface border-t md:border-t-0 md:border-l border-border flex flex-col shadow-cardHover overflow-hidden max-h-[90vh] md:max-h-none">
         {/* Header */}
         <div className="px-5 py-5 border-b border-border bg-surface2 shrink-0">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-cpurple/15 border border-cpurple/30 flex items-center justify-center text-xl font-black text-cpurple shrink-0">
-                {customer.fullName.charAt(0).toUpperCase()}
-              </div>
+              <CustomerAvatar name={customer.fullName} tier={vipTier} size="lg" />
               <div>
-                <div className="font-black text-base text-[#1e293b]">{customer.fullName}</div>
-                <div className="text-xs text-muted mt-0.5">{fmtPhone(customer.phone)}</div>
+                <div className="font-black text-cardtitle text-text">{customer.fullName}</div>
+                <div className="text-caption text-muted mt-0.5">{fmtPhone(customer.phone)}</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => onEdit(customer)}
-                className="w-8 h-8 rounded-lg border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue flex items-center justify-center transition-colors">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                className="w-9 h-9 rounded-xl border border-border bg-surface text-muted hover:border-cblue hover:text-cblue flex items-center justify-center transition-colors">
+                <Pencil size={14} />
               </button>
-              <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface border border-border text-muted hover:text-cred transition-colors text-sm">×</button>
+              <button onClick={onClose} className="w-9 h-9 rounded-xl bg-surface border border-border text-muted hover:text-cred transition-colors flex items-center justify-center">
+                <X size={16} />
+              </button>
             </div>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-2 mt-4">
-            <div className="bg-surface rounded-lg border border-border p-3 text-center">
-              <div className="text-[10px] text-muted uppercase tracking-wide mb-1">Tổng chi tiêu</div>
+            <div className="bg-surface rounded-xl border border-border p-3 text-center">
+              <div className="text-[12px] text-muted uppercase tracking-wide mb-1">Tổng chi tiêu</div>
               <div className="text-sm font-black text-cpurple tabular-nums">{fmtVNDFull(customer.totalSpent)}</div>
             </div>
-            <div className="bg-surface rounded-lg border border-border p-3 text-center">
-              <div className="text-[10px] text-muted uppercase tracking-wide mb-1">Đơn hàng</div>
+            <div className="bg-surface rounded-xl border border-border p-3 text-center">
+              <div className="text-[12px] text-muted uppercase tracking-wide mb-1">Đơn hàng</div>
               <div className="text-sm font-black text-cblue">{orders.length}</div>
             </div>
-            <div className="bg-surface rounded-lg border border-border p-3 text-center">
-              <div className="text-[10px] text-muted uppercase tracking-wide mb-1">Hạng</div>
-              <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${tier.cls}`}>
+            <div className="bg-surface rounded-xl border border-border p-3 text-center">
+              <div className="text-[12px] text-muted uppercase tracking-wide mb-1">Hạng</div>
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-bold ${tier.cls}`}>
                 {tier.label}
               </span>
             </div>
           </div>
 
           {customer.address && (
-            <div className="mt-3 text-xs text-muted flex items-start gap-1.5">
-              <span className="mt-0.5">📍</span>
+            <div className="mt-3 text-caption text-muted flex items-start gap-1.5">
+              <MapPin size={13} className="mt-0.5 shrink-0" />
               <span>{customer.address}</span>
             </div>
           )}
@@ -235,10 +267,12 @@ function CustomerDrawer({ customer, onClose, onEdit }) {
           <div className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Lịch sử đơn hàng</div>
 
           {loading ? (
-            <div className="text-center py-8 text-muted text-sm">Đang tải…</div>
+            <div className="text-center py-8 text-muted text-sm flex items-center justify-center gap-2">
+              <Loader2 size={16} className="animate-spin" /> Đang tải…
+            </div>
           ) : orders.length === 0 ? (
-            <div className="text-center py-8 text-muted text-sm">
-              <div className="text-3xl mb-2">🛒</div>
+            <div className="text-center py-8 text-muted text-sm flex flex-col items-center gap-2">
+              <ShoppingCart size={28} className="text-subtle" />
               Chưa có đơn hàng nào
             </div>
           ) : (
@@ -251,28 +285,28 @@ function CustomerDrawer({ customer, onClose, onEdit }) {
                     <div className="flex items-start justify-between mb-2 gap-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[11px] text-muted">#{ord.id.slice(-6).toUpperCase()}</span>
-                          <span className={`text-[11px] font-bold ${st.cls}`}>{st.label}</span>
+                          <span className="font-mono text-[12px] text-muted">#{ord.id.slice(-6).toUpperCase()}</span>
+                          <span className={`text-[12px] font-bold ${st.cls}`}>{st.label}</span>
                         </div>
-                        <div className="text-[10px] text-muted mt-0.5">{fmtDate(ord.created_at)}</div>
+                        <div className="text-[12px] text-muted mt-0.5">{fmtDate(ord.created_at)}</div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-bold text-sm text-[#1e293b] tabular-nums">{fmtVNDFull(ord.total_amount)}</div>
+                        <div className="font-bold text-sm text-text tabular-nums">{fmtVNDFull(ord.total_amount)}</div>
                         {/* Đã trả / Còn nợ */}
                         {(ord.paid_amount != null && ord.paid_amount < ord.total_amount) && (
-                          <div className="text-[10px] text-cblue tabular-nums mt-0.5">
+                          <div className="text-[12px] text-cblue tabular-nums mt-0.5">
                             Đã trả: {fmtVNDFull(ord.paid_amount)}
                           </div>
                         )}
                         {(ord.debt_amount != null && ord.debt_amount > 0) && (
-                          <div className="text-[10px] text-cred font-bold tabular-nums">
+                          <div className="text-[12px] text-cred font-bold tabular-nums">
                             Còn nợ: {fmtVNDFull(ord.debt_amount)}
                           </div>
                         )}
                       </div>
                     </div>
                     {items.length > 0 && (
-                      <div className="border-t border-border/50 pt-2 mt-2 flex flex-col gap-1">
+                      <div className="border-t border-border pt-2 mt-2 flex flex-col gap-1">
                         {items.map(item => (
                           <div key={item.id} className="flex justify-between text-xs text-muted">
                             <span className="truncate flex-1">{item.products?.name || '—'}</span>
@@ -282,7 +316,7 @@ function CustomerDrawer({ customer, onClose, onEdit }) {
                       </div>
                     )}
                     {ord.profit != null && ord.profit > 0 && (
-                      <div className="mt-2 text-[11px] text-cgreen font-semibold text-right">
+                      <div className="mt-2 text-[12px] text-cgreen font-semibold text-right">
                         LN: {fmtVNDFull(ord.profit)}
                       </div>
                     )}
@@ -294,7 +328,7 @@ function CustomerDrawer({ customer, onClose, onEdit }) {
         </div>
 
         <div className="px-5 py-3 border-t border-border shrink-0 text-center">
-          <div className="text-[10px] text-muted">Ngày tạo: {fmtDate(customer.createdAt)}</div>
+          <div className="text-[12px] text-muted">Ngày tạo: {fmtDate(customer.createdAt)}</div>
         </div>
       </div>
     </div>
@@ -315,6 +349,10 @@ export default function Customers() {
   const [importing, setImporting]           = useState(false)
   const [importProgress, setImportProgress] = useState('')
   const importRef = useRef(null)
+
+  // ── UI-only state bổ sung (chọn nhiều / bulk actions) — không đụng CRUD/API ──
+  const [selectedIds, setSelectedIds] = useState(() => new Set())
+  const [bulkBusy,    setBulkBusy]    = useState(false)
 
   // ── Bộ lọc ngày & công nợ kỳ ────────────────────────
   const [preset,      setPreset]      = useState('all')
@@ -397,6 +435,26 @@ export default function Customers() {
 
   const isSearching = loading && search.length > 0
 
+  // ── Pagination (client-side, theo pattern Products.jsx) ──
+  const [page, setPage]         = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const totalPages = Math.max(1, Math.ceil(displayedCustomers.length / pageSize))
+  useEffect(() => { setPage(1) }, [search, pageSize])
+  useEffect(() => { if (page > totalPages) setPage(totalPages) }, [page, totalPages])
+  const pagedCustomers = useMemo(
+    () => displayedCustomers.slice((page - 1) * pageSize, page * pageSize),
+    [displayedCustomers, page, pageSize]
+  )
+  const pageStart = displayedCustomers.length === 0 ? 0 : (page - 1) * pageSize + 1
+  const pageEnd   = Math.min(page * pageSize, displayedCustomers.length)
+
+  function pageList(cur, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+    if (cur <= 4)        return [1, 2, 3, 4, 5, '…', total]
+    if (cur >= total - 3) return [1, '…', total - 4, total - 3, total - 2, total - 1, total]
+    return [1, '…', cur - 1, cur, cur + 1, '…', total]
+  }
+
   // ── Actions ─────────────────────────────────────────────
   async function handleAdd(payload) {
     const saved = await insertCustomer(payload)
@@ -425,6 +483,62 @@ export default function Customers() {
     } finally {
       setDeleting(false)
     }
+  }
+
+  // ── Bulk actions (thanh Action nổi) — chỉ lặp gọi lại deleteCustomer đã import
+  // sẵn ở đầu file, KHÔNG viết CRUD/API mới. ───────────────────────────────
+  function toggleSelectOne(id) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  function toggleSelectAllOnPage() {
+    setSelectedIds(prev => {
+      const pageIds = pagedCustomers.map(c => c.id)
+      const allSelected = pageIds.length > 0 && pageIds.every(id => prev.has(id))
+      const next = new Set(prev)
+      pageIds.forEach(id => allSelected ? next.delete(id) : next.add(id))
+      return next
+    })
+  }
+  function clearSelection() { setSelectedIds(new Set()) }
+
+  const selectedCustomers = useMemo(
+    () => customers.filter(c => selectedIds.has(c.id)),
+    [customers, selectedIds]
+  )
+
+  async function handleBulkDelete() {
+    if (!window.confirm(`Xoá ${selectedIds.size} khách hàng đã chọn? Hành động này không thể hoàn tác.`)) return
+    setBulkBusy(true)
+    try {
+      for (const c of selectedCustomers) await deleteCustomer(c.id)
+      setCustomers(prev => prev.filter(x => !selectedIds.has(x.id)))
+      if (viewTarget && selectedIds.has(viewTarget.id)) setViewTarget(null)
+      toast.success(`Đã xoá ${selectedCustomers.length} khách hàng`)
+      clearSelection()
+    } catch (e) {
+      toast.error(e.message || 'Lỗi xoá hàng loạt')
+    } finally {
+      setBulkBusy(false)
+    }
+  }
+
+  function handleBulkExportExcel() {
+    const rows = selectedCustomers.map(c => ({
+      'Tên khách hàng': c.fullName,
+      'Điện thoại':     c.phone   || '',
+      'Địa chỉ':        c.address || '',
+      'Tổng chi tiêu':  c.totalSpent ?? 0,
+    }))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    ws['!cols'] = [{ wch: 30 }, { wch: 16 }, { wch: 36 }, { wch: 16 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Khách Hàng đã chọn')
+    XLSX.writeFile(wb, 'Khach_Hang_Da_Chon.xlsx')
+    toast.success(`Đã xuất ${rows.length} khách hàng`)
   }
 
   // ── Xuất Excel ──────────────────────────────────────────
@@ -532,7 +646,7 @@ export default function Customers() {
         setCustomers(refreshed)
 
         toast.success(
-          `✅ Import thành công ${saved.length} / ${mapped.length} khách hàng`,
+          `Import thành công ${saved.length} / ${mapped.length} khách hàng`,
           { id: toastId, duration: 5000 }
         )
       } catch (err) {
@@ -555,46 +669,48 @@ export default function Customers() {
 
   // ── Render ───────────────────────────────────────────────
   return (
+    <div className="w-full">
+      <PageHeader icon={Users} title="Khách Hàng" subtitle="Quản lý khách hàng, công nợ và điểm thưởng" />
     <div className="p-6 w-full">
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         {[
-          { label: 'Tổng khách hàng', value: kpis.total,                  unit: 'khách',  color: 'text-cpurple',   icon: '👥' },
-          { label: 'Tổng doanh số',   value: fmtVNDFull(kpis.totalSpent), unit: '',        color: 'text-cgreen',    icon: '💰' },
-          { label: 'Trung bình / KH', value: fmtVNDFull(kpis.avgSpent),   unit: '',        color: 'text-cblue',     icon: '📊' },
-          { label: 'Khách VIP (💎)',  value: kpis.vip,                    unit: 'khách',   color: 'text-[#bc8cff]', icon: '💎' },
+          { label: 'Tổng khách hàng', value: kpis.total,                  unit: 'khách',  color: 'text-cpurple', icon: Users },
+          { label: 'Tổng doanh số',   value: fmtVNDFull(kpis.totalSpent), unit: '',        color: 'text-cgreen',  icon: Wallet },
+          { label: 'Trung bình / KH', value: fmtVNDFull(kpis.avgSpent),   unit: '',        color: 'text-cblue',   icon: Trophy },
+          { label: 'Khách VIP',       value: kpis.vip,                    unit: 'khách',   color: 'text-cpurple', icon: Gem },
           {
             label: debtLoading ? 'Công nợ …' : isAllTime ? 'Tổng công nợ' : 'Công nợ kỳ',
             value: fmtVNDFull(kpis.totalDebt),
             unit: isAllTime ? 'Toàn thời gian' : (preset === 'custom' && customFrom && customTo ? `${customFrom} → ${customTo}` : ''),
-            color: kpis.totalDebt > 0 ? 'text-cred' : 'text-slate-400',
-            icon: '💸',
+            color: kpis.totalDebt > 0 ? 'text-cred' : 'text-muted',
+            icon: Wallet,
           },
         ].map(k => (
           <div key={k.label} className="card p-4 relative overflow-hidden">
-            <div className="absolute top-3 right-3 text-2xl opacity-20">{k.icon}</div>
-            <div className="text-[10px] text-muted font-semibold uppercase tracking-wide mb-1.5">{k.label}</div>
+            <k.icon size={36} className="absolute top-3 right-3 opacity-10" />
+            <div className="text-[12px] text-muted font-semibold uppercase tracking-wide mb-1.5">{k.label}</div>
             <div className={`text-xl font-black tabular-nums leading-tight ${k.color}`}>{k.value}</div>
-            {k.unit && <div className="text-[10px] text-muted mt-0.5 truncate">{k.unit}</div>}
+            {k.unit && <div className="text-[12px] text-muted mt-0.5 truncate">{k.unit}</div>}
           </div>
         ))}
       </div>
 
       {/* Top khách hàng banner */}
       {kpis.top && kpis.top.totalSpent > 0 && (
-        <div className="mb-5 rounded-xl border border-[#bc8cff]/25 bg-[#bc8cff]/8 px-5 py-3.5 flex items-center gap-4">
-          <div className="text-2xl">🏆</div>
+        <div className="mb-5 rounded-2xl border border-violet-200 bg-violet-50 px-5 py-3.5 flex items-center gap-4">
+          <Trophy size={24} className="text-cpurple shrink-0" />
           <div className="flex-1 min-w-0">
-            <div className="text-xs text-[#bc8cff] font-semibold uppercase tracking-wide">Khách hàng chi tiêu nhiều nhất</div>
-            <div className="font-black text-[#1e293b] truncate">{kpis.top.fullName}</div>
+            <div className="text-xs text-cpurple font-semibold uppercase tracking-wide">Khách hàng chi tiêu nhiều nhất</div>
+            <div className="font-black text-text truncate">{kpis.top.fullName}</div>
           </div>
           <div className="text-right shrink-0">
-            <div className="font-black text-lg text-[#bc8cff] tabular-nums">{fmtVNDFull(kpis.top.totalSpent)}</div>
+            <div className="font-black text-lg text-cpurple tabular-nums">{fmtVNDFull(kpis.top.totalSpent)}</div>
             {kpis.top.phone && <div className="text-xs text-muted">{fmtPhone(kpis.top.phone)}</div>}
           </div>
           <button onClick={() => setViewTarget(kpis.top)}
-            className="shrink-0 px-3 py-1.5 rounded-lg border border-[#bc8cff]/30 text-[#bc8cff] text-xs font-semibold hover:bg-[#bc8cff]/15 transition-colors">
+            className="shrink-0 px-3 py-1.5 rounded-lg border border-violet-200 text-cpurple text-xs font-semibold hover:bg-violet-100 transition-colors">
             Xem →
           </button>
         </div>
@@ -603,13 +719,9 @@ export default function Customers() {
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="relative flex-1 min-w-[200px]">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none">
-            <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.8"/>
-            <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
           {isSearching
-            ? <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cpurple animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/></svg>
-            : <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.8"/><path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+            ? <Loader2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cpurple animate-spin" />
+            : <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           }
           <input className="input-base pl-9 text-sm" placeholder="Tìm theo tên, SĐT… (debounce 400ms)"
             value={search} onChange={e => setSearch(e.target.value)} />
@@ -625,58 +737,95 @@ export default function Customers() {
         />
 
         {/* Xuất Excel */}
-        <button
-          onClick={handleExportExcel}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white transition-colors whitespace-nowrap"
-        >
-          📤 Xuất Excel
-        </button>
+        <Can permission={PERMISSIONS.CRM_EXPORT}>
+          <button
+            onClick={handleExportExcel}
+            className="btn-ghost whitespace-nowrap"
+          >
+            <Download size={15} /> Xuất Excel
+          </button>
+        </Can>
 
         {/* Nhập Excel */}
-        <button
-          onClick={() => importRef.current?.click()}
-          disabled={importing}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-        >
-          {importing
-            ? <>
-                <svg className="w-3.5 h-3.5 animate-spin shrink-0" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10"/>
-                </svg>
-                <span className="truncate max-w-[160px]">{importProgress || 'Đang nhập…'}</span>
-              </>
-            : '📥 Nhập Excel'
-          }
-        </button>
-        <input
-          ref={importRef}
-          type="file"
-          accept=".xlsx,.xls,.csv"
-          className="hidden"
-          onChange={handleImportExcel}
-        />
+        <Can permission={PERMISSIONS.CRM_CREATE}>
+          <button
+            onClick={() => importRef.current?.click()}
+            disabled={importing}
+            className="btn-ghost disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          >
+            {importing
+              ? <>
+                  <Loader2 size={15} className="animate-spin shrink-0" />
+                  <span className="truncate max-w-[160px]">{importProgress || 'Đang nhập…'}</span>
+                </>
+              : <><Upload size={15} /> Nhập Excel</>
+            }
+          </button>
+          <input
+            ref={importRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            className="hidden"
+            onChange={handleImportExcel}
+          />
 
-        <button onClick={() => setShowAdd(true)} className="btn-primary flex items-center gap-2 px-4 py-3 text-base">
-          <span className="text-base leading-none">＋</span> Thêm khách
-        </button>
+          <button onClick={() => setShowAdd(true)} className="btn-primary">
+            <Plus size={16} /> Thêm khách
+          </button>
+        </Can>
       </div>
 
+      {/* ══════════════════ BULK ACTION BAR — nổi phía trên Table khi có chọn ══════════════════ */}
+      {selectedIds.size > 0 && (
+        <div className="mb-4 bg-[#0f172a] rounded-2xl shadow-lg px-4 py-3 flex flex-wrap items-center gap-2.5 animate-slideUp">
+          <span className="text-sm font-semibold text-white mr-1">Đã chọn {selectedIds.size} khách hàng</span>
+          <div className="w-px h-6 bg-white/15 hidden sm:block" />
+          <Can permission={PERMISSIONS.CRM_EXPORT}>
+            <button onClick={handleBulkExportExcel} disabled={bulkBusy}
+              className="h-9 flex items-center gap-1.5 px-3 rounded-lg bg-white/10 hover:bg-white/15 text-white text-[14px] font-medium transition-colors disabled:opacity-50">
+              <Download size={14} strokeWidth={2} /> Xuất Excel
+            </button>
+          </Can>
+          <Can permission={PERMISSIONS.CRM_DELETE}>
+            <button onClick={handleBulkDelete} disabled={bulkBusy}
+              className="h-9 flex items-center gap-1.5 px-3 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-300 text-[14px] font-medium transition-colors disabled:opacity-50">
+              {bulkBusy ? <Loader2 size={14} strokeWidth={2} className="animate-spin" /> : <Trash2 size={14} strokeWidth={2} />} Xóa
+            </button>
+          </Can>
+          <button onClick={clearSelection}
+            className="h-9 flex items-center gap-1.5 px-3 rounded-lg text-white/60 hover:text-white text-[14px] font-medium transition-colors ml-auto">
+            <X size={14} strokeWidth={2.2} /> Bỏ chọn
+          </button>
+        </div>
+      )}
+
       {/* Table */}
-      <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-2xl shadow-black/20">
+      <div className="card !p-0 overflow-hidden">
         <div className="px-5 py-3.5 border-b border-border bg-surface2 flex items-center justify-between">
-          <div className="text-sm font-bold">Danh sách khách hàng</div>
+          <div className="text-sm font-bold text-text">Danh sách khách hàng</div>
           <span className="tag-blue">{displayedCustomers.length}{search ? ` / ${customers.length}` : ''} khách{search ? ` (lọc: "${search}")` : ''}</span>
         </div>
 
         {loading ? (
-          <div className="text-center py-16 text-muted text-sm">Đang tải dữ liệu từ Cloud…</div>
+          <>
+            <div className="sm:hidden flex flex-col gap-2 p-3">
+              {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full min-w-0">
+                <tbody className="divide-y divide-border">
+                  <SkeletonTableBody rows={8} columns={5} />
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : displayedCustomers.length === 0 ? (
           <div className="text-center py-16 text-muted">
-            <div className="text-4xl mb-3">👥</div>
+            <Users size={40} className="mx-auto mb-3 text-subtle" />
             <div className="font-semibold mb-1">{search ? 'Không tìm thấy khách' : 'Chưa có khách hàng'}</div>
             {!search && (
-              <button onClick={() => setShowAdd(true)} className="btn-primary mt-3 px-5 py-2 text-sm">
-                ＋ Thêm khách đầu tiên
+              <button onClick={() => setShowAdd(true)} className="btn-primary mt-3 mx-auto">
+                <Plus size={15} /> Thêm khách đầu tiên
               </button>
             )}
           </div>
@@ -684,51 +833,55 @@ export default function Customers() {
           <>
             {/* ── Mobile: Card list (< sm) ── */}
             <div className="sm:hidden flex flex-col gap-2 p-3">
-              {displayedCustomers.map((c, idx) => {
-                const debt = debtMap[c.id] ?? 0
+              {pagedCustomers.map((c, idx) => {
+                const vipTier = c.vipTier || calcVipTier(c.totalSpent || 0)
                 return (
                   <div key={c.id}
                     onClick={() => setViewTarget(c)}
-                    className="bg-[#ffffff] border border-slate-800 rounded-xl p-3.5 active:bg-slate-800/40 cursor-pointer">
+                    className="bg-surface border border-border rounded-xl p-3.5 active:bg-surface2 cursor-pointer transition-colors">
                     <div className="flex items-center gap-3 mb-2.5">
-                      <div className="w-11 h-11 rounded-xl bg-cpurple/15 border border-cpurple/20 flex items-center justify-center text-base font-black text-cpurple shrink-0">
-                        {c.fullName.charAt(0).toUpperCase()}
-                      </div>
+                      <CustomerAvatar name={c.fullName} tier={vipTier} size="md" />
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-slate-100 truncate">{c.fullName}</div>
-                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">{fmtPhone(c.phone)}</div>
-                        {idx === 0 && c.totalSpent > 0 && <div className="text-[10px] text-[#bc8cff] mt-0.5">🏆 Top khách</div>}
+                        <div className="font-semibold text-text truncate">{c.fullName}</div>
+                        <div className="text-[12px] text-muted font-mono mt-0.5">{fmtPhone(c.phone)}</div>
+                        {page === 1 && idx === 0 && c.totalSpent > 0 && (
+                          <div className="text-[12px] text-cpurple mt-0.5 flex items-center gap-1"><Trophy size={10} /> Top khách</div>
+                        )}
                       </div>
-                      <VipBadge tier={c.vipTier || calcVipTier(c.totalSpent || 0)} />
+                      <VipBadge tier={vipTier} />
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-center mb-2.5">
-                      <div className="bg-slate-800/60 rounded-lg p-2">
-                        <div className="text-[10px] text-slate-500 mb-0.5">Chi tiêu</div>
+                      <div className="bg-surface2 rounded-lg p-2">
+                        <div className="text-[12px] text-muted mb-0.5">Chi tiêu</div>
                         <div className="text-xs font-mono font-bold text-cpurple">{fmtVNDFull(c.totalSpent || 0)}</div>
                       </div>
-                      <div className="bg-slate-800/60 rounded-lg p-2">
-                        <div className="text-[10px] text-slate-500 mb-0.5">Nợ hiện tại</div>
-                        <div className={`text-xs font-mono font-bold ${(c.currentDebt ?? 0) > 0 ? 'text-cred' : 'text-slate-500'}`}>
+                      <div className="bg-surface2 rounded-lg p-2">
+                        <div className="text-[12px] text-muted mb-0.5">Nợ hiện tại</div>
+                        <div className={`text-xs font-mono font-bold ${(c.currentDebt ?? 0) > 0 ? 'text-cred' : 'text-subtle'}`}>
                           {(c.currentDebt ?? 0) > 0 ? fmtVNDFull(c.currentDebt) : '—'}
                         </div>
                       </div>
-                      <div className="bg-slate-800/60 rounded-lg p-2">
-                        <div className="text-[10px] text-slate-500 mb-0.5">Điểm ★</div>
-                        <div className={`text-xs font-bold ${(c.rewardPoints ?? 0) > 0 ? 'text-cyellow' : 'text-slate-500'}`}>
-                          {(c.rewardPoints ?? 0) > 0 ? `★ ${c.rewardPoints.toLocaleString('vi-VN')}` : '—'}
+                      <div className="bg-surface2 rounded-lg p-2">
+                        <div className="text-[12px] text-muted mb-0.5">Điểm</div>
+                        <div className={`text-xs font-bold flex items-center justify-center gap-0.5 ${(c.rewardPoints ?? 0) > 0 ? 'text-cyellow' : 'text-subtle'}`}>
+                          {(c.rewardPoints ?? 0) > 0 ? <><Star size={10} fill="currentColor" /> {c.rewardPoints.toLocaleString('vi-VN')}</> : '—'}
                         </div>
                       </div>
                     </div>
                     <div className="flex gap-2" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => setViewTarget(c)} className="flex-1 h-9 rounded-lg border border-slate-700 text-slate-400 text-xs font-medium hover:border-cpurple hover:text-cpurple active:scale-95 transition-all">
-                        👁 Chi tiết
+                      <button onClick={() => setViewTarget(c)} className="flex-1 h-9 rounded-lg border border-border text-muted text-xs font-medium hover:border-cpurple hover:text-cpurple active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                        <Eye size={13} /> Chi tiết
                       </button>
-                      <button onClick={() => setEditTarget(c)} className="flex-1 h-9 rounded-lg border border-slate-700 text-slate-400 text-xs font-medium hover:border-cblue hover:text-cblue active:scale-95 transition-all">
-                        ✏️ Sửa
-                      </button>
-                      <button onClick={() => setDeleteTarget(c)} className="h-9 w-9 rounded-lg border border-slate-700 text-slate-500 hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </button>
+                      <Can permission={PERMISSIONS.CRM_UPDATE}>
+                        <button onClick={() => setEditTarget(c)} className="flex-1 h-9 rounded-lg border border-border text-muted text-xs font-medium hover:border-cblue hover:text-cblue active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                          <Pencil size={13} /> Sửa
+                        </button>
+                      </Can>
+                      <Can permission={PERMISSIONS.CRM_DELETE}>
+                        <button onClick={() => setDeleteTarget(c)} className="h-9 w-9 rounded-lg border border-border text-subtle hover:border-cred hover:text-cred active:scale-95 transition-all flex items-center justify-center">
+                          <Trash2 size={14} />
+                        </button>
+                      </Can>
                     </div>
                   </div>
                 )
@@ -736,71 +889,86 @@ export default function Customers() {
             </div>
 
             {/* ── Desktop: Table (≥ sm) ── */}
-            <div className="hidden sm:block w-full overflow-x-auto whitespace-nowrap">
+            <div className="hidden sm:block w-full overflow-x-auto">
               <table className="w-full min-w-[700px] text-xs md:text-sm">
                 <thead>
-                  <tr className="bg-[#f1f5f9] border-b border-border">
-                    {['Khách hàng', 'SĐT', 'Tổng chi tiêu', 'Công nợ kỳ', 'Nợ hiện tại', 'Hạn mức', 'Hạng VIP', 'Điểm ★', 'Ngày tạo', 'Thao tác'].map(h => (
-                      <th key={h} className={`px-4 py-3 text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap ${['Tổng chi tiêu','Công nợ kỳ','Nợ hiện tại','Hạn mức','Điểm ★'].includes(h) ? 'text-right' : 'text-left'}`}>{h}</th>
+                  <tr className="bg-[#f8fafc] border-b border-border">
+                    <th className="sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 w-10">
+                      <input type="checkbox"
+                        checked={pagedCustomers.length > 0 && pagedCustomers.every(c => selectedIds.has(c.id))}
+                        onChange={toggleSelectAllOnPage}
+                        className="w-4 h-4 rounded accent-cblue" />
+                    </th>
+                    {['Khách hàng', 'SĐT', 'Tổng chi tiêu', 'Công nợ kỳ', 'Nợ hiện tại', 'Hạn mức', 'Hạng VIP', 'Điểm', 'Ngày tạo', 'Thao tác'].map(h => (
+                      <th key={h} className={`sticky top-0 z-10 bg-[#f8fafc] px-4 py-3 text-[12px] font-bold text-muted uppercase tracking-wider whitespace-nowrap ${['Tổng chi tiêu','Công nợ kỳ','Nợ hiện tại','Hạn mức','Điểm'].includes(h) ? 'text-right' : 'text-left'}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
-                  {displayedCustomers.map((c, idx) => {
+                <tbody className="divide-y divide-border">
+                  {pagedCustomers.map((c, idx) => {
+                    const vipTier = c.vipTier || calcVipTier(c.totalSpent || 0)
+                    const checked = selectedIds.has(c.id)
                     return (
                       <tr key={c.id}
-                        className="border-b border-border/40 last:border-0 hover:bg-slate-800/40 transition-colors group cursor-pointer"
+                        className={`hover:bg-surface2 transition-colors group cursor-pointer ${checked ? 'bg-blue-50/60' : ''}`}
                         onClick={() => setViewTarget(c)}>
+                        <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+                          <input type="checkbox" checked={checked} onChange={() => toggleSelectOne(c.id)} className="w-4 h-4 rounded accent-cblue" />
+                        </td>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-cpurple/15 border border-cpurple/20 flex items-center justify-center text-sm font-black text-cpurple shrink-0">
-                              {c.fullName.charAt(0).toUpperCase()}
-                            </div>
+                            <CustomerAvatar name={c.fullName} tier={vipTier} size="sm" />
                             <div>
-                              <div className="font-semibold text-sm text-[#1e293b]">{c.fullName}</div>
-                              {idx === 0 && c.totalSpent > 0 && (
-                                <div className="text-[10px] text-[#bc8cff]">🏆 Top khách</div>
+                              <div className="font-semibold text-sm text-text">{c.fullName}</div>
+                              {page === 1 && idx === 0 && c.totalSpent > 0 && (
+                                <div className="text-[12px] text-cpurple flex items-center gap-1"><Trophy size={10} /> Top khách</div>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 text-sm text-slate-300 font-mono whitespace-nowrap">{fmtPhone(c.phone)}</td>
+                        <td className="px-4 py-3.5 text-sm text-muted font-mono whitespace-nowrap">{fmtPhone(c.phone)}</td>
                         <td className="px-4 py-3.5 text-right font-mono text-sm font-bold tabular-nums whitespace-nowrap">
-                          <span className={(c.totalSpent ?? 0) > 0 ? 'text-cpurple' : (c.totalSpent ?? 0) < 0 ? 'text-cgreen' : 'text-slate-400'}>
+                          <span className={(c.totalSpent ?? 0) > 0 ? 'text-cpurple' : (c.totalSpent ?? 0) < 0 ? 'text-cgreen' : 'text-subtle'}>
                             {fmtVNDFull(c.totalSpent || 0)}
                           </span>
                         </td>
                         <td className="px-4 py-3.5 text-right font-mono text-sm font-bold tabular-nums whitespace-nowrap">
-                          {debtLoading ? <span className="text-slate-600 text-xs">…</span> : (() => {
+                          {debtLoading ? <span className="text-subtle text-xs">…</span> : (() => {
                             const debt = debtMap[c.id] ?? 0
-                            return <span className={debt > 0 ? 'text-red-400' : debt < 0 ? 'text-green-400' : 'text-slate-500'}>{debt === 0 ? '—' : fmtVNDFull(debt)}</span>
+                            return <span className={debt > 0 ? 'text-cred' : debt < 0 ? 'text-cgreen' : 'text-subtle'}>{debt === 0 ? '—' : fmtVNDFull(debt)}</span>
                           })()}
                         </td>
                         <td className="px-4 py-3.5 text-right font-mono text-sm tabular-nums whitespace-nowrap">
-                          {(c.currentDebt ?? 0) > 0 ? <span className="font-bold text-cred">{fmtVNDFull(c.currentDebt)}</span> : <span className="text-slate-600">—</span>}
+                          {(c.currentDebt ?? 0) > 0 ? <span className="font-bold text-cred">{fmtVNDFull(c.currentDebt)}</span> : <span className="text-subtle">—</span>}
                         </td>
                         <td className="px-4 py-3.5 text-right font-mono text-sm tabular-nums whitespace-nowrap">
-                          {(c.creditLimit ?? 0) > 0 ? <span className="text-cyellow">{fmtVNDFull(c.creditLimit)}</span> : <span className="text-slate-600 text-xs">Không nợ</span>}
+                          {(c.creditLimit ?? 0) > 0 ? <span className="text-cyellow">{fmtVNDFull(c.creditLimit)}</span> : <span className="text-subtle text-xs">Không nợ</span>}
                         </td>
-                        <td className="px-4 py-3.5"><VipBadge tier={c.vipTier || calcVipTier(c.totalSpent || 0)} /></td>
+                        <td className="px-4 py-3.5"><VipBadge tier={vipTier} /></td>
                         <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                          {(c.rewardPoints ?? 0) > 0 ? <span className="text-cyellow font-bold text-sm">★ {c.rewardPoints.toLocaleString('vi-VN')}</span> : <span className="text-slate-600 text-xs">—</span>}
+                          {(c.rewardPoints ?? 0) > 0
+                            ? <span className="text-cyellow font-bold text-sm inline-flex items-center gap-1"><Star size={12} fill="currentColor" /> {c.rewardPoints.toLocaleString('vi-VN')}</span>
+                            : <span className="text-subtle text-xs">—</span>}
                         </td>
                         <td className="px-4 py-3.5 text-sm text-muted whitespace-nowrap">{fmtDate(c.createdAt)}</td>
                         <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
                           <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => setViewTarget(c)} title="Xem chi tiết"
-                              className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cpurple hover:text-cpurple hover:bg-cpurple/10 transition-colors flex items-center justify-center">
-                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.8"/></svg>
+                              className="w-7 h-7 rounded-md border border-border text-muted hover:border-cpurple hover:text-cpurple hover:bg-violet-50 transition-colors flex items-center justify-center">
+                              <Eye size={13} />
                             </button>
-                            <button onClick={() => setEditTarget(c)} title="Sửa"
-                              className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center">
-                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            </button>
-                            <button onClick={() => setDeleteTarget(c)} title="Xoá"
-                              className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors flex items-center justify-center">
-                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            </button>
+                            <Can permission={PERMISSIONS.CRM_UPDATE}>
+                              <button onClick={() => setEditTarget(c)} title="Sửa"
+                                className="w-7 h-7 rounded-md border border-border text-muted hover:border-cblue hover:text-cblue hover:bg-blue-50 transition-colors flex items-center justify-center">
+                                <Pencil size={13} />
+                              </button>
+                            </Can>
+                            <Can permission={PERMISSIONS.CRM_DELETE}>
+                              <button onClick={() => setDeleteTarget(c)} title="Xoá"
+                                className="w-7 h-7 rounded-md border border-border text-muted hover:border-cred hover:text-cred hover:bg-rose-50 transition-colors flex items-center justify-center">
+                                <Trash2 size={13} />
+                              </button>
+                            </Can>
                           </div>
                         </td>
                       </tr>
@@ -808,6 +976,37 @@ export default function Customers() {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="px-5 py-3.5 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-xs text-muted order-2 sm:order-1">
+                Hiển thị <span className="font-semibold text-text">{pageStart}-{pageEnd}</span> / {displayedCustomers.length} khách hàng
+              </div>
+              <div className="flex items-center gap-1 order-1 sm:order-2">
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
+                  className="w-8 h-8 rounded-lg border border-border text-muted hover:bg-surface2 hover:text-text disabled:opacity-40 disabled:hover:bg-transparent transition-colors flex items-center justify-center">‹</button>
+                {pageList(page, totalPages).map((n, i) => n === '…'
+                  ? <span key={'e' + i} className="w-8 h-8 flex items-center justify-center text-muted text-xs">…</span>
+                  : <button key={n} onClick={() => setPage(n)}
+                      className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center ${
+                        n === page ? 'bg-cblue text-white shadow-sm' : 'border border-border text-muted hover:bg-surface2 hover:text-text'
+                      }`}>{n}</button>
+                )}
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                  className="w-8 h-8 rounded-lg border border-border text-muted hover:bg-surface2 hover:text-text disabled:opacity-40 disabled:hover:bg-transparent transition-colors flex items-center justify-center">›</button>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted order-3">
+                Hiển thị
+                <select value={pageSize} onChange={e => setPageSize(Number(e.target.value))}
+                  className="bg-surface border border-border rounded-lg pl-2 pr-1 py-1 text-text font-semibold outline-none focus:border-cblue cursor-pointer">
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                khách / trang
+              </div>
             </div>
           </>
         )}
@@ -827,22 +1026,22 @@ export default function Customers() {
 
       {deleteTarget && (
         <ModalOverlay onClose={() => setDeleteTarget(null)}>
-          <div className="bg-surface border border-border rounded-2xl w-full max-w-sm shadow-2xl p-6 flex flex-col gap-4">
+          <div className="bg-surface border border-border rounded-2xl w-full max-w-sm shadow-cardHover p-6 flex flex-col gap-4">
             <div className="text-lg font-bold text-cred">Xoá khách hàng?</div>
             <div className="text-sm text-muted">
-              <span className="font-semibold text-[#1e293b]">{deleteTarget.fullName}</span><br/>
+              <span className="font-semibold text-text">{deleteTarget.fullName}</span><br/>
               Lịch sử đơn hàng của khách sẽ không bị xoá.
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setDeleteTarget(null)} className="btn-ghost px-4 py-3 text-base">Huỷ</button>
-              <button onClick={handleDelete} disabled={deleting}
-                className="px-4 py-2 rounded-lg bg-cred/20 border border-cred/40 text-cred text-sm font-bold hover:bg-cred/30 transition-colors disabled:opacity-60">
+              <button onClick={() => setDeleteTarget(null)} className="btn-ghost">Huỷ</button>
+              <button onClick={handleDelete} disabled={deleting} className="btn-danger disabled:opacity-60">
                 {deleting ? 'Đang xoá…' : 'Xoá'}
               </button>
             </div>
           </div>
         </ModalOverlay>
       )}
+    </div>
     </div>
   )
 }

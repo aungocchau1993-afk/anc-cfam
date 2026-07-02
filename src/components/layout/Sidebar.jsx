@@ -1,83 +1,125 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/SupabaseContext'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
+import { usePermission } from '../../hooks/usePermission'
+import { getRoutePermission } from '../../lib/permissions/routePermissions'
+import { PERMISSIONS } from '../../lib/permissions/permissionConstants'
+import {
+  Layers, ChevronDown, Camera, LogOut, Loader2,
+  Store, Landmark, Users, Cog,
+  LayoutDashboard, ShoppingCart, Package, Receipt, ClipboardList,
+  Wallet, TrendingUp, LayoutGrid, SlidersHorizontal, CalendarRange, CalendarDays,
+  NotebookPen, PieChart, CreditCard, Building2, Globe,
+  UserCog, History, Settings, Settings2, Trash2, ShieldCheck,
+} from 'lucide-react'
 
 // ═══════════════════════════════════════════════════════════
-//  CẤU HÌNH 2 NHÓM CHÍNH — Thêm tab mới chỉ cần thêm vào đây
+//  CẤU HÌNH 4 NHÓM ĐIỀU HƯỚNG — Business / Finance / CRM / System
+//  Mỗi item tự khai báo kind: 'tab' (sub-tab trong BusinessModule)
+//  hoặc 'page' (trang cấp App.jsx) — chỉ là cấu hình hiển thị,
+//  không thay đổi hành vi điều hướng thực tế (onChange/onBizTabChange).
 // ═══════════════════════════════════════════════════════════
 
 const GROUPS = [
   {
-    id:          'business',
-    icon:        '🏪',
-    label:       'Kinh Doanh',
-    desc:        'POS · Kho · CRM · Báo Cáo',
-    accent:      '#16a34a',        // cgreen
-    colorCls:    'text-emerald-700',
-    activeBgCls: 'bg-emerald-50 border-emerald-200',
-    headerCls:   'hover:bg-emerald-50 border-emerald-200/60',
-    dotCls:      'bg-emerald-500',
-    // Các tab con — tab = id tab trong BusinessModule
+    id: 'business', icon: Store, label: 'Business',
     items: [
-      { tab: 'analytics', icon: '📊', label: 'Tổng Quan' },
-      { tab: 'pos',       icon: '🛒', label: 'Bán Hàng' },
-      { tab: 'products',  icon: '📦', label: 'Hàng Hóa' },
-      { tab: 'customers', icon: '👥', label: 'Khách Hàng' },
-      { tab: 'orders',    icon: '🧾', label: 'Đơn Hàng' },
-      { tab: 'suppliers', icon: '🏢', label: 'Nhà Cung Cấp' },
-      { tab: 'cashbook',  icon: '💵', label: 'Sổ Quỹ' },
-      { tab: 'stocktake',   icon: '🗂️', label: 'Kiểm Kho' },
-      { tab: 'report',      icon: '📈', label: 'Báo Cáo' },
-      { tab: 'hrm',         icon: '👔', label: 'Nhân Sự' },
-      { tab: 'activitylog', icon: '🕒', label: 'Nhật Ký' },
-      { tab: 'channels',    icon: '🌐', label: 'Đa Kênh' },
-      { tab: 'settings',    icon: '⚙️', label: 'Cài Đặt' },
-      { tab: 'admin',       icon: '🗑️', label: 'Xóa Dữ Liệu' },
+      { kind: 'tab', tab: 'analytics', icon: LayoutDashboard, label: 'Tổng Quan' },
+      { kind: 'tab', tab: 'pos',       icon: ShoppingCart,    label: 'Bán Hàng' },
+      { kind: 'tab', tab: 'products',  icon: Package,         label: 'Hàng Hóa' },
+      { kind: 'tab', tab: 'orders',    icon: Receipt,         label: 'Đơn Hàng' },
+      { kind: 'tab', tab: 'stocktake', icon: ClipboardList,   label: 'Kiểm Kho' },
     ],
   },
   {
-    id:          'cashflow',
-    icon:        '💼',
-    label:       'Quản Trị Dòng Tiền',
-    desc:        'KPI · Dự báo · Đầu tư',
-    accent:      '#2563eb',        // cblue
-    colorCls:    'text-blue-700',
-    activeBgCls: 'bg-blue-50 border-blue-200',
-    headerCls:   'hover:bg-blue-50 border-blue-200/60',
-    dotCls:      'bg-blue-500',
-    // page = id trang trong App.jsx (PAGES object)
+    id: 'finance', icon: Landmark, label: 'Finance',
     items: [
-      { page: 'dashboard',   icon: '📊', label: 'Dashboard' },
-      { page: 'assumptions', icon: '⚙️', label: 'Giả Định' },
-      { page: 'quarterly',   icon: '📅', label: 'Dòng Tiền Quý' },
-      { page: 'annual',      icon: '📆', label: 'Tổng Hợp Năm' },
-      { page: 'monthly',     icon: '📝', label: 'Nhập Tháng' },
-      { page: 'portfolio',   icon: '🏦', label: 'Danh Mục & Rủi Ro' },
-      { page: 'creditcards', icon: '💳', label: 'Thẻ Visa / Tín Dụng' },
-      { page: 'config',      icon: '🎛️', label: 'Cấu Hình' },
+      { kind: 'tab',  tab: 'cashbook',     icon: Wallet,           label: 'Sổ Quỹ' },
+      { kind: 'tab',  tab: 'report',       icon: TrendingUp,       label: 'Báo Cáo' },
+      { kind: 'page', page: 'dashboard',   icon: LayoutGrid,       label: 'Dashboard' },
+      { kind: 'page', page: 'assumptions', icon: SlidersHorizontal,label: 'Giả Định' },
+      { kind: 'page', page: 'quarterly',   icon: CalendarRange,    label: 'Dòng Tiền Quý' },
+      { kind: 'page', page: 'annual',      icon: CalendarDays,     label: 'Tổng Hợp Năm' },
+      { kind: 'page', page: 'monthly',     icon: NotebookPen,      label: 'Nhập Tháng' },
+      { kind: 'page', page: 'portfolio',   icon: PieChart,         label: 'Danh Mục & Rủi Ro' },
+      { kind: 'page', page: 'creditcards', icon: CreditCard,       label: 'Thẻ Visa / Tín Dụng' },
+    ],
+  },
+  {
+    id: 'crm', icon: Users, label: 'CRM',
+    items: [
+      { kind: 'tab', tab: 'customers', icon: Users,     label: 'Khách Hàng' },
+      { kind: 'tab', tab: 'suppliers', icon: Building2, label: 'Nhà Cung Cấp' },
+      { kind: 'tab', tab: 'channels',  icon: Globe,     label: 'Đa Kênh' },
+    ],
+  },
+  {
+    id: 'system', icon: Cog, label: 'System',
+    items: [
+      { kind: 'tab',  tab: 'hrm',         icon: UserCog,     label: 'Nhân Sự' },
+      { kind: 'tab',  tab: 'users',       icon: ShieldCheck, label: 'Người Dùng' },
+      { kind: 'tab',  tab: 'activitylog', icon: History,     label: 'Nhật Ký' },
+      { kind: 'tab',  tab: 'settings',    icon: Settings,    label: 'Cài Đặt' },
+      { kind: 'page', page: 'config',     icon: Settings2, label: 'Cấu Hình' },
+      { kind: 'tab',  tab: 'admin',       icon: Trash2,    label: 'Xóa Dữ Liệu' },
     ],
   },
 ]
 
+// Danh sách phẳng tất cả điểm điều hướng, kèm tên nhóm — dùng cho ô tìm kiếm
+// toàn hệ thống ở Topbar (chỉ đọc lại metadata hiển thị, không thêm logic mới).
+export const NAV_INDEX = GROUPS.flatMap(g => g.items.map(item => ({ ...item, group: g.label })))
+
 // ── Sidebar Component ────────────────────────────────────────────────────
 
 export default function Sidebar({ current, currentBizTab, onChange, onBizTabChange }) {
-  const [open,         setOpen]         = useState({ business: true, cashflow: true })
+  const [open,         setOpen]         = useState({ business: true, finance: true, crm: true, system: true })
   const [uploading,    setUploading]    = useState(false)
   const [avatarUrl,    setAvatarUrl]    = useState(null)  // override sau khi upload
   const fileInputRef = useRef(null)
   const { user } = useAuth()
+  const { currentUser } = useCurrentUser()
+  const { can }         = usePermission()
+
+  // Sidebar Guard — lọc theo Permission Engine, KHÔNG hardcode role. Item
+  // không có permission tương ứng trong routePermissions.js coi như public.
+  // Nhóm nào rỗng sau khi lọc thì ẩn luôn cả header nhóm.
+  const visibleGroups = useMemo(() => {
+    return GROUPS
+      .map(group => ({
+        ...group,
+        items: group.items.filter(item => can(getRoutePermission(item.tab || item.page))),
+      }))
+      .filter(group => group.items.length > 0)
+  }, [can])
 
   const toggleGroup = id => setOpen(prev => ({ ...prev, [id]: !prev[id] }))
+
+  function isItemActive(item) {
+    return item.kind === 'tab'
+      ? current === 'business' && currentBizTab === item.tab
+      : current === item.page
+  }
+
+  function handleItemClick(item) {
+    if (item.kind === 'tab') {
+      onChange('business')
+      onBizTabChange?.(item.tab)
+    } else {
+      onChange(item.page)
+    }
+  }
 
   async function handleLogout() {
     if (supabase) await supabase.auth.signOut()
   }
 
-  // Lấy thông tin user
+  // Lấy thông tin user — role đọc từ CurrentUser (bảng roles thật), không còn
+  // đọc user_metadata.role (giá trị trang trí cũ, không liên quan Permission Engine).
   const email    = user?.email ?? ''
   const meta     = user?.user_metadata ?? {}
-  const role     = meta.role ?? 'Admin'
+  const role     = currentUser?.role?.name ?? 'Chưa gán vai trò'
   const fullName = meta.full_name ?? meta.name ?? ''
   const initials = fullName
     ? fullName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
@@ -110,100 +152,66 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
     }
   }
 
-  // Kiểm tra group nào đang active để highlight header
-  function isGroupActive(group) {
-    if (group.id === 'business') return current === 'business'
-    return group.items.some(item => item.page === current)
-  }
-
   return (
-    <nav className="w-[240px] bg-surface border-r border-border flex flex-col fixed top-0 left-0 h-screen z-30 overflow-y-auto shrink-0"
+    <nav className="w-[260px] bg-sidebar flex flex-col fixed top-0 left-0 h-screen z-30 overflow-y-auto shrink-0"
       style={{ paddingTop: 'env(safe-area-inset-top)', paddingLeft: 'env(safe-area-inset-left)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
 
       {/* ── Logo ───────────────────────────────────────────── */}
-      <div className="px-4 pt-5 pb-4 border-b border-border shrink-0">
-        <h1 className="text-base font-black text-[#1e293b] leading-tight tracking-tight">ANC - CFAM</h1>
-        <span className="text-[10px] text-muted">Cash Flow & Asset Management</span>
+      <div className="flex items-center gap-3 px-5 pt-7 pb-6 shrink-0">
+        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-400 to-cblue flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/25">
+          <Layers size={22} strokeWidth={2.2} className="text-white" />
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-[16px] font-bold text-white leading-tight tracking-tight truncate">ANC-CFAM</h1>
+          <span className="text-[12px] text-white/50 truncate block mt-0.5">Cash Flow & Asset Management</span>
+        </div>
       </div>
+      <div className="h-px bg-white/[0.07] mx-5 mb-4 shrink-0" />
 
       {/* ── Groups ─────────────────────────────────────────── */}
-      <div className="flex-1 py-2 overflow-y-auto">
-        {GROUPS.map(group => {
-          const isActive = isGroupActive(group)
-          const isOpen   = open[group.id]
+      <div className="flex-1 px-3 pb-4 overflow-y-auto">
+        {visibleGroups.map((group, gi) => {
+          const isOpen    = open[group.id]
+          const GroupIcon = group.icon
 
           return (
-            <div key={group.id} className="px-2 mb-1">
+            <div key={group.id} className={gi > 0 ? 'mt-5' : ''}>
 
-              {/* ── Group Header (accordion toggle) ── */}
+              {/* ── Group label (không phải nav item, chỉ phân nhóm) ── */}
               <button
                 onClick={() => toggleGroup(group.id)}
-                className={`
-                  w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border
-                  text-left transition-all duration-150 mb-1
-                  ${isActive
-                    ? `${group.activeBgCls} ${group.colorCls}`
-                    : `border-transparent text-muted ${group.headerCls}`
-                  }
-                `}
+                className="w-full flex items-center gap-2.5 px-3 h-8 rounded-lg text-left transition-colors duration-150 text-white/50 hover:text-white/70"
               >
-                {/* Icon lớn */}
-                <span className="text-[18px] leading-none shrink-0">{group.icon}</span>
-
-                {/* Label + desc */}
-                <div className="flex-1 min-w-0">
-                  <div className={`text-[13px] font-black truncate tracking-wide ${isActive ? group.colorCls : 'text-slate-300'}`}>
-                    {group.label}
-                  </div>
-                  <div className="text-[10px] text-slate-600 truncate font-medium mt-0.5">
-                    {group.desc}
-                  </div>
-                </div>
-
-                {/* Chevron */}
-                <svg
-                  className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${isActive ? group.colorCls : 'text-slate-600'}`}
-                  viewBox="0 0 24 24" fill="none"
-                >
-                  <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
+                <GroupIcon size={13} strokeWidth={2.2} className="shrink-0" />
+                <span className="flex-1 text-[12px] font-bold uppercase tracking-widest truncate">{group.label}</span>
+                <ChevronDown
+                  size={12} strokeWidth={2.4}
+                  className={`shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                />
               </button>
 
               {/* ── Sub-items ── */}
               {isOpen && (
-                <div className="flex flex-col gap-0.5 pl-2 mb-1">
+                <div className="flex flex-col gap-1 mt-1.5">
                   {group.items.map(item => {
-                    // Kiểm tra active tùy theo loại nhóm
-                    const isItemActive = group.id === 'business'
-                      ? current === 'business' && currentBizTab === item.tab
-                      : current === item.page
+                    const active   = isItemActive(item)
+                    const ItemIcon = item.icon
 
                     return (
                       <button
                         key={item.tab || item.page}
-                        onClick={() => {
-                          if (group.id === 'business') {
-                            onChange('business')
-                            onBizTabChange?.(item.tab)
-                          } else {
-                            onChange(item.page)
-                          }
-                        }}
-                        style={isItemActive ? { borderLeftColor: group.accent } : undefined}
-                        className={`
-                          w-full flex items-center gap-2.5 py-2 rounded-lg border-l-[3px]
-                          text-left text-[13px] transition-all duration-100
-                          ${isItemActive
-                            ? `pl-2.5 pr-3 ${group.activeBgCls} ${group.colorCls} font-bold shadow-sm`
-                            : 'pl-3 pr-3 border-transparent text-slate-500 font-medium hover:text-slate-900 hover:bg-surface2'
-                          }
-                        `}
+                        onClick={() => handleItemClick(item)}
+                        className={`group relative w-full flex items-center gap-3 h-10 rounded-xl border-l-4 pl-3 pr-3 text-left text-[14px] transition-all duration-150 active:scale-[0.98] ${
+                          active
+                            ? 'bg-gradient-to-r from-cblue/25 via-cblue/10 to-transparent border-cblue text-white font-semibold shadow-glow'
+                            : 'border-transparent text-white/50 font-medium hover:bg-sidebarHover hover:text-white/90'
+                        }`}
                       >
-                        <span className="text-[15px] leading-none shrink-0">{item.icon}</span>
+                        <ItemIcon
+                          size={16} strokeWidth={2}
+                          className={`shrink-0 transition-colors ${active ? 'text-cblue' : 'text-white/50 group-hover:text-white/80'}`}
+                        />
                         <span className="truncate">{item.label}</span>
-                        {isItemActive && (
-                          <span className={`ml-auto w-1.5 h-1.5 rounded-full shrink-0 ${group.dotCls}`} />
-                        )}
                       </button>
                     )
                   })}
@@ -215,33 +223,33 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
       </div>
 
       {/* ── User Info + Logout ─────────────────────────────── */}
-      <div className="shrink-0 border-t border-border">
+      <div className="shrink-0 border-t border-white/[0.07]">
 
         {/* User card */}
         {user && (
-          <div className="px-3 py-3 flex items-center gap-2.5">
+          <div className="px-4 py-4 flex items-center gap-3">
             {/* Avatar — click để đổi ảnh */}
             <div
               onClick={() => fileInputRef.current?.click()}
               title="Click để đổi ảnh đại diện"
-              className="relative w-8 h-8 rounded-full shrink-0 cursor-pointer group"
+              className="relative w-9 h-9 rounded-full shrink-0 cursor-pointer group"
             >
               {currentAvatar ? (
                 <img
                   src={currentAvatar}
                   alt="avatar"
-                  className="w-8 h-8 rounded-full object-cover border border-slate-600"
+                  className="w-9 h-9 rounded-full object-cover border border-white/15"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cblue/70 to-cpurple/70 border border-slate-600 flex items-center justify-center">
-                  <span className="text-[11px] font-black text-white">{initials}</span>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cblue to-cpurple flex items-center justify-center">
+                  <span className="text-[12px] font-bold text-white">{initials}</span>
                 </div>
               )}
               {/* Overlay khi hover hoặc uploading */}
               <div className={`absolute inset-0 rounded-full bg-black/60 flex items-center justify-center transition-opacity ${uploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                 {uploading
-                  ? <svg className="w-3.5 h-3.5 text-white animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/></svg>
-                  : <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  ? <Loader2 size={14} strokeWidth={2.5} className="text-white animate-spin" />
+                  : <Camera size={14} strokeWidth={2} className="text-white" />
                 }
               </div>
             </div>
@@ -257,16 +265,18 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
             {/* Info */}
             <div className="flex-1 min-w-0">
               {fullName && (
-                <div className="text-[11px] font-bold text-[#1e293b] truncate leading-tight">{fullName}</div>
+                <div className="text-[12px] font-semibold text-white truncate leading-tight">{fullName}</div>
               )}
-              <div className="text-[10px] text-slate-500 truncate leading-tight">{email}</div>
-              <div className="mt-0.5">
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full border ${
-                  role.toLowerCase() === 'admin'
-                    ? 'bg-cyellow/15 text-cyellow border-cyellow/30'
-                    : 'bg-cblue/15 text-cblue border-cblue/30'
+              <div className="text-[12px] text-white/50 truncate leading-tight mt-0.5">{email}</div>
+              <div className="mt-1">
+                <span className={`text-[12px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${
+                  can(PERMISSIONS.SYSTEM_SETTING)
+                    ? 'bg-amber-400/15 text-amber-400'
+                    : currentUser?.role
+                    ? 'bg-cblue/15 text-blue-300'
+                    : 'bg-white/10 text-white/40'
                 }`}>
-                  {role.toUpperCase()}
+                  {role}
                 </span>
               </div>
             </div>
@@ -274,16 +284,12 @@ export default function Sidebar({ current, currentBizTab, onChange, onBizTabChan
         )}
 
         {/* Logout */}
-        <div className="px-2 pb-3">
+        <div className="px-3 pb-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+            className="w-full flex items-center gap-3 h-10 px-3 rounded-xl text-left text-[14px] font-medium text-white/50 transition-colors hover:bg-rose-500/10 hover:text-rose-400"
           >
-            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-              <path d="M15 17l5-5-5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M20 12H9"       stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 21H5a1 1 0 01-1-1V4a1 1 0 011-1h7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <LogOut size={16} strokeWidth={2} className="shrink-0" />
             Đăng xuất
           </button>
         </div>

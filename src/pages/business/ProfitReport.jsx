@@ -7,6 +7,11 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement,
   Title, Tooltip, Legend,
 } from 'chart.js'
+import {
+  TrendingUp, TrendingDown, DollarSign, Factory, Percent,
+  Receipt, BarChart3, RefreshCw, FileBarChart,
+} from 'lucide-react'
+import PageHeader from '../../components/ui/PageHeader'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -72,7 +77,7 @@ const PRESETS = [
   { id: 'month',   label: 'Tháng này' },
   { id: 'quarter', label: 'Quý này' },
   { id: 'year',    label: 'Năm này' },
-  { id: 'custom',  label: '📅 Tùy chọn' },
+  { id: 'custom',  label: 'Tùy chọn' },
 ]
 
 function getRange(preset, customFrom, customTo) {
@@ -93,16 +98,12 @@ function getRange(preset, customFrom, customTo) {
 
 function StatusBadge({ status }) {
   const map = {
-    completed: { l: 'Hoàn thành', c: 'bg-cgreen/15 text-cgreen border-cgreen/30' },
-    pending:   { l: 'Chờ xử lý',  c: 'bg-cyellow/15 text-cyellow border-cyellow/30' },
-    cancelled: { l: 'Đã huỷ',     c: 'bg-cred/15 text-cred border-cred/30' },
+    completed: { l: 'Hoàn thành', c: 'tag-green' },
+    pending:   { l: 'Chờ xử lý',  c: 'tag-yellow' },
+    cancelled: { l: 'Đã huỷ',     c: 'tag-red' },
   }
-  const s = map[status] || { l: status, c: 'bg-surface2 text-muted border-border' }
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${s.c}`}>
-      {s.l}
-    </span>
-  )
+  const s = map[status] || { l: status, c: 'tag-blue' }
+  return <span className={s.c}>{s.l}</span>
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -176,14 +177,41 @@ export default function ProfitReport() {
     }
   }, [orders])
 
-  const TICK  = { color: '#8b949e', font: { size: 11 } }
-  const GRID  = { color: 'rgba(48,54,61,.5)' }
+  const TICK  = { color: '#94a3b8', font: { size: 11, family: 'Inter' } }
+  const GRID  = { color: '#e5e7eb' }
   const chartOptions = {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#8b949e', font: { size: 12 } } } },
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'end',
+        labels: {
+          color: '#6b7280',
+          font: { size: 12, family: 'Inter', weight: '600' },
+          usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 8,
+          boxHeight: 8,
+          padding: 16,
+        },
+      },
+      tooltip: {
+        backgroundColor: '#ffffff',
+        titleColor: '#111827',
+        bodyColor: '#111827',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+        titleFont: { family: 'Inter', weight: '700' },
+        bodyFont: { family: 'Inter' },
+        boxPadding: 4,
+        usePointStyle: true,
+      },
+    },
     scales: {
-      x: { ticks: TICK, grid: GRID },
-      y: { ticks: { ...TICK, callback: v => `${v}tr` }, grid: GRID },
+      x: { ticks: TICK, grid: { display: false } },
+      y: { ticks: { ...TICK, callback: v => `${v}tr` }, grid: GRID, border: { display: false } },
     },
   }
 
@@ -197,6 +225,8 @@ export default function ProfitReport() {
 
   // ── Render ────────────────────────────────────────────────────
   return (
+    <div className="w-full">
+      <PageHeader icon={TrendingUp} title="Báo Cáo Lợi Nhuận" subtitle="Doanh thu, chi phí và lợi nhuận theo kỳ" />
     <div className="p-6 w-full flex flex-col gap-5">
 
       {/* ── Filter bar ────────────────────────────────── */}
@@ -205,8 +235,8 @@ export default function ProfitReport() {
           <button key={p.id} onClick={() => setPreset(p.id)}
             className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all ${
               preset === p.id
-                ? 'bg-cblue/20 border-cblue text-cblue'
-                : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-[#1e293b]'
+                ? 'bg-cblue/10 border-cblue text-cblue'
+                : 'bg-surface border-border text-muted hover:border-cblue/40 hover:text-text'
             }`}>
             {p.label}
           </button>
@@ -215,66 +245,71 @@ export default function ProfitReport() {
         {preset === 'custom' && (
           <div className="flex items-center gap-2 ml-1">
             <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-              className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all" />
+              className="bg-surface border border-border rounded-lg px-3 py-1.5 text-sm text-text outline-none focus:border-cblue transition-all" />
             <span className="text-muted text-sm">→</span>
             <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-              className="bg-surface2 border border-border rounded-lg px-3 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue transition-all" />
+              className="bg-surface border border-border rounded-lg px-3 py-1.5 text-sm text-text outline-none focus:border-cblue transition-all" />
           </div>
         )}
 
         <button onClick={fetchOrders} disabled={loading}
           className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted text-sm hover:border-cblue hover:text-cblue transition-colors disabled:opacity-50">
-          <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none">
-            <path d="M4 4v5h5M20 20v-5h-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M4 9a8 8 0 0114.9-2.1M20 15a8 8 0 01-14.9 2.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
+          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
           {loading ? 'Đang tải…' : 'Làm mới'}
         </button>
       </div>
 
       {/* ── 3 cột tài chính cốt lõi ─────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           {
             label: 'Tổng Doanh Thu',
             sub:   'Tiền thực nhận từ khách',
             value: fmtVNDFull(stats.revenue),
-            color: 'text-cblue', bg: 'bg-cblue/8 border-cblue/25', icon: '💰',
+            color: 'text-cblue', iconBg: 'bg-blue-50 text-cblue', icon: DollarSign,
           },
           {
             label: 'Giá Vốn Hàng Bán (COGS)',
             sub:   'SUM(giá nhập × số lượng bán)',
             value: fmtVNDFull(stats.cogs),
-            color: 'text-orange-400', bg: 'bg-orange-500/8 border-orange-500/25', icon: '🏭',
+            color: 'text-amber-700', iconBg: 'bg-amber-50 text-amber-700', icon: Factory,
           },
           {
             label: 'Lãi Gộp (Gross Profit)',
             sub:   `Doanh thu − COGS · Biên ${stats.margin}%`,
             value: fmtVNDFull(stats.profit),
             color: Number(stats.profit) >= 0 ? 'text-cgreen' : 'text-cred',
-            bg:    Number(stats.profit) >= 0 ? 'bg-cgreen/8 border-cgreen/25' : 'bg-cred/8 border-cred/25',
-            icon: '📈',
+            iconBg: Number(stats.profit) >= 0 ? 'bg-emerald-50 text-cgreen' : 'bg-rose-50 text-cred',
+            icon: Number(stats.profit) >= 0 ? TrendingUp : TrendingDown,
           },
         ].map(k => (
-          <div key={k.label} className={`rounded-2xl border p-5 relative overflow-hidden ${k.bg}`}>
-            <div className="absolute top-3 right-4 text-3xl opacity-10">{k.icon}</div>
-            <div className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">{k.label}</div>
-            <div className={`text-2xl font-black tabular-nums leading-tight ${k.color}`}>{k.value}</div>
-            <div className="text-[11px] text-slate-500 mt-1.5">{k.sub}</div>
+          <div key={k.label} className="card relative overflow-hidden">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="text-caption font-bold text-muted uppercase tracking-wider">{k.label}</div>
+              <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${k.iconBg}`}>
+                <k.icon size={18} strokeWidth={2} />
+              </span>
+            </div>
+            <div className={`text-section font-black tabular-nums leading-tight ${k.color}`}>{k.value}</div>
+            <div className="text-caption text-subtle mt-1.5">{k.sub}</div>
           </div>
         ))}
       </div>
 
       {/* ── KPI phụ ──────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[
-          { label: 'Biên lợi nhuận gộp', value: `${stats.margin}%`,         color: Number(stats.margin) >= 20 ? 'text-cgreen' : 'text-cyellow', icon: '🎯' },
-          { label: 'Số đơn hoàn thành',  value: String(stats.count),        color: 'text-cpurple', icon: '🧾' },
-          { label: 'Doanh thu TB/đơn',   value: fmtVNDFull(stats.avgOrder), color: 'text-cteal',   icon: '📊' },
+          { label: 'Biên lợi nhuận gộp', value: `${stats.margin}%`,         color: Number(stats.margin) >= 20 ? 'text-cgreen' : 'text-cyellow', iconBg: Number(stats.margin) >= 20 ? 'bg-emerald-50 text-cgreen' : 'bg-amber-50 text-cyellow', icon: Percent },
+          { label: 'Số đơn hoàn thành',  value: String(stats.count),        color: 'text-cpurple', iconBg: 'bg-violet-50 text-cpurple', icon: Receipt },
+          { label: 'Doanh thu TB/đơn',   value: fmtVNDFull(stats.avgOrder), color: 'text-cteal',   iconBg: 'bg-teal-50 text-cteal',     icon: BarChart3 },
         ].map(k => (
           <div key={k.label} className="card p-4 relative overflow-hidden">
-            <div className="absolute top-3 right-3 text-2xl opacity-20">{k.icon}</div>
-            <div className="text-[10px] text-muted font-semibold uppercase tracking-wide mb-1.5">{k.label}</div>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="text-caption text-muted font-semibold uppercase tracking-wide">{k.label}</div>
+              <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${k.iconBg}`}>
+                <k.icon size={14} strokeWidth={2} />
+              </span>
+            </div>
             <div className={`text-xl font-black tabular-nums leading-tight ${k.color}`}>{k.value}</div>
           </div>
         ))}
@@ -283,7 +318,10 @@ export default function ProfitReport() {
       {/* ── Chart ─────────────────────────────────────── */}
       {chartData.labels.length > 0 && (
         <div className="card">
-          <div className="text-sm font-semibold text-muted mb-4">📊 Doanh thu & Lợi nhuận theo ngày (triệu ₫)</div>
+          <div className="flex items-center gap-2 text-cardtitle font-semibold text-text mb-4">
+            <BarChart3 size={18} className="text-muted" />
+            Doanh thu & Lợi nhuận theo ngày (triệu ₫)
+          </div>
           <div className="h-56">
             <Bar data={chartData} options={chartOptions} />
           </div>
@@ -291,9 +329,12 @@ export default function ProfitReport() {
       )}
 
       {/* ── Orders table ──────────────────────────────── */}
-      <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-2xl shadow-black/20">
-        <div className="px-5 py-3.5 border-b border-border bg-surface2 flex items-center justify-between">
-          <div className="text-sm font-bold">Chi tiết đơn hàng</div>
+      <div className="card p-0 overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2 text-cardtitle font-semibold text-text">
+            <FileBarChart size={18} className="text-muted" />
+            Chi tiết đơn hàng
+          </div>
           <span className="tag-blue">{orders.length} đơn</span>
         </div>
 
@@ -301,20 +342,20 @@ export default function ProfitReport() {
           <div className="text-center py-12 text-muted text-sm">Đang tải…</div>
         ) : orders.length === 0 ? (
           <div className="text-center py-12 text-muted">
-            <div className="text-4xl mb-2">📊</div>
+            <BarChart3 size={36} className="mx-auto mb-2 text-subtle" />
             <div className="font-semibold">Không có đơn hàng trong khoảng thời gian này</div>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px]">
               <thead>
-                <tr className="bg-[#f1f5f9] border-b border-border">
+                <tr className="bg-bg border-b border-border">
                   {['Mã đơn', 'Thời gian', 'Khách hàng', 'Sản phẩm', 'Doanh thu', 'Giá vốn', 'Lợi nhuận', 'Trạng thái'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-caption font-bold text-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border">
                 {orders.map(ord => {
                   const cogs    = (ord.total_amount || 0) - (ord.profit || 0)
                   const isCancelled = ord.status === 'cancelled'
@@ -324,40 +365,40 @@ export default function ProfitReport() {
 
                   return (
                     <tr key={ord.id}
-                      className={`border-b border-border/40 last:border-0 transition-colors ${
-                        isCancelled ? 'opacity-40' : 'hover:bg-slate-800/30'
+                      className={`transition-colors ${
+                        isCancelled ? 'opacity-40' : 'hover:bg-bg'
                       }`}>
-                      <td className="px-4 py-3.5">
-                        <span className="font-mono text-xs bg-surface2 border border-border px-2 py-0.5 rounded text-muted">
+                      <td className="px-4 py-4">
+                        <span className="font-mono text-xs bg-bg border border-border px-2 py-0.5 rounded text-muted">
                           #{ord.id.slice(-8).toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-muted whitespace-nowrap">
+                      <td className="px-4 py-4 text-xs text-muted whitespace-nowrap">
                         {fmtDatetime(ord.created_at)}
                       </td>
-                      <td className="px-4 py-3.5 text-sm">
+                      <td className="px-4 py-4 text-sm">
                         {ord.customers
                           ? <span className="text-cpurple font-semibold">{ord.customers.full_name}</span>
                           : <span className="text-muted italic">Khách lẻ</span>
                         }
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-muted max-w-[180px]">
+                      <td className="px-4 py-4 text-xs text-muted max-w-[180px]">
                         <div className="truncate" title={items.map(i => i.products?.name).join(', ')}>
                           {preview || '—'}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 text-right font-mono text-sm font-semibold text-[#1e293b] tabular-nums whitespace-nowrap">
+                      <td className="px-4 py-4 text-right font-mono text-sm font-semibold text-text tabular-nums whitespace-nowrap">
                         {fmtVNDFull(ord.total_amount)}
                       </td>
-                      <td className="px-4 py-3.5 text-right font-mono text-sm text-muted tabular-nums whitespace-nowrap">
+                      <td className="px-4 py-4 text-right font-mono text-sm text-muted tabular-nums whitespace-nowrap">
                         {fmtVNDFull(cogs)}
                       </td>
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                      <td className="px-4 py-4 text-right whitespace-nowrap">
                         <span className={`font-mono text-sm font-bold tabular-nums ${ord.profit >= 0 ? 'text-cgreen' : 'text-cred'}`}>
                           {fmtVNDFull(ord.profit)}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-4">
                         <StatusBadge status={ord.status} />
                       </td>
                     </tr>
@@ -368,19 +409,19 @@ export default function ProfitReport() {
               {/* Totals footer */}
               <tfoot>
                 <tr className="border-t-2 border-cblue/30 bg-cblue/5">
-                  <td colSpan={4} className="px-4 py-3.5 text-sm font-black text-cblue">
+                  <td colSpan={4} className="px-4 py-4 text-sm font-black text-cblue">
                     Tổng cộng ({orders.filter(o => o.status === 'completed').length} đơn hoàn thành)
                   </td>
-                  <td className="px-4 py-3.5 text-right font-mono font-black text-cblue tabular-nums whitespace-nowrap">
+                  <td className="px-4 py-4 text-right font-mono font-black text-cblue tabular-nums whitespace-nowrap">
                     {fmtVNDFull(totals.revenue)}
                   </td>
-                  <td className="px-4 py-3.5 text-right font-mono font-black text-muted tabular-nums whitespace-nowrap">
+                  <td className="px-4 py-4 text-right font-mono font-black text-muted tabular-nums whitespace-nowrap">
                     {fmtVNDFull(totals.cogs)}
                   </td>
-                  <td className="px-4 py-3.5 text-right font-mono font-black text-cgreen tabular-nums whitespace-nowrap">
+                  <td className="px-4 py-4 text-right font-mono font-black text-cgreen tabular-nums whitespace-nowrap">
                     {fmtVNDFull(totals.profit)}
                   </td>
-                  <td className="px-4 py-3.5">
+                  <td className="px-4 py-4">
                     <span className="text-xs text-muted font-semibold">
                       Biên: {stats.margin}%
                     </span>
@@ -391,6 +432,7 @@ export default function ProfitReport() {
           </div>
         )}
       </div>
+    </div>
     </div>
   )
 }

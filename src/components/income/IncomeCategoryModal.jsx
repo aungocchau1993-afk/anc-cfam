@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { X, Pencil, Trash2, Settings, Lightbulb } from 'lucide-react'
+import ModalOverlay from '../ui/ModalOverlay'
 import { useApp } from '../../context/AppContext'
 
 function EditRow({ cat, onSave, onDelete }) {
@@ -37,20 +39,20 @@ function EditRow({ cat, onSave, onDelete }) {
   return (
     <div className="flex items-center gap-2 py-2 border-b border-border/50 last:border-0 group">
       <div className="w-5 h-5 rounded bg-cblue/10 flex items-center justify-center shrink-0">
-        <span className="text-cblue text-[10px] font-bold">#</span>
+        <span className="text-cblue text-[12px] font-bold">#</span>
       </div>
 
       {editing ? (
         <input
           autoFocus
-          className="flex-1 bg-surface2 border border-cblue rounded-md px-2.5 py-1.5 text-sm text-[#1e293b] outline-none focus:border-cblue"
+          className="input-sm flex-1 !border-cblue"
           value={name}
           onChange={e => setName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false) }}
           disabled={loading}
         />
       ) : (
-        <span className="flex-1 text-sm text-[#1e293b]">{cat.name}</span>
+        <span className="flex-1 text-sm text-text">{cat.name}</span>
       )}
 
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -65,7 +67,7 @@ function EditRow({ cat, onSave, onDelete }) {
             </button>
             <button
               onClick={() => { setEditing(false); setName(cat.name) }}
-              className="px-2.5 py-1 rounded-md bg-surface2 border border-border text-muted text-xs hover:text-[#1e293b] transition-colors"
+              className="px-2.5 py-1 rounded-md bg-surface2 border border-border text-muted text-xs hover:text-text transition-colors"
             >
               Huỷ
             </button>
@@ -75,22 +77,17 @@ function EditRow({ cat, onSave, onDelete }) {
             <button
               onClick={() => setEditing(true)}
               title="Đổi tên"
-              className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center"
+              className="w-7 h-7 rounded-md border border-border text-muted hover:border-cblue hover:text-cblue hover:bg-cblue/10 transition-colors flex items-center justify-center"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Pencil size={14} strokeWidth={1.8} />
             </button>
             <button
               onClick={handleDelete}
               disabled={loading}
               title="Xoá"
-              className="w-7 h-7 rounded-md border border-slate-700 text-slate-400 hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors flex items-center justify-center disabled:opacity-50"
+              className="w-7 h-7 rounded-md border border-border text-muted hover:border-cred hover:text-cred hover:bg-cred/10 transition-colors flex items-center justify-center disabled:opacity-50"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                <path d="M9 3h6m-8 5h10m-9 0l.6 12h6.8L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Trash2 size={14} strokeWidth={1.8} />
             </button>
           </>
         )}
@@ -121,21 +118,22 @@ export default function IncomeCategoryModal({ onClose }) {
   }
 
   return (
-    <div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-    >
+    <ModalOverlay onClose={onClose}>
       <div className="bg-surface border border-border rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[85vh]">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-          <div>
-            <div className="font-bold text-base">⚙️ Danh mục Thu nhập</div>
-            <div className="text-xs text-muted mt-0.5">Thêm, sửa tên hoặc xoá danh mục</div>
+          <div className="flex items-center gap-2">
+            <Settings size={18} strokeWidth={2} className="text-cblue" />
+            <div>
+              <div className="font-bold text-base text-text">Danh mục Thu nhập</div>
+              <div className="text-xs text-muted mt-0.5">Thêm, sửa tên hoặc xoá danh mục</div>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors text-sm"
-          >×</button>
+            className="w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors flex items-center justify-center"
+          ><X size={15} strokeWidth={2.2} /></button>
         </div>
 
         {/* List */}
@@ -158,10 +156,10 @@ export default function IncomeCategoryModal({ onClose }) {
 
         {/* Add new */}
         <div className="px-5 py-4 border-t border-border bg-surface2 rounded-b-2xl shrink-0">
-          <div className="text-[11px] text-muted font-semibold uppercase tracking-wide mb-2">+ Thêm danh mục mới</div>
+          <div className="text-[12px] text-muted font-semibold uppercase tracking-wide mb-2">+ Thêm danh mục mới</div>
           <div className="flex gap-2">
             <input
-              className="flex-1 bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue transition-all"
+              className="input-sm flex-1"
               placeholder="VD: Lương thưởng, Cho thuê..."
               value={newName}
               onChange={e => setNewName(e.target.value)}
@@ -171,16 +169,17 @@ export default function IncomeCategoryModal({ onClose }) {
             <button
               onClick={handleAdd}
               disabled={adding || !newName.trim()}
-              className="btn-primary px-4 py-2 text-sm disabled:opacity-50"
+              className="btn-primary px-4 h-auto py-2 text-sm disabled:opacity-50"
             >
               {adding ? '…' : 'Thêm'}
             </button>
           </div>
-          <div className="text-[11px] text-slate-600 mt-2">
-            💡 Nhấn Enter để thêm nhanh · Hover vào danh mục để sửa/xoá
+          <div className="flex items-center gap-1.5 text-[12px] text-subtle mt-2">
+            <Lightbulb size={12} strokeWidth={2} />
+            Nhấn Enter để thêm nhanh · Hover vào danh mục để sửa/xoá
           </div>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   )
 }

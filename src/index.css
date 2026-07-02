@@ -4,7 +4,9 @@
 
 @layer base {
   /* ── Root / Body ── */
-  body { @apply bg-bg font-sans; color: #1e293b; }
+  /* font-variant-numeric: tabular-nums toàn cục — mọi số liệu (giá, tồn kho,
+     KPI...) tự động thẳng hàng, không cần gắn class tabular-nums thủ công. */
+  body { @apply bg-bg font-sans; color: #111827; font-variant-numeric: tabular-nums; }
   * { @apply box-border; }
 
   /* ── Scrollbar (desktop) ── */
@@ -36,66 +38,91 @@
 @layer components {
 
   /* ─────────────────────────── CARDS ─────────────────────────────────────── */
-  .card        { @apply bg-surface border border-border rounded-xl p-5 shadow-sm; }
-  .card-green  { @apply bg-gradient-to-br from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-xl p-5; }
-  .card-blue   { @apply bg-gradient-to-br from-blue-50 to-blue-100/60 border border-blue-200 rounded-xl p-5; }
-  .card-purple { @apply bg-gradient-to-br from-violet-50 to-violet-100/60 border border-violet-200 rounded-xl p-5; }
-  .card-red    { @apply bg-gradient-to-br from-rose-50 to-rose-100/60 border border-rose-200 rounded-xl p-5; }
-  .card-gold   { @apply bg-gradient-to-br from-amber-50 to-amber-100/60 border border-amber-200 rounded-xl p-5; }
+  /* Design System 2026: radius 16px, padding 24px, shadow-card, border 1px */
+  .card        { @apply bg-surface border border-border rounded-2xl p-6 shadow-card transition-all duration-200; }
+  /* Opt-in cho card có thể bấm/click — hover translateY(-2px) */
+  .card-hover  { @apply hover:-translate-y-0.5 hover:shadow-cardHover cursor-pointer; }
+  .card-green  { @apply bg-gradient-to-br from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-2xl p-6; }
+  .card-blue   { @apply bg-gradient-to-br from-blue-50 to-blue-100/60 border border-blue-200 rounded-2xl p-6; }
+  .card-purple { @apply bg-gradient-to-br from-violet-50 to-violet-100/60 border border-violet-200 rounded-2xl p-6; }
+  .card-red    { @apply bg-gradient-to-br from-rose-50 to-rose-100/60 border border-rose-200 rounded-2xl p-6; }
+  .card-gold   { @apply bg-gradient-to-br from-amber-50 to-amber-100/60 border border-amber-200 rounded-2xl p-6; }
 
   /* ─────────────────────────── BUTTONS ───────────────────────────────────── */
-  /* h-14 = 56px — tiêu chuẩn mobile touch target của Apple (HIG) */
+  /* Design System 2026: height 44px, radius 12px. Primary = gradient blue nhẹ */
   .btn-primary {
-    @apply bg-accent hover:opacity-90 text-white font-semibold px-4 rounded-lg
-           transition-all duration-100 cursor-pointer border-0 shadow-sm
-           active:scale-95 touch-manipulation
-           h-14 flex items-center justify-center gap-2 text-base;
+    @apply h-11 px-5 rounded-xl text-white font-semibold text-sm
+           bg-gradient-to-b from-[#3b82f6] to-[#2563eb] border-0
+           hover:shadow-lg hover:shadow-blue-500/25 hover:brightness-105
+           transition-all duration-200 cursor-pointer
+           active:scale-[0.98] touch-manipulation
+           flex items-center justify-center gap-2;
   }
+  /* Secondary — nền trắng, viền */
   .btn-ghost {
-    @apply bg-surface hover:bg-surface2 text-slate-600 hover:text-slate-900 px-4 rounded-lg
-           transition-all duration-100 cursor-pointer border border-border
-           active:scale-95 touch-manipulation
-           h-14 flex items-center justify-center gap-2 text-base;
+    @apply h-11 px-5 rounded-xl text-sm font-semibold
+           bg-white text-slate-700 border border-[#d1d5db]
+           hover:bg-surface2 hover:border-slate-600
+           transition-all duration-200 cursor-pointer
+           active:scale-[0.98] touch-manipulation
+           flex items-center justify-center gap-2;
+  }
+  .btn-danger {
+    @apply h-11 px-5 rounded-xl text-sm font-semibold text-white bg-cred border-0
+           hover:brightness-105 hover:shadow-lg hover:shadow-red-500/20
+           transition-all duration-200 cursor-pointer
+           active:scale-[0.98] touch-manipulation
+           flex items-center justify-center gap-2;
+  }
+  .btn-success {
+    @apply h-11 px-5 rounded-xl text-sm font-semibold text-white bg-cgreen border-0
+           hover:brightness-105 hover:shadow-lg hover:shadow-emerald-500/20
+           transition-all duration-200 cursor-pointer
+           active:scale-[0.98] touch-manipulation
+           flex items-center justify-center gap-2;
   }
   /* Nút nhỏ inline (dùng trong table, tag...) — 36px min */
   .btn-sm {
     @apply px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-100
            active:scale-95 touch-manipulation min-h-[36px];
   }
-  /* Nút full-width hành động chính */
+  /* Nút full-width hành động chính (mobile bottom-sheet) */
   .btn-action {
     @apply w-full h-14 flex items-center justify-center gap-2 rounded-xl font-black text-base
            transition-all duration-100 active:scale-[0.97] touch-manipulation;
   }
 
   /* ─────────────────────────── INPUTS ────────────────────────────────────── */
-  /* h-14 để dễ tap, font 16px để iOS không zoom */
+  /* Design System 2026: height 44px, radius 12px, border #D1D5DB, focus blue ring */
   .input-base {
-    @apply bg-surface2 border border-border text-slate-900 px-4 rounded-lg
-           focus:outline-none focus:border-cblue focus:ring-2 focus:ring-cblue/15
-           transition-colors w-full touch-manipulation h-14 text-base;
+    @apply h-11 px-4 rounded-xl text-base text-slate-900
+           bg-white border border-[#d1d5db]
+           focus:outline-none focus:border-cblue focus:ring-4 focus:ring-cblue/10
+           transition-colors w-full touch-manipulation;
   }
   .input-money {
-    @apply bg-blue-50 border border-blue-200 text-cblue px-4 rounded-lg
-           text-right font-mono focus:outline-none focus:border-cblue focus:ring-2 focus:ring-cblue/15
-           transition-colors w-full touch-manipulation h-14 text-base;
+    @apply h-11 px-4 rounded-xl text-base text-right font-mono text-cblue
+           bg-blue-50 border border-blue-200
+           focus:outline-none focus:border-cblue focus:ring-4 focus:ring-cblue/10
+           transition-colors w-full touch-manipulation;
   }
-  /* Input nhỏ — filter, search (44px) */
+  /* Input nhỏ — filter, search */
   .input-sm {
-    @apply bg-surface2 border border-border text-slate-900 px-3 py-2 rounded-lg
-           focus:outline-none focus:border-cblue focus:ring-2 focus:ring-cblue/15
-           transition-colors touch-manipulation min-h-[44px] text-base;
+    @apply min-h-[40px] px-3 py-2 rounded-xl text-base text-slate-900
+           bg-white border border-[#d1d5db]
+           focus:outline-none focus:border-cblue focus:ring-4 focus:ring-cblue/10
+           transition-colors touch-manipulation;
   }
 
-  /* ─────────────────────────── NAV ───────────────────────────────────────── */
+  /* ─────────────────────────── NAV (content area, KHÔNG dùng cho Sidebar) ── */
   .nav-item   { @apply flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-slate-500 text-sm font-medium transition-all hover:bg-surface2 hover:text-slate-900; }
   .nav-active { @apply bg-cblue/10 text-cblue; }
 
   /* ─────────────────────────── TAGS ──────────────────────────────────────── */
-  .tag-green  { @apply bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-0.5 rounded; }
-  .tag-red    { @apply bg-rose-50    text-rose-600    text-xs font-bold px-2 py-0.5 rounded; }
-  .tag-blue   { @apply bg-blue-50    text-blue-600    text-xs font-bold px-2 py-0.5 rounded; }
-  .tag-yellow { @apply bg-amber-50   text-amber-600   text-xs font-bold px-2 py-0.5 rounded; }
+  .tag-green  { @apply bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-0.5 rounded-full; }
+  .tag-red    { @apply bg-rose-50    text-rose-700    text-xs font-bold px-2.5 py-0.5 rounded-full; }
+  .tag-blue   { @apply bg-blue-50    text-blue-600    text-xs font-bold px-2.5 py-0.5 rounded-full; }
+  .tag-yellow { @apply bg-amber-50   text-amber-700   text-xs font-bold px-2.5 py-0.5 rounded-full; }
 
   /* ─────────────────────────── TABLES ────────────────────────────────────── */
   /* Wrapper bắt buộc — dùng cho mọi <table> trên mobile */

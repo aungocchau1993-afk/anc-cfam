@@ -1,5 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
+import {
+  Camera, ScanLine, Sparkles, X, Search, Check, ChevronLeft,
+  FileText, ClipboardList, LoaderCircle, SkipForward, CircleCheck,
+  Info, Scissors, FolderOpen, ShoppingCart, Package, TriangleAlert,
+} from 'lucide-react'
 import { useAuth } from '../../context/SupabaseContext'
 import { scanInvoice, scanMultipleInvoices, scanQRCode, uploadInvoiceImage } from '../../lib/invoiceScanner'
 import { removeVietnameseTones, fmtVNDFull } from '../../lib/formatters'
@@ -78,9 +83,9 @@ function findMatches(name, list, nameKey = 'name') {
 function ScoreBadge({ score }) {
   const cls = score >= 80 ? 'bg-cgreen/15 text-cgreen border-cgreen/30'
     : score >= 50 ? 'bg-cyellow/15 text-cyellow border-cyellow/30'
-    : 'bg-slate-700/40 text-slate-400 border-slate-600/40'
+    : 'bg-surface2 text-muted border-border'
   return (
-    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full border tabular-nums shrink-0 ${cls}`}>
+    <span className={`text-[12px] font-black px-1.5 py-0.5 rounded-full border tabular-nums shrink-0 ${cls}`}>
       {score}%
     </span>
   )
@@ -110,8 +115,8 @@ export default function OcrInvoiceModal({
 
   const isQR   = mode === 'QR'
   const title  = isSale
-    ? (isQR ? '📷 QR Hóa Đơn Bán Hàng' : '🤖 OCR Hóa Đơn Bán Hàng')
-    : (isQR ? '📷 QR Phiếu Nhập Kho'   : '🤖 OCR Phiếu Nhập Kho')
+    ? (isQR ? 'QR Hóa Đơn Bán Hàng' : 'OCR Hóa Đơn Bán Hàng')
+    : (isQR ? 'QR Phiếu Nhập Kho'   : 'OCR Phiếu Nhập Kho')
 
   // ── Queue nhiều hóa đơn ────────────────────────────────────────────────────
   const [queue,    setQueue]    = useState([])   // [File, File, ...]
@@ -160,7 +165,7 @@ export default function OcrInvoiceModal({
     setQueue(imgs)
     setQueueIdx(0)
     loadFileAt(imgs, 0)
-    if (imgs.length > 1) toast.success(`📂 Đã thêm ${imgs.length} hóa đơn vào hàng chờ`)
+    if (imgs.length > 1) toast.success(`Đã thêm ${imgs.length} hóa đơn vào hàng chờ`)
   }
 
   function handleFile(f) {
@@ -198,7 +203,7 @@ export default function OcrInvoiceModal({
             // Đã có ảnh → thêm vào cuối queue
             setQueue(prev => {
               const next = [...prev, f]
-              toast.success(`📋 Đã thêm vào hàng chờ (${next.length} ảnh)`)
+              toast.success(`Đã thêm vào hàng chờ (${next.length} ảnh)`)
               return next
             })
           }
@@ -225,13 +230,13 @@ export default function OcrInvoiceModal({
           if (!isSale && parsed.invoice_date) setDueDate(parsed.invoice_date)
           if (!isSale && parsed.total_amount) setPaidAmount('0')
           setStage('qr-result')
-          toast.success('✅ Đọc QR thành công!')
+          toast.success('Đọc QR thành công!')
           return
         }
         // QR không tìm thấy → tự động chuyển sang AI
-        toast(`⚠️ Không tìm thấy mã QR, chuyển sang AI OCR…`, { duration: 2500 })
+        toast(`Không tìm thấy mã QR, chuyển sang AI OCR…`, { duration: 2500 })
       } catch {
-        toast(`⚠️ Lỗi đọc QR, chuyển sang AI OCR…`, { duration: 2500 })
+        toast(`Lỗi đọc QR, chuyển sang AI OCR…`, { duration: 2500 })
       }
     }
 
@@ -272,7 +277,7 @@ export default function OcrInvoiceModal({
 
       setStage('review')
       const matched = newRows.filter(r => r.product).length
-      toast.success(`✅ Đọc xong! Khớp ${matched}/${newRows.length} sản phẩm`)
+      toast.success(`Đọc xong! Khớp ${matched}/${newRows.length} sản phẩm`)
     } catch (err) {
       setStage('upload')
       toast.error(err.message || 'Lỗi khi quét hóa đơn')
@@ -326,7 +331,7 @@ export default function OcrInvoiceModal({
 
     if (isSale) {
       onAddItems(selected)
-      toast.success(`✅ Đã thêm ${selected.length} sản phẩm vào giỏ`)
+      toast.success(`Đã thêm ${selected.length} sản phẩm vào giỏ`)
     } else {
       const supplierId = supplierMatch?.item?.id ?? null
       const items = selected.map(r => ({
@@ -353,7 +358,7 @@ export default function OcrInvoiceModal({
     if (nextIdx < queue.length) {
       setQueueIdx(nextIdx)
       loadFileAt(queue, nextIdx)
-      toast(`📄 Hóa đơn ${nextIdx + 1}/${queue.length}`, { duration: 1800 })
+      toast(`Hóa đơn ${nextIdx + 1}/${queue.length}`, { duration: 1800 })
     } else {
       onClose()
     }
@@ -365,21 +370,22 @@ export default function OcrInvoiceModal({
 
   return (
     <ModalOverlay onClose={onClose}>
-      <div className="bg-[#ffffff] border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col w-full max-h-[92vh]"
+      <div className="bg-white border border-border rounded-2xl shadow-2xl flex flex-col w-full max-h-[92vh]"
         style={{ maxWidth: stage === 'review' ? '900px' : '520px' }}>
 
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#1e293b]">{title}</span>
+              {isQR ? <Camera size={18} strokeWidth={2} className="text-cblue" /> : <Sparkles size={18} strokeWidth={2} className="text-cpurple" />}
+              <span className="font-bold text-text">{title}</span>
               {queue.length > 1 && (
-                <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-cblue/20 text-cblue border border-cblue/30">
+                <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-cblue/10 text-cblue border border-cblue/30">
                   {queueIdx + 1} / {queue.length}
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-[12px] text-muted mt-0.5">
               {stage === 'upload'     && (isQR ? 'Upload ảnh có mã QR → đọc chính xác 100%'
                 : billMode === 'merge' ? 'Upload nhiều ảnh → AI gộp thành 1 hóa đơn'
                 : 'Upload ảnh hóa đơn → AI tự đọc dữ liệu')}
@@ -392,36 +398,36 @@ export default function OcrInvoiceModal({
             {/* Mode toggle AI / QR */}
             {stage === 'upload' && (
               <>
-                <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 text-[11px] font-semibold">
+                <div className="flex items-center bg-surface2 border border-border rounded-lg p-0.5 text-[12px] font-semibold">
                   <button
                     onClick={() => handleModeSwitch('AI')}
-                    className={`px-2.5 py-1 rounded-md transition-colors ${mode === 'AI' ? 'bg-cpurple text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                    className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 ${mode === 'AI' ? 'bg-cpurple text-white' : 'text-muted hover:text-text'}`}
                   >
-                    🤖 AI
+                    <Sparkles size={12} strokeWidth={2.2} /> AI
                   </button>
                   <button
                     onClick={() => handleModeSwitch('QR')}
-                    className={`px-2.5 py-1 rounded-md transition-colors ${isQR ? 'bg-cblue text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                    className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 ${isQR ? 'bg-cblue text-white' : 'text-muted hover:text-text'}`}
                   >
-                    📷 QR
+                    <Camera size={12} strokeWidth={2.2} /> QR
                   </button>
                 </div>
                 {/* Bill mode toggle — chỉ hiện khi AI mode */}
                 {!isQR && (
-                  <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 text-[11px] font-semibold">
+                  <div className="flex items-center bg-surface2 border border-border rounded-lg p-0.5 text-[12px] font-semibold">
                     <button
                       onClick={() => setBillMode('split')}
-                      className={`px-2.5 py-1 rounded-md transition-colors ${billMode === 'split' ? 'bg-cgreen/80 text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                      className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 ${billMode === 'split' ? 'bg-cgreen text-white' : 'text-muted hover:text-text'}`}
                       title="Mỗi ảnh = 1 hóa đơn riêng"
                     >
-                      ✂️ Tách
+                      <Scissors size={12} strokeWidth={2.2} /> Tách
                     </button>
                     <button
                       onClick={() => setBillMode('merge')}
-                      className={`px-2.5 py-1 rounded-md transition-colors ${billMode === 'merge' ? 'bg-cyellow/80 text-black' : 'text-slate-400 hover:text-slate-200'}`}
+                      className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 ${billMode === 'merge' ? 'bg-cyellow text-white' : 'text-muted hover:text-text'}`}
                       title="Nhiều ảnh gộp thành 1 hóa đơn"
                     >
-                      🗂️ Gộp
+                      <FolderOpen size={12} strokeWidth={2.2} /> Gộp
                     </button>
                   </div>
                 )}
@@ -430,7 +436,7 @@ export default function OcrInvoiceModal({
             {/* Stage dots */}
             {['upload','scanning','review'].map((s) => (
               <div key={s} className={`w-2 h-2 rounded-full transition-colors ${
-                stage === s ? (isSale ? 'bg-cpurple' : 'bg-cteal') : 'bg-slate-700'
+                stage === s ? (isSale ? 'bg-cpurple' : 'bg-cteal') : 'bg-border'
               }`} />
             ))}
             {/* Bỏ qua ảnh hiện tại khi queue > 1 */}
@@ -440,17 +446,17 @@ export default function OcrInvoiceModal({
                   const nextIdx = queueIdx + 1
                   setQueueIdx(nextIdx)
                   loadFileAt(queue, nextIdx)
-                  toast(`⏭ Bỏ qua, chuyển sang ảnh ${nextIdx + 1}/${queue.length}`, { duration: 1500 })
+                  toast(`Bỏ qua, chuyển sang ảnh ${nextIdx + 1}/${queue.length}`, { duration: 1500 })
                 }}
-                className="ml-1 px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cyellow text-[11px] font-semibold transition-colors"
+                className="ml-1 px-2 py-1 rounded-lg bg-surface2 border border-border text-muted hover:text-cyellow text-[12px] font-semibold transition-colors flex items-center gap-1"
                 title="Bỏ qua ảnh này, xử lý ảnh tiếp theo"
               >
-                ⏭ Bỏ qua
+                <SkipForward size={12} strokeWidth={2.2} /> Bỏ qua
               </button>
             )}
             <button onClick={onClose}
-              className="ml-1 w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-cred transition-colors text-lg flex items-center justify-center">
-              ×
+              className="ml-1 w-8 h-8 rounded-lg bg-surface2 border border-border text-muted hover:text-cred transition-colors flex items-center justify-center">
+              <X size={15} strokeWidth={2.2} />
             </button>
           </div>
         </div>
@@ -461,12 +467,12 @@ export default function OcrInvoiceModal({
           /* ── QR Result stage ───────────────────────────────────────────── */
           <div className="p-5 overflow-y-auto flex flex-col gap-3">
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-cblue/8 border border-cblue/25 text-xs text-cblue font-semibold">
-              ✅ Đọc QR thành công — dữ liệu chính xác 100% từ Tổng cục Thuế
+              <CircleCheck size={14} strokeWidth={2.2} className="shrink-0" /> Đọc QR thành công — dữ liệu chính xác 100% từ Tổng cục Thuế
             </div>
 
             {/* Image preview */}
             {preview && (
-              <img src={preview} alt="HĐ" className="max-h-40 rounded-xl border border-slate-700 object-contain self-center" />
+              <img src={preview} alt="HĐ" className="max-h-40 rounded-xl border border-border object-contain self-center" />
             )}
 
             {/* QR Fields grid */}
@@ -482,16 +488,17 @@ export default function OcrInvoiceModal({
                 { label: 'Tổng thanh toán',value: qrData?.total_amount ? fmtVNDFull(qrData.total_amount) : null },
                 { label: 'MST người mua',  value: qrData?.buyer_tax },
               ].filter(f => f.value).map(f => (
-                <div key={f.label} className="bg-slate-800/60 border border-slate-700 rounded-xl px-3 py-2 flex flex-col gap-0.5">
-                  <span className="text-[10px] text-slate-500 uppercase tracking-wide">{f.label}</span>
-                  <span className="font-bold text-[#1e293b] font-mono text-[11px]">{f.value}</span>
+                <div key={f.label} className="bg-surface2 border border-border rounded-xl px-3 py-2 flex flex-col gap-0.5">
+                  <span className="text-[12px] text-muted uppercase tracking-wide">{f.label}</span>
+                  <span className="font-bold text-text font-mono text-[12px]">{f.value}</span>
                 </div>
               ))}
             </div>
 
-            <div className="text-[10px] text-slate-600 px-1">
-              ℹ️ QR hóa đơn điện tử chứa thông tin đầu mối — không bao gồm danh sách sản phẩm chi tiết.
-              Bấm <strong className="text-slate-400">Chuyển sang AI</strong> để đọc thêm chi tiết hàng hóa.
+            <div className="text-[12px] text-subtle px-1 flex items-start gap-1">
+              <Info size={12} strokeWidth={2.2} className="shrink-0 mt-0.5" />
+              <span>QR hóa đơn điện tử chứa thông tin đầu mối — không bao gồm danh sách sản phẩm chi tiết.
+              Bấm <strong className="text-muted">Chuyển sang AI</strong> để đọc thêm chi tiết hàng hóa.</span>
             </div>
           </div>
 
@@ -503,7 +510,7 @@ export default function OcrInvoiceModal({
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
               className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-colors
-                ${stage === 'scanning' ? 'border-slate-700 cursor-default' : 'border-slate-700 hover:border-cblue/30 focus-within:border-cblue/50 group'}`}
+                ${stage === 'scanning' ? 'border-border cursor-default' : 'border-border hover:border-cblue/40 focus-within:border-cblue/50 group'}`}
             >
               {billMode === 'merge' && queue.length > 1 ? (
                 /* Merge mode: hiện grid tất cả ảnh đã chọn */
@@ -514,43 +521,41 @@ export default function OcrInvoiceModal({
                         <img
                           src={URL.createObjectURL(f)}
                           alt={`Ảnh ${i+1}`}
-                          className="w-full h-24 object-cover rounded-lg border border-slate-700"
+                          className="w-full h-24 object-cover rounded-lg border border-border"
                         />
-                        <div className="absolute top-1 left-1 bg-black/70 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                        <div className="absolute top-1 left-1 bg-black/70 text-white text-[12px] font-black px-1.5 py-0.5 rounded-full">
                           {i + 1}
                         </div>
                         <button
                           onClick={e => { e.stopPropagation(); const next = queue.filter((_,idx) => idx !== i); setQueue(next); if (next.length === 0) { setFile(null); setPreview(null) } else { loadFileAt(next, 0) } }}
-                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/80 text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-cred/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                           title="Xóa ảnh này"
-                        >×</button>
+                        ><X size={11} strokeWidth={2.5} /></button>
                       </div>
                     ))}
                   </div>
-                  <div className="text-[11px] text-cyellow/80 text-center font-semibold">
-                    🗂️ {queue.length} ảnh sẽ được gộp thành 1 hóa đơn
+                  <div className="text-[12px] text-cyellow text-center font-semibold flex items-center justify-center gap-1">
+                    <FolderOpen size={12} strokeWidth={2.2} /> {queue.length} ảnh sẽ được gộp thành 1 hóa đơn
                   </div>
                 </div>
               ) : preview ? (
-                <img src={preview} alt="Hóa đơn" className="max-h-52 rounded-lg object-contain border border-slate-700" />
+                <img src={preview} alt="Hóa đơn" className="max-h-52 rounded-lg object-contain border border-border" />
               ) : (
                 <>
-                  <div className="text-4xl opacity-40 group-hover:opacity-60 transition-opacity">🧾</div>
-                  <div className="text-sm text-slate-500 text-center">
+                  <ScanLine size={40} strokeWidth={1.5} className="text-subtle opacity-60 group-hover:opacity-90 transition-opacity" />
+                  <div className="text-sm text-muted text-center">
                     Kéo thả hoặc{' '}
                     <span
                       className="text-cblue font-semibold underline underline-offset-2 cursor-pointer hover:brightness-125"
                       onClick={e => { e.stopPropagation(); stage !== 'scanning' && fileInputRef.current?.click() }}
                     >click chọn ảnh</span>
-                    <br/><span className="text-[11px] text-slate-600">JPG, PNG, WEBP… hoặc <kbd className="bg-slate-800 border border-slate-700 rounded px-1 text-[10px] text-slate-400 font-mono">Ctrl+V</kbd> để dán</span>
+                    <br/><span className="text-[12px] text-subtle">JPG, PNG, WEBP… hoặc <kbd className="bg-surface2 border border-border rounded px-1 text-[12px] text-muted font-mono">Ctrl+V</kbd> để dán</span>
                   </div>
                 </>
               )}
               {stage === 'scanning' && (
-                <div className="flex items-center gap-2 text-sm text-slate-400 mt-2">
-                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
-                  </svg>
+                <div className="flex items-center gap-2 text-sm text-muted mt-2">
+                  <LoaderCircle size={16} strokeWidth={2.2} className="animate-spin" />
                   {isQR ? 'Đang giải mã QR…' : 'Gemini AI đang đọc hóa đơn…'}
                 </div>
               )}
@@ -564,8 +569,9 @@ export default function OcrInvoiceModal({
             </div>
 
             {!import.meta.env.VITE_GEMINI_API_KEY && (
-              <div className="bg-cyellow/8 border border-cyellow/25 rounded-xl px-4 py-3 text-xs text-cyellow">
-                ⚠️ Chưa cấu hình Gemini API Key — vào <strong>Netlify → Environment variables</strong> thêm <code className="font-mono bg-black/30 px-1 rounded">VITE_GEMINI_API_KEY</code> rồi redeploy
+              <div className="bg-cyellow/8 border border-cyellow/25 rounded-xl px-4 py-3 text-xs text-cyellow flex items-start gap-2">
+                <TriangleAlert size={14} strokeWidth={2.2} className="shrink-0 mt-0.5" />
+                <span>Chưa cấu hình Gemini API Key — vào <strong>Netlify → Environment variables</strong> thêm <code className="font-mono bg-black/10 px-1 rounded">VITE_GEMINI_API_KEY</code> rồi redeploy</span>
               </div>
             )}
           </div>
@@ -576,27 +582,27 @@ export default function OcrInvoiceModal({
           <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
 
             {/* Cột trái — Ảnh gốc */}
-            <div className="md:w-[340px] shrink-0 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col">
-              <div className="px-4 py-2.5 border-b border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                📄 Ảnh hóa đơn gốc
+            <div className="md:w-[340px] shrink-0 border-b md:border-b-0 md:border-r border-border flex flex-col">
+              <div className="px-4 py-2.5 border-b border-border text-[12px] font-bold text-muted uppercase tracking-wide flex items-center gap-1.5">
+                <FileText size={13} strokeWidth={2.2} /> Ảnh hóa đơn gốc
               </div>
               <div className="flex-1 overflow-y-auto p-3 flex items-start justify-center">
-                <img src={preview} alt="Hóa đơn" className="max-w-full rounded-lg border border-slate-700 object-contain" />
+                <img src={preview} alt="Hóa đơn" className="max-w-full rounded-lg border border-border object-contain" />
               </div>
-              <div className="px-4 py-2 border-t border-slate-800">
+              <div className="px-4 py-2 border-t border-border">
                 <button
                   onClick={() => { setStage('upload'); setRows([]); setAiData(null) }}
-                  className="text-[11px] text-slate-500 hover:text-cblue transition-colors"
+                  className="text-[12px] text-muted hover:text-cblue transition-colors flex items-center gap-1"
                 >
-                  ↩ Quét lại ảnh khác
+                  <ChevronLeft size={12} strokeWidth={2.2} /> Quét lại ảnh khác
                 </button>
               </div>
             </div>
 
             {/* Cột phải — Dữ liệu trích xuất */}
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-              <div className="px-4 py-2.5 border-b border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wide flex items-center justify-between">
-                <span>📋 Dữ liệu AI trích xuất</span>
+              <div className="px-4 py-2.5 border-b border-border text-[12px] font-bold text-muted uppercase tracking-wide flex items-center justify-between">
+                <span className="flex items-center gap-1.5"><ClipboardList size={13} strokeWidth={2.2} /> Dữ liệu AI trích xuất</span>
                 {aiData?.total_amount > 0 && (
                   <span className="text-cyellow font-mono font-black normal-case">{fmtVNDFull(aiData.total_amount)}</span>
                 )}
@@ -609,45 +615,45 @@ export default function OcrInvoiceModal({
                   <div className="flex flex-col gap-2">
                     {/* Supplier match */}
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Nhà cung cấp</label>
+                      <label className="text-[12px] text-muted font-semibold uppercase tracking-wide">Nhà cung cấp</label>
                       <div className="relative">
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/60 text-sm">
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-surface2 text-sm">
                           {supplierMatch ? (
                             <>
                               <ScoreBadge score={supplierMatch.score} />
-                              <span className="flex-1 text-[#1e293b] font-semibold truncate">{supplierMatch.item.name}</span>
+                              <span className="flex-1 text-text font-semibold truncate">{supplierMatch.item.name}</span>
                             </>
                           ) : (
-                            <span className="flex-1 text-slate-500 text-xs">
+                            <span className="flex-1 text-muted text-xs">
                               {aiData?.supplier_name ? `AI đọc: "${aiData.supplier_name}" — không khớp` : 'Không có tên NCC trên HĐ'}
                             </span>
                           )}
                           <button
                             onClick={() => setSupplierPicker(v => !v)}
-                            className="text-[10px] text-cblue hover:underline shrink-0"
+                            className="text-[12px] text-cblue hover:underline shrink-0"
                           >
                             {supplierMatch ? 'Đổi' : 'Chọn'}
                           </button>
                         </div>
                         {supplierPicker && (
-                          <div className="absolute left-0 right-0 top-full mt-1 bg-[#ffffff] border border-cblue/40 rounded-xl z-20 shadow-xl overflow-hidden">
-                            <div className="p-2 border-b border-slate-800">
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-cblue/40 rounded-xl z-20 shadow-xl overflow-hidden">
+                            <div className="p-2 border-b border-border">
                               <input autoFocus value={supSearch} onChange={e => setSupSearch(e.target.value)}
                                 placeholder="Tìm nhà cung cấp…"
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] outline-none focus:border-cblue placeholder:text-slate-600"
+                                className="w-full bg-white border border-[#d1d5db] rounded-lg px-2.5 py-1.5 text-xs text-text outline-none focus:border-cblue placeholder:text-subtle"
                               />
                             </div>
                             <div className="max-h-36 overflow-y-auto">
                               {filteredSuppliers.map(s => (
                                 <button key={s.id}
                                   onClick={() => { setSupplierMatch({ item: s, score: 100 }); setSupplierPicker(false); setSupSearch('') }}
-                                  className="w-full px-3 py-2 text-left text-xs hover:bg-cblue/10 transition-colors text-[#1e293b]"
+                                  className="w-full px-3 py-2 text-left text-xs hover:bg-cblue/10 transition-colors text-text"
                                 >
                                   {s.name}
                                 </button>
                               ))}
                               {filteredSuppliers.length === 0 && (
-                                <div className="px-3 py-3 text-xs text-slate-600 text-center">Không tìm thấy</div>
+                                <div className="px-3 py-3 text-xs text-subtle text-center">Không tìm thấy</div>
                               )}
                             </div>
                           </div>
@@ -658,24 +664,24 @@ export default function OcrInvoiceModal({
                     {/* Dates + payment */}
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Ngày đáo hạn TT</label>
+                        <label className="text-[12px] text-muted font-semibold uppercase tracking-wide">Ngày đáo hạn TT</label>
                         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-                          className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] outline-none focus:border-cteal"
+                          className="bg-white border border-[#d1d5db] rounded-lg px-2.5 py-1.5 text-xs text-text outline-none focus:border-cteal"
                         />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Đã trả trước (đ)</label>
+                        <label className="text-[12px] text-muted font-semibold uppercase tracking-wide">Đã trả trước (đ)</label>
                         <input type="number" min="0" value={paidAmount} onChange={e => setPaidAmount(e.target.value)}
-                          className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-mono outline-none focus:border-cteal"
+                          className="bg-white border border-[#d1d5db] rounded-lg px-2.5 py-1.5 text-xs text-text font-mono outline-none focus:border-cteal"
                         />
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Ghi chú</label>
+                      <label className="text-[12px] text-muted font-semibold uppercase tracking-wide">Ghi chú</label>
                       <input value={orderNote} onChange={e => setOrderNote(e.target.value)}
                         placeholder="Ghi chú thêm cho đơn nhập…"
-                        className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] outline-none focus:border-cteal placeholder:text-slate-600"
+                        className="bg-white border border-[#d1d5db] rounded-lg px-2.5 py-1.5 text-xs text-text outline-none focus:border-cteal placeholder:text-subtle"
                       />
                     </div>
                   </div>
@@ -683,15 +689,15 @@ export default function OcrInvoiceModal({
 
                 {/* ── SALE: customer name ── */}
                 {isSale && aiData?.customer_name && (
-                  <div className="px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/40 text-xs">
-                    <span className="text-slate-500">Khách hàng: </span>
-                    <span className="font-semibold text-[#1e293b]">{aiData.customer_name}</span>
+                  <div className="px-3 py-2 rounded-xl border border-border bg-surface2 text-xs">
+                    <span className="text-muted">Khách hàng: </span>
+                    <span className="font-semibold text-text">{aiData.customer_name}</span>
                   </div>
                 )}
 
                 {/* ── Product rows ── */}
                 <div className="flex flex-col gap-1">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center justify-between">
+                  <div className="text-[12px] font-bold text-muted uppercase tracking-wide flex items-center justify-between">
                     <span>Danh sách hàng hóa ({rows.length} dòng)</span>
                     <span className="text-cgreen normal-case font-normal">{selectedCount} khớp</span>
                   </div>
@@ -704,35 +710,33 @@ export default function OcrInvoiceModal({
                           row.product
                             ? row.selected
                               ? isSale ? 'bg-cpurple/8 border-cpurple/30 cursor-pointer' : 'bg-cteal/8 border-cteal/30 cursor-pointer'
-                              : 'bg-slate-800/60 border-slate-700 cursor-pointer hover:border-slate-600'
-                            : 'bg-slate-900/40 border-slate-800'
+                              : 'bg-surface2 border-border cursor-pointer hover:border-subtle'
+                            : 'bg-surface2/60 border-border'
                         }`}
                       >
                         {/* Checkbox */}
                         <div className={`w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${
                           row.product && row.selected
                             ? isSale ? 'bg-cpurple border-cpurple' : 'bg-cteal border-cteal'
-                            : 'border-slate-600'
+                            : 'border-subtle'
                         }`}>
                           {row.product && row.selected && (
-                            <svg className="w-2.5 h-2.5 text-black" viewBox="0 0 12 12" fill="none">
-                              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
+                            <Check size={10} strokeWidth={3} className="text-white" />
                           )}
                         </div>
 
                         {/* Names */}
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-semibold text-[#1e293b] truncate">{row.item.name}</div>
+                          <div className="text-xs font-semibold text-text truncate">{row.item.name}</div>
                           {row.product ? (
                             <div className="flex items-center gap-1 mt-0.5">
                               <ScoreBadge score={row.score} />
-                              <span className={`text-[10px] truncate ${isSale ? 'text-cpurple' : 'text-cteal'}`}>
+                              <span className={`text-[12px] truncate ${isSale ? 'text-cpurple' : 'text-cteal'}`}>
                                 → {row.product.name}
                               </span>
                             </div>
                           ) : (
-                            <div className="text-[10px] text-slate-600 mt-0.5">Không tự khớp được</div>
+                            <div className="text-[12px] text-subtle mt-0.5">Không tự khớp được</div>
                           )}
                         </div>
 
@@ -740,7 +744,7 @@ export default function OcrInvoiceModal({
                         <input type="number" min="1" value={row.qty}
                           onClick={e => e.stopPropagation()}
                           onChange={e => updateQty(i, e.target.value)}
-                          className="w-11 bg-slate-800 border border-slate-700 rounded-lg px-1 py-1 text-center text-xs text-[#1e293b] outline-none focus:border-cblue shrink-0"
+                          className="w-11 bg-white border border-[#d1d5db] rounded-lg px-1 py-1 text-center text-xs text-text outline-none focus:border-cblue shrink-0"
                         />
 
                         {/* Price editable */}
@@ -749,17 +753,14 @@ export default function OcrInvoiceModal({
                             onClick={e => e.stopPropagation()}
                             onChange={e => updatePrice(i, e.target.value)}
                             title={isSale ? 'Giá bán' : 'Giá nhập'}
-                            className="w-20 bg-slate-800 border border-slate-700 rounded-lg px-1 py-1 text-right text-xs font-mono text-cblue outline-none focus:border-cblue shrink-0"
+                            className="w-20 bg-white border border-[#d1d5db] rounded-lg px-1 py-1 text-right text-xs font-mono text-cblue outline-none focus:border-cblue shrink-0"
                           />
                         )}
 
                         {/* Manual picker btn */}
                         <button onClick={e => { e.stopPropagation(); setPickerIdx(pickerIdx === i ? -1 : i); setPickerSearch('') }}
-                          className="shrink-0 w-6 h-6 rounded-lg border border-slate-700 text-slate-500 hover:border-cblue/60 hover:text-cblue transition-colors flex items-center justify-center">
-                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none">
-                            <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-                            <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                          </svg>
+                          className="shrink-0 w-6 h-6 rounded-lg border border-border text-subtle hover:border-cblue/60 hover:text-cblue transition-colors flex items-center justify-center">
+                          <Search size={12} strokeWidth={2.2} />
                         </button>
                       </div>
 
@@ -768,7 +769,7 @@ export default function OcrInvoiceModal({
                         <div className="flex gap-1 pl-8 pb-0.5 flex-wrap mt-0.5">
                           {row.matches.slice(1).map((m, mi) => (
                             <button key={mi} onClick={() => pickProduct(i, m.item)}
-                              className="text-[9px] px-2 py-0.5 rounded-full border border-slate-700 text-slate-500 hover:border-cblue/50 hover:text-cblue transition-colors">
+                              className="text-[12px] px-2 py-0.5 rounded-full border border-border text-subtle hover:border-cblue/50 hover:text-cblue transition-colors">
                               {m.score}% {(m.item.name || '').slice(0, 20)}{m.item.name?.length > 20 ? '…' : ''}
                             </button>
                           ))}
@@ -777,11 +778,11 @@ export default function OcrInvoiceModal({
 
                       {/* Manual picker dropdown */}
                       {pickerIdx === i && (
-                        <div className="ml-6 bg-[#ffffff] border border-cblue/40 rounded-xl overflow-hidden shadow-xl z-10 mt-0.5">
-                          <div className="p-1.5 border-b border-slate-800">
+                        <div className="ml-6 bg-white border border-cblue/40 rounded-xl overflow-hidden shadow-xl z-10 mt-0.5">
+                          <div className="p-1.5 border-b border-border">
                             <input autoFocus value={pickerSearch} onChange={e => setPickerSearch(e.target.value)}
                               placeholder="Tìm sản phẩm…"
-                              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-[#1e293b] placeholder:text-slate-600 outline-none focus:border-cblue"
+                              className="w-full bg-white border border-[#d1d5db] rounded-lg px-2 py-1.5 text-xs text-text placeholder:text-subtle outline-none focus:border-cblue"
                             />
                           </div>
                           <div className="max-h-32 overflow-y-auto">
@@ -789,16 +790,16 @@ export default function OcrInvoiceModal({
                               <button key={p.id} onClick={() => pickProduct(i, p)}
                                 className="w-full px-3 py-1.5 text-left hover:bg-cblue/10 transition-colors flex items-center justify-between gap-2">
                                 <div className="min-w-0">
-                                  <div className="text-xs font-semibold text-[#1e293b] truncate">{p.name}</div>
-                                  <div className="text-[10px] text-slate-500 font-mono">{p.sku}</div>
+                                  <div className="text-xs font-semibold text-text truncate">{p.name}</div>
+                                  <div className="text-[12px] text-muted font-mono">{p.sku}</div>
                                 </div>
-                                <div className="text-[10px] font-bold text-cblue shrink-0">
+                                <div className="text-[12px] font-bold text-cblue shrink-0">
                                   {fmtVNDFull(isSale ? p.sellPrice : p.importPrice)}
                                 </div>
                               </button>
                             ))}
                             {pickerProducts.length === 0 && (
-                              <div className="px-3 py-3 text-xs text-slate-600 text-center">Không tìm thấy</div>
+                              <div className="px-3 py-3 text-xs text-subtle text-center">Không tìm thấy</div>
                             )}
                           </div>
                         </div>
@@ -812,58 +813,56 @@ export default function OcrInvoiceModal({
         )}
 
         {/* Footer */}
-        <div className="shrink-0 px-5 py-4 border-t border-slate-800 flex gap-2.5">
+        <div className="shrink-0 px-5 py-4 border-t border-border flex gap-2.5">
           {stage === 'qr-result' ? (
             <>
-              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors">
+              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-muted text-sm hover:text-text transition-colors">
                 Đóng
               </button>
               <button
                 onClick={() => { setMode('AI'); setStage('upload'); setQrData(null) }}
-                className="flex-1 py-2.5 rounded-xl border border-cblue/40 text-cblue text-sm font-semibold hover:bg-cblue/10 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-cblue/40 text-cblue text-sm font-semibold hover:bg-cblue/10 transition-colors flex items-center justify-center gap-1.5"
               >
-                🤖 Chuyển sang AI
+                <Sparkles size={14} strokeWidth={2.2} /> Chuyển sang AI
               </button>
             </>
           ) : stage !== 'review' ? (
             <>
-              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors">
+              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-muted text-sm hover:text-text transition-colors">
                 Huỷ
               </button>
               <button
                 onClick={handleScan}
                 disabled={!file || stage === 'scanning'}
-                className={`flex-1 py-2.5 rounded-xl text-black text-sm font-black transition-all disabled:opacity-40 flex items-center justify-center gap-2
+                className={`flex-1 py-2.5 rounded-xl text-white text-sm font-black transition-all disabled:opacity-40 flex items-center justify-center gap-2
                   ${isSale ? 'bg-cpurple hover:brightness-110' : 'bg-cteal hover:brightness-110'}`}
               >
                 {stage === 'scanning' ? (
                   <>
-                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="28" strokeDashoffset="10"/>
-                    </svg>
+                    <LoaderCircle size={16} strokeWidth={2.2} className="animate-spin" />
                     {isQR ? 'Đang đọc QR…' : 'AI đang đọc…'}
                   </>
-                ) : isQR ? '📷 Giải mã QR'
+                ) : isQR ? <><Camera size={14} strokeWidth={2.2} /> Giải mã QR</>
                   : billMode === 'merge' && queue.length > 1
-                    ? `🗂️ Gộp & phân tích ${queue.length} ảnh`
-                    : '🔍 Phân tích hóa đơn'}
+                    ? <><FolderOpen size={14} strokeWidth={2.2} /> Gộp & phân tích {queue.length} ảnh</>
+                    : <><Search size={14} strokeWidth={2.2} /> Phân tích hóa đơn</>}
               </button>
             </>
           ) : (
             <>
-              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm hover:text-[#1e293b] transition-colors">
+              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-muted text-sm hover:text-text transition-colors">
                 Huỷ
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={selectedCount === 0}
-                className={`flex-[2] py-2.5 rounded-xl text-black text-sm font-black transition-all disabled:opacity-40
+                className={`flex-[2] py-2.5 rounded-xl text-white text-sm font-black transition-all disabled:opacity-40 flex items-center justify-center gap-2
                   ${isSale ? 'bg-cpurple hover:brightness-110' : 'bg-cteal hover:brightness-110'}`}
               >
                 {selectedCount > 0
                   ? isSale
-                    ? `🛒 Thêm ${selectedCount} sp vào giỏ`
-                    : `📦 Tạo đơn nhập ${selectedCount} sản phẩm`
+                    ? <><ShoppingCart size={14} strokeWidth={2.2} /> Thêm {selectedCount} sp vào giỏ</>
+                    : <><Package size={14} strokeWidth={2.2} /> Tạo đơn nhập {selectedCount} sản phẩm</>
                   : 'Chọn sản phẩm để tiếp tục'
                 }
               </button>

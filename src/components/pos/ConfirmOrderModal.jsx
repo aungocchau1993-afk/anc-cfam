@@ -10,14 +10,14 @@ export default function ConfirmOrderModal({ cart, customer, actualDiscount, tota
           <div className="w-12 h-12 rounded-2xl bg-cblue/10 text-cblue flex items-center justify-center mx-auto mb-3">
             <ShoppingCart size={22} strokeWidth={2} />
           </div>
-          <div className="text-base font-bold text-[#1e293b]">Xác nhận đơn hàng</div>
+          <div className="text-base font-bold text-[#111827]">Xác nhận đơn hàng</div>
           <div className="text-xs text-slate-500 mt-1.5">Bạn có chắc muốn thực hiện đơn hàng này không?</div>
         </div>
 
         <div className="mx-5 mb-4 rounded-xl bg-surface2 border border-slate-800 px-4 py-3 flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">
             <span className="text-slate-500">Số mặt hàng</span>
-            <span className="font-semibold text-[#1e293b]">{cart.length} loại · {cart.reduce((s,i)=>s+i.quantity,0)} sp</span>
+            <span className="font-semibold text-[#111827]">{cart.length} loại · {cart.reduce((s,i)=>s+i.quantity,0)} sp</span>
           </div>
           {customer && (
             <div className="flex justify-between">
@@ -28,7 +28,7 @@ export default function ConfirmOrderModal({ cart, customer, actualDiscount, tota
           {actualDiscount > 0 && (
             <div className="flex justify-between">
               <span className="text-slate-500">Giảm giá</span>
-              <span className="font-semibold text-amber-600">− {fmtVNDFull(actualDiscount)}</span>
+              <span className="font-semibold text-amber-700">− {fmtVNDFull(actualDiscount)}</span>
             </div>
           )}
           <div className="flex justify-between pt-1.5 border-t border-slate-800 mt-0.5">

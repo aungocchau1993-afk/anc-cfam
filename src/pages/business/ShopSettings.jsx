@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { getShopConfig, saveShopConfig } from '../../lib/printReceipt'
+import PageHeader from '../../components/ui/PageHeader'
+import {
+  Settings, Store, Image as ImageIcon, CreditCard, Printer,
+  FileText, Trash2, Smartphone, Check, Lightbulb,
+} from 'lucide-react'
 
 export default function ShopSettings() {
   const [cfg, setCfg]     = useState(() => getShopConfig())
@@ -20,15 +25,13 @@ export default function ShopSettings() {
   const inp = 'input-base'
 
   return (
+    <div className="w-full">
+      <PageHeader icon={Settings} title="Cài Đặt" subtitle="Thông tin xuất hiện trên hóa đơn in" />
     <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
-      <div>
-        <h2 className="text-xl font-black text-[#1e293b]">⚙️ Cài đặt cửa hàng</h2>
-        <p className="text-sm text-muted mt-1">Thông tin xuất hiện trên hóa đơn in</p>
-      </div>
 
       {/* Thông tin cơ bản */}
       <div className="card space-y-4">
-        <div className="font-bold text-sm text-muted uppercase tracking-wider">🏪 Thông tin cửa hàng</div>
+        <div className="font-bold text-sm text-muted uppercase tracking-wider flex items-center gap-2"><Store size={15} /> Thông tin cửa hàng</div>
         <label className="block">
           <span className="text-xs text-muted mb-1 block">Tên cửa hàng</span>
           <input className={inp} value={cfg.name} onChange={e => set('name', e.target.value)} placeholder="Tên cửa hàng" />
@@ -49,7 +52,7 @@ export default function ShopSettings() {
 
       {/* Logo */}
       <div className="card space-y-4">
-        <div className="font-bold text-sm text-muted uppercase tracking-wider">🖼️ Logo</div>
+        <div className="font-bold text-sm text-muted uppercase tracking-wider flex items-center gap-2"><ImageIcon size={15} /> Logo</div>
         <div
           className="relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border hover:border-cblue/60 transition-colors cursor-pointer bg-surface2/50 hover:bg-cblue/5 py-6"
           onClick={() => document.getElementById('logo-upload-input').click()}
@@ -61,8 +64,8 @@ export default function ShopSettings() {
             </>
           ) : (
             <>
-              <span className="text-3xl">🖼️</span>
-              <span className="text-sm font-bold text-[#1e293b]">Click để tải logo lên</span>
+              <ImageIcon size={28} className="text-subtle" />
+              <span className="text-sm font-bold text-text">Click để tải logo lên</span>
               <span className="text-xs text-muted">PNG, JPG, SVG, WEBP — khuyến nghị nền trong suốt</span>
             </>
           )}
@@ -85,16 +88,16 @@ export default function ShopSettings() {
           <button
             type="button"
             onClick={() => set('logo', '')}
-            className="text-xs text-red-400 hover:text-red-300 transition-colors"
+            className="text-xs text-cred hover:brightness-110 transition-colors flex items-center gap-1"
           >
-            🗑️ Xóa logo
+            <Trash2 size={12} /> Xóa logo
           </button>
         )}
       </div>
 
       {/* Thanh toán QR */}
       <div className="card space-y-4">
-        <div className="font-bold text-sm text-muted uppercase tracking-wider">💳 Thanh toán QR (VietQR)</div>
+        <div className="font-bold text-sm text-muted uppercase tracking-wider flex items-center gap-2"><CreditCard size={15} /> Thanh toán QR (VietQR)</div>
         <div className="text-xs text-muted bg-cblue/10 border border-cblue/20 rounded-lg px-3 py-2">
           Điền thông tin ngân hàng để in QR thanh toán trên hóa đơn. Để trống nếu không cần.
         </div>
@@ -125,8 +128,8 @@ export default function ShopSettings() {
               </>
             ) : (
               <>
-                <span className="text-2xl">📱</span>
-                <span className="text-sm font-bold text-[#1e293b]">Upload ảnh QR từ máy</span>
+                <Smartphone size={24} className="text-subtle" />
+                <span className="text-sm font-bold text-text">Upload ảnh QR từ máy</span>
                 <span className="text-xs text-muted">Nếu không upload, hệ thống tự tạo QR từ số TK</span>
               </>
             )}
@@ -146,8 +149,8 @@ export default function ShopSettings() {
             />
           </div>
           {cfg.bankQrImage && (
-            <button type="button" onClick={() => set('bankQrImage', '')} className="text-xs text-red-400 hover:text-red-300 mt-1 transition-colors">
-              🗑️ Xóa ảnh QR
+            <button type="button" onClick={() => set('bankQrImage', '')} className="text-xs text-cred hover:brightness-110 mt-1 transition-colors flex items-center gap-1">
+              <Trash2 size={12} /> Xóa ảnh QR
             </button>
           )}
         </div>
@@ -155,39 +158,40 @@ export default function ShopSettings() {
 
       {/* Chế độ in mặc định */}
       <div className="card space-y-3">
-        <div className="font-bold text-sm text-muted uppercase tracking-wider">🖨️ Chế độ in mặc định</div>
+        <div className="font-bold text-sm text-muted uppercase tracking-wider flex items-center gap-2"><Printer size={15} /> Chế độ in mặc định</div>
         <div className="flex rounded-xl overflow-hidden border border-border">
           <button
             onClick={() => set('printMode', 'thermal')}
             className={`flex-1 py-3 text-sm font-bold transition-colors flex flex-col items-center gap-0.5
-              ${cfg.printMode === 'thermal' ? 'bg-cblue text-white' : 'bg-surface2 text-muted hover:text-[#1e293b]'}`}
+              ${cfg.printMode === 'thermal' ? 'bg-cblue text-white' : 'bg-surface2 text-muted hover:text-text'}`}
           >
-            <span className="text-lg">🖨️</span>
+            <Printer size={18} />
             <span>Nhiệt 80mm</span>
-            <span className="text-[10px] opacity-70">Khổ giấy nhiệt</span>
+            <span className="text-[12px] opacity-70">Khổ giấy nhiệt</span>
           </button>
           <button
             onClick={() => set('printMode', 'a4')}
             className={`flex-1 py-3 text-sm font-bold transition-colors flex flex-col items-center gap-0.5
-              ${cfg.printMode === 'a4' ? 'bg-cblue text-white' : 'bg-surface2 text-muted hover:text-[#1e293b]'}`}
+              ${cfg.printMode === 'a4' ? 'bg-cblue text-white' : 'bg-surface2 text-muted hover:text-text'}`}
           >
-            <span className="text-lg">📄</span>
+            <FileText size={18} />
             <span>A5 / PDF</span>
-            <span className="text-[10px] opacity-70">In giấy thường</span>
+            <span className="text-[12px] opacity-70">In giấy thường</span>
           </button>
         </div>
 
         {cfg.printMode === 'thermal' && (
           <div className="bg-surface2 rounded-xl p-4 text-xs text-muted space-y-2 border border-border">
-            <div className="font-bold text-[#1e293b] text-sm mb-1">📋 Hướng dẫn cài máy in nhiệt 80mm</div>
+            <div className="font-bold text-text text-sm mb-1 flex items-center gap-2"><FileText size={14} /> Hướng dẫn cài máy in nhiệt 80mm</div>
             <ol className="list-decimal list-inside space-y-1.5 leading-relaxed">
-              <li>Vào <strong className="text-[#1e293b]">Settings → Bluetooth & devices → Printers & scanners</strong> → chọn máy in nhiệt</li>
-              <li>Nhấn <strong className="text-[#1e293b]">Printing preferences</strong> → đổi Paper Size thành <strong className="text-[#1e293b]">80 x 200mm</strong> (hoặc "Receipt" tùy hãng)</li>
-              <li>Khi hộp thoại in xuất hiện → chọn đúng máy in → <strong className="text-[#1e293b]">không cần chỉnh gì thêm</strong></li>
-              <li>Để in tự động không hiện hộp thoại: dùng trình duyệt <strong className="text-[#1e293b]">Chrome</strong> → vào <code className="bg-black/30 px-1 rounded">chrome://settings/content/pdfDocuments</code> → bật <em>Download PDFs</em> và dùng extension như <em>PrintFriendly</em></li>
+              <li>Vào <strong className="text-text">Settings → Bluetooth & devices → Printers & scanners</strong> → chọn máy in nhiệt</li>
+              <li>Nhấn <strong className="text-text">Printing preferences</strong> → đổi Paper Size thành <strong className="text-text">80 x 200mm</strong> (hoặc "Receipt" tùy hãng)</li>
+              <li>Khi hộp thoại in xuất hiện → chọn đúng máy in → <strong className="text-text">không cần chỉnh gì thêm</strong></li>
+              <li>Để in tự động không hiện hộp thoại: dùng trình duyệt <strong className="text-text">Chrome</strong> → vào <code className="bg-surface px-1 rounded border border-border">chrome://settings/content/pdfDocuments</code> → bật <em>Download PDFs</em> và dùng extension như <em>PrintFriendly</em></li>
             </ol>
-            <div className="mt-2 bg-cyellow/10 border border-cyellow/20 rounded px-3 py-2 text-cyellow text-[11px]">
-              💡 Mẹo: Đặt máy in nhiệt làm <strong>máy in mặc định</strong> trong Windows để bấm Ctrl+P là in ngay
+            <div className="mt-2 bg-cyellow/10 border border-cyellow/20 rounded px-3 py-2 text-amber-700 text-[12px] flex items-start gap-1.5">
+              <Lightbulb size={13} className="shrink-0 mt-0.5" />
+              <span>Mẹo: Đặt máy in nhiệt làm <strong>máy in mặc định</strong> trong Windows để bấm Ctrl+P là in ngay</span>
             </div>
           </div>
         )}
@@ -198,8 +202,9 @@ export default function ShopSettings() {
         onClick={handleSave}
         className={`btn-primary w-full text-base font-black transition-all ${saved ? 'bg-cgreen' : ''}`}
       >
-        {saved ? '✅ Đã lưu' : '💾 Lưu cài đặt'}
+        {saved ? <><Check size={18} /> Đã lưu</> : 'Lưu cài đặt'}
       </button>
+    </div>
     </div>
   )
 }
